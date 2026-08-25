@@ -2,7 +2,7 @@
    Regola: l'HTML si prende dalla rete quando c'è (così un aggiornamento
    arriva subito), tutto il resto dalla cache (così l'app parte offline).
    La versione nel nome della cache è ciò che manda via una shell vecchia. */
-const VERSION = 'v3';
+const VERSION = 'v4';
 const CACHE = `wot-learn-${VERSION}`;
 
 const SHELL = [
@@ -16,6 +16,8 @@ const SHELL = [
   'mascot.js',
   'manifest.webmanifest',
   'world-of-trade-premium-logo.webp',
+  'logo-crest-small.webp',
+  'logo-crest-small.png',
   'world-of-trade-premium-logo.png',
   'world-of-trade-premium-icon-192.png',
   'world-of-trade-premium-icon-512.png',

@@ -136,6 +136,26 @@ That measurement did surface a pre-existing defect: `--muted-2` was `#9fb6e0`, w
 gave 3.40:1 over the brightest part of the radial glow at the top of the page. It is
 now `#c4d6f7` (4.75:1). This was wrong before the background existed.
 
+## The logo
+
+The source artwork is a crest on a black field with a warm radial glow baked in. On a
+navy page that reads as a black square with a brown halo, so it is cut out to
+transparency instead.
+
+The cutout is not a colour-key. The background is separated with three signals
+combined: it is never blue-dominant, it is smooth where the crest is full of detail
+(local standard deviation over a 9px window — the glow sits near 3, the silos and the
+anchor near 32), and it connects to the image border. Holes are then filled only if
+they are smaller than 2500px, so shadows inside the crest stay opaque while leftover
+patches of glow do not. A grey plume above the anchor survived the first two passes and
+needed the smoothness test extended to neutral, unsaturated, mid-dark regions.
+
+Sizes: 500px for the hero (displayed at 212px, so it holds up on a high-density
+screen), 220px for the app's top bar. WebP with a PNG fallback, both with alpha, and
+explicit `width`/`height` so nothing jumps while loading. `og:image` points at the
+512px icon rather than the crest, because a transparent logo renders badly on whatever
+background a social card gives it.
+
 ## The five exercise types
 
 - **choice** — multiple choice, the workhorse
