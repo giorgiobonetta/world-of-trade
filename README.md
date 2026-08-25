@@ -13,6 +13,22 @@ python -m http.server 8000
 
 then open `http://localhost:8000`. Deploys to Vercel as-is — no build step.
 
+## Two pages
+
+| File | URL | What it is |
+|---|---|---|
+| `index.html` | `/` | Landing page — pitch, curriculum, a live sample exercise, CTA |
+| `learn.html` | `/learn` | The app itself (the path, the lessons, progress) |
+
+`vercel.json` uses `cleanUrls` and **no rewrites**, so `/` serves the landing and
+`/learn` serves the app. Do not reuse the old simulator's `vercel.json` — its
+rewrites pointed at files that no longer exist and returned a 404.
+
+The landing page is fully self-contained: its CSS, its two Hélène SVGs and its
+scroll animations are all inline, so it renders even if `styles.css` fails. The
+only external request is the Fredoka webfont, and there is a system fallback.
+Every text/background pair on it clears WCAG AA (lowest measured 4.59:1).
+
 ## What's here
 
 **5 units, 19 lessons, 83 exercises.**
