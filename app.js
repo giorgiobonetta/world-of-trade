@@ -14,6 +14,45 @@
   const UNITS = window.CURRICULUM || [];
   const allLessons = UNITS.flatMap(u => u.lessons.map(l => ({ ...l, unitId: u.id })));
 
+  /* ── effetti ─────────────────────────────────────────────────────── */
+  const motionOK = () => !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+  function confetti(n = 44) {
+    if (!motionOK()) return;
+    const colours = ['#ffd45c','#4fe08a','#3f7ae0','#ff7b8f','#a98bff','#fff0b8'];
+    const layer = document.createElement('div');
+    layer.className = 'confetti';
+    for (let i = 0; i < n; i++) {
+      const bit = document.createElement('i');
+      bit.style.left = Math.random() * 100 + 'vw';
+      bit.style.background = colours[i % colours.length];
+      bit.style.animationDuration = (1.5 + Math.random() * 1.3) + 's';
+      bit.style.animationDelay = (Math.random() * .45) + 's';
+      bit.style.transform = `rotate(${Math.random() * 360}deg)`;
+      layer.appendChild(bit);
+    }
+    document.body.appendChild(layer);
+    setTimeout(() => layer.remove(), 3400);
+  }
+
+  function countUp(el, to, prefix = '', suffix = '') {
+    if (!el) return;
+    if (!motionOK()) { el.textContent = prefix + to + suffix; return; }
+    const start = performance.now(), dur = 750;
+    const step = now => {
+      const t = Math.min(1, (now - start) / dur);
+      const eased = 1 - Math.pow(1 - t, 3);
+      el.textContent = prefix + Math.round(to * eased) + suffix;
+      if (t < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+
+  function bump(el) {
+    if (!el || !motionOK()) return;
+    el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
+  }
+
   /* ── stato ───────────────────────────────────────────────────────── */
   const defaultState = () => ({ done: [], xp: 0, streak: 0, lastDay: null, best: {} });
   let state = load();
@@ -49,10 +88,27 @@
   }
 
   /* ── schermata percorso ──────────────────────────────────────────── */
+  let _lastXp = null;
   function renderPath() {
-    $('#statStreak').textContent = state.streak || 0;
-    $('#statXp').textContent = state.xp || 0;
+    const xpEl = $('#statXp'), stEl = $('#statStreak');
+    stEl.textContent = state.streak || 0;
+    if (_lastXp !== null && state.xp > _lastXp) { countUp(xpEl, state.xp); bump(xpEl.parentElement); }
+    else xpEl.textContent = state.xp || 0;
+    _lastXp = state.xp || 0;
     const next = nextLessonId();
+    const greetHost = $('#pathGreet');
+    if (greetHost && window.MASCOT) {
+      const done = state.done.length;
+      const line = done === 0
+        ? 'I’m Hélène. I ran a metals desk for eleven years. Let’s start with what a trade actually is.'
+        : done < allLessons.length
+          ? `${done} lesson${done === 1 ? '' : 's'} down. The next one builds on the last, so keep going.`
+          : 'You’ve finished the course. Come back to the ones you rushed — the numbers stick better the second time.';
+      greetHost.innerHTML = `<div class="greet">
+        <div class="greet-face">${window.MASCOT.svg('teach', 78)}</div>
+        <div class="greet-copy"><strong>${esc(window.MASCOT.name)}</strong><p>${esc(line)}</p></div>
+      </div>`;
+    }
     $('#pathBody').innerHTML = UNITS.map((u, ui) => {
       const nodes = u.lessons.map((l, li) => {
         const done = isDone(l.id);
@@ -114,6 +170,7 @@
     renderProgress();
     $('#feedback').hidden = true;
     const btn = $('#checkButton');
+    btn.className = 'btn primary';
     btn.textContent = 'Check';
     btn.disabled = true;
     renderExercise(run.current.ex);
@@ -287,11 +344,20 @@
     markAnswers(ex, ok);
     const fb = $('#feedback');
     fb.className = `feedback ${ok ? 'good' : 'bad'}`;
-    fb.innerHTML = `<div class="fb-head">${ok ? '✓ Correct' : '✕ Not quite'}</div><p>${esc(ex.why || '')}</p>`;
+    const M = window.MASCOT;
+    fb.innerHTML = `<div class="fb-inner">
+        <div class="fb-face">${M ? M.svg(ok ? 'happy' : 'oops', 74) : ''}</div>
+        <div class="fb-copy">
+          <div class="fb-head">${esc(M ? M.name : '')} <em>${esc(M ? (ok ? M.praise() : M.miss()) : (ok ? 'Correct' : 'Not quite'))}</em></div>
+          <p>${esc(ex.why || '')}</p>
+        </div>
+      </div>`;
     fb.hidden = false;
     const btn = $('#checkButton');
     btn.disabled = false;
+    btn.className = `btn ${ok ? 'go' : 'stop'}`;
     btn.textContent = run.hearts <= 0 ? 'Out of lives' : (run.queue.length ? 'Continue' : 'Finish');
+    if (!ok) { const h = $('#hearts'); h.classList.remove('lost'); void h.offsetWidth; h.classList.add('lost'); }
     renderProgress();
     if (run.hearts <= 0) setTimeout(() => failLesson(), 900);
   }
@@ -325,8 +391,11 @@
     save();
     $('#doneTitle').textContent = lesson.title;
     $('#doneGoal').textContent = lesson.goal || '';
-    $('#doneXp').textContent = `+${gained}`;
-    $('#doneAcc').textContent = `${acc}%`;
+    const crest = $('.done-crest');
+    if (crest && window.MASCOT) crest.innerHTML = window.MASCOT.svg('happy', 128);
+    countUp($('#doneXp'), gained, '+');
+    countUp($('#doneAcc'), acc, '', '%');
+    confetti(acc === 100 ? 60 : 40);
     run = null;
     show('doneScreen');
   }
