@@ -150,11 +150,29 @@ they are smaller than 2500px, so shadows inside the crest stay opaque while left
 patches of glow do not. A grey plume above the anchor survived the first two passes and
 needed the smoothness test extended to neutral, unsaturated, mid-dark regions.
 
-Sizes: 500px for the hero (displayed at 212px, so it holds up on a high-density
-screen), 220px for the app's top bar. WebP with a PNG fallback, both with alpha, and
-explicit `width`/`height` so nothing jumps while loading. `og:image` points at the
-512px icon rather than the crest, because a transparent logo renders badly on whatever
-background a social card gives it.
+Sizes: `logo-crest-500` for the hero (displayed at 212px, so it holds up on a
+high-density screen), `logo-crest-220` for the app's top bar. WebP with a PNG fallback,
+both with alpha, and explicit `width`/`height` so nothing jumps while loading.
+`og:image` points at the 512px icon rather than the crest, because a transparent logo
+renders badly on whatever background a social card gives it.
+
+**Why the filenames carry their size.** The first cut-out kept the original filenames,
+and the result was that the top bar updated while the hero did not — the top bar had a
+new filename, the hero did not, and `vercel.json` was serving every `.png` and `.webp`
+with `max-age=31536000, immutable`. The browser was entitled to keep the old bytes for
+a year and did. Two changes came out of that:
+
+- Logos are named for their content (`logo-crest-500.webp`). Change the image, change
+  the name — that is the only reliable cache bust.
+- The catch-all image rule is no longer `immutable`. It is now
+  `max-age=604800, stale-while-revalidate=2592000`, so a file that is overwritten
+  despite the rule above still corrects itself within a week instead of a year.
+
+Both are asserted in `logo.mjs`. `pixels.mjs` goes further and reads the actual alpha
+channel: a logo must have a transparent border and at least a quarter of its area cut
+away, while the app icons must stay fully opaque because a launcher icon needs its
+background. Checking that a file exists says nothing about whether the black square
+is gone.
 
 ## The five exercise types
 
