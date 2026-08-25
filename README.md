@@ -19,6 +19,7 @@ then open `http://localhost:8000`. Deploys to Vercel as-is — no build step.
 |---|---|---|
 | `index.html` | `/` | Landing page — pitch, curriculum, a live sample exercise, CTA |
 | `learn.html` | `/learn` | The app itself (the path, the lessons, progress) |
+| `sw.js`, `pwa.js`, `manifest.webmanifest` | — | Installability and offline |
 
 `vercel.json` uses `cleanUrls` and **no rewrites**, so `/` serves the landing and
 `/learn` serves the app. Do not reuse the old simulator's `vercel.json` — its
@@ -31,7 +32,7 @@ Every text/background pair on it clears WCAG AA (lowest measured 4.59:1).
 
 ## What's here
 
-**5 units, 19 lessons, 83 exercises.**
+**8 units, 31 lessons, 145 exercises.**
 
 | Unit | Lessons |
 |---|---|
@@ -40,13 +41,75 @@ Every text/background pair on it clears WCAG AA (lowest measured 4.59:1).
 | 3 · Pricing | Benchmark and premium · The quotational period · Basis · Contango and backwardation |
 | 4 · Hedging | Why hedge at all · Hedge ratio · Variation margin · When the hedge does not fit |
 | 5 · Trade finance | The working capital gap · Letters of credit · Counterparty credit |
+| 6 · Execution and documents | Nomination and laycan · NOR and demurrage · The bill of lading · Quantity, quality and claims |
+| 7 · Freight and chartering | Voyage or time charter · How freight is quoted · TCE and bunkers · Position, ballast and freight risk |
+| 8 · Desk risk | The net position · Concentration and limits · VaR and stress tests · How a desk actually dies |
 
 The arc is deliberate. Unit 1 is the shape of the business, unit 2 the first real
 professional vocabulary. Unit 3 is where pricing stops being a number and becomes
 a negotiated structure. Unit 4 is the intellectual centre — a hedge protects the
 margin but not the cash position, and that distinction is what separates people
 who have hedged from people who have read about hedging. Unit 5 is why the
-business needs banks at all.
+business needs banks at all. Unit 6 is execution — the place where a good trade is
+quietly lost to a clock or a document. Unit 7 closes the loop: the risks that
+actually end desks are cash, concentration and paperwork, not being wrong on price.
+Unit 7 sits between them because freight is the largest variable cost in the margin
+and has its own market, its own volatility and its own hedge.
+
+Note for maintainers: unit 7 in the path carries the internal id `u8` and unit 8
+carries `u7`. Freight was written last and inserted before Desk risk, which has to
+close the course. The ids were left alone on purpose — they are the keys saved
+progress is stored under, and renaming them would wipe every existing learner's
+history. Unit numbers in the UI are positional, so the display is correct.
+
+## Review and checkpoints
+
+Finishing the 31 lessons once is not learning them, so there are two ways back in.
+
+**Practice** builds an 8-exercise session out of what you are weakest on. Every wrong
+answer is recorded under a stable key (`u4l3#2`) and weighted four times heavier than
+a fresh one; lesson age adds a smaller weight, so units you cleared last week resurface
+before ones you cleared this morning. The selection then rotates on `state.reviews`, so
+two sessions in a row are never identical. Taking an exercise first time in Practice
+decrements its debt; missing it again increments it. XP is capped at half a new lesson —
+enough to be worth doing, not enough to farm.
+
+**Checkpoints** unlock when every lesson in a unit is done: 8 questions drawn round-robin
+across the unit's lessons so none is skipped, 5 lives rather than 3, and 75% first-try to
+earn the badge. Five lives is deliberate — with 3 the run dies before it can report a
+score, which tells the learner nothing.
+
+Lessons with outstanding mistakes are marked on the path, and a lesson older than
+3 days counts as due. Neither Practice nor a checkpoint can change which lessons are
+completed; they only move XP, badges and the mistake list.
+
+## Installing and offline
+
+`manifest.webmanifest` and `sw.js` make it a real installable app. On Android and
+desktop Chrome an "Install as an app" button appears on the path screen once the
+browser decides it qualifies; on iOS it is Share → Add to Home Screen. Once installed
+it opens standalone, with no browser chrome, and runs with no signal.
+
+The service worker splits its strategy on purpose:
+
+- **HTML is network-first.** A new deploy is picked up on the next load. Cache-first
+  HTML is how a PWA gets stuck showing a version from three weeks ago, and it is very
+  hard to talk a user out of afterwards.
+- **Everything else is cache-first**, revalidated in the background. That is what makes
+  it start instantly and work offline.
+- The cache name carries a version (`wot-learn-v3`). Bump `VERSION` in `sw.js` on any
+  release that changes the shell — `activate` deletes every cache that is not the
+  current one, which is the mechanism that evicts a stale client.
+- Precache adds files one at a time rather than with `addAll`, so one missing file
+  cannot silently void the entire install step.
+
+`start_url` is `learn.html`, not `/` — the root is the landing page, and an installed
+app should open the app, not the pitch. `scope` is `./` so it still works if the site
+is ever served from a subfolder. `vercel.json` keeps `sw.js`, `pwa.js` and the manifest
+on `max-age=0`; a long-cached service worker cannot update itself.
+
+If none of this is supported, `pwa.js` does nothing and the app behaves exactly as
+before. It is additive, never required.
 
 ## The five exercise types
 
@@ -130,3 +193,25 @@ is concerned rather than disapproving: getting it wrong should feel survivable.
 
 Swapping her look means editing one file. The reactions are two arrays at the
 bottom of it.
+
+## Notes on accuracy
+
+All 20 `numeric` exercises are checked against independently written formulas in the
+test suite, not against itself. Content that is charterparty- or contract-dependent
+(laytime commencement, despatch, time bars, whose certificate is final) is worded as
+"usually" or "unless the contract says otherwise" rather than as a rule, because on a
+real desk that is exactly how it works. The Metallgesellschaft exercise names both
+causes — the price fall that triggered the margin calls and the contango that made
+the roll expensive — since attributing it to contango alone is the common textbook
+oversimplification.
+
+Save files from before the review layer existed are covered by `review.mjs`: a state
+object with no `misses`, `doneAt` or `badges` must load, keep its XP and streak, and be
+treated as due for review rather than crashing. Wrong types (`done` as a string, `best`
+as a number) are normalised rather than trusted.
+
+Two engine bugs were found while writing these units and are covered by
+`edge.mjs` regression tests: a `build` sentence could not repeat a word (the tile
+bank filtered by text, so placing "a" removed every "a"), and a `pairs` exercise
+with two identical right-hand labels rejected a correct match on the second one —
+which had been silently marking correct answers wrong in Unit 2.
