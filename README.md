@@ -111,6 +111,31 @@ on `max-age=0`; a long-cached service worker cannot update itself.
 If none of this is supported, `pwa.js` does nothing and the app behaves exactly as
 before. It is additive, never required.
 
+## The background
+
+Both pages carry an inline SVG scene behind the content: a nautical grid and compass,
+a dashed trade route with an origin and a destination, the carry curve, and a port on
+the horizon — two ship-to-shore cranes, grain silos, storage tanks, a container stack —
+with a bulk carrier on the water. The ship drifts and the route dashes travel, both
+stopped under `prefers-reduced-motion`.
+
+It is inline rather than a background image so it inherits the palette and can be
+animated, and it is `aria-hidden` with `focusable="false"` so it is invisible to
+assistive technology and to the tab order. The gradient ids are prefixed per page
+(`a…` in the app, `l…` on the landing) because two copies of the same ids on one
+document would collide.
+
+Nothing in it exceeds 0.35 opacity, and that ceiling is enforced by a test. Contrast
+was measured rather than eyeballed: the scene is rendered over a reconstruction of the
+real page gradient, box-blurred by roughly the width of a glyph stem — a single bright
+pixel cannot obscure a letter, a bright *region* can — and the worst-case luminance in
+the text band is compared against every text colour. The port adds nothing to the worst
+case; it is identical to the background without it.
+
+That measurement did surface a pre-existing defect: `--muted-2` was `#9fb6e0`, which
+gave 3.40:1 over the brightest part of the radial glow at the top of the page. It is
+now `#c4d6f7` (4.75:1). This was wrong before the background existed.
+
 ## The five exercise types
 
 - **choice** — multiple choice, the workhorse

@@ -3,7 +3,7 @@
   --royal:#1d4fa8; --royal-mid:#2660c9; --royal-deep:#12356f; --royal-lite:#3f7ae0;
   --gold:#ffd45c; --gold-hi:#fff0b8; --gold-mid:#f5a623; --gold-deep:#a35f04;
   --cream:#fffaf0; --ink:#08183f;
-  --text:#ffffff; --muted:#bdd2f5; --muted-2:#9fb6e0;
+  --text:#ffffff; --muted:#bdd2f5; --muted-2:#c4d6f7;
   --green:#4fe08a; --green-hi:#a8f7c8; --green-deep:#1a7a4a;
   --red:#ff7b8f; --red-hi:#ffc2cc; --red-deep:#a0243a;
   --purple:#a98bff;
@@ -402,3 +402,21 @@ input:focus{outline:none;border-color:var(--gold);box-shadow:inset 0 3px 6px rgb
 .install-btn:hover{filter:brightness(1.06)}
 .install-btn:active{transform:translateY(4px);box-shadow:0 1px 0 #a35f04}
 .install-btn:focus-visible{outline:3px solid #fff;outline-offset:3px}
+
+/* ── sfondo: un porto, una rotta, la curva del carry ──────────────── */
+.backdrop{
+  position:fixed; inset:0; width:100%; height:100%;
+  z-index:-1; pointer-events:none;
+}
+.backdrop .bd-ship{animation:bdDrift 34s ease-in-out infinite}
+.backdrop .bd-route{animation:bdRoute 90s linear infinite}
+@keyframes bdDrift{
+  0%,100%{transform:translate(0,0)}
+  50%{transform:translate(40px,-5px)}
+}
+@keyframes bdRoute{ to{stroke-dashoffset:-400} }
+@media (prefers-reduced-motion:reduce){
+  .backdrop .bd-ship,.backdrop .bd-route{animation:none}
+}
+/* su schermi molto stretti il porto ruberebbe spazio alla lettura */
+@media (max-width:420px){ .backdrop{opacity:.62} }
