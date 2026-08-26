@@ -39,9 +39,16 @@ Every text/background pair on it clears WCAG AA (lowest measured 4.59:1).
 
 **20 units, 103 Career levels, 505 Career exercises — plus regenerated Trading Floor runs.**
 
+### Competitive layer v5
+
+The app now includes a fifth main tab, **League**. Competitive XP is seasonal: a week starts on Monday and only XP earned during that week counts. Six divisions are available — Bronze, Silver, Gold, Platinum, Diamond and Master — with promotion/relegation evaluated at rollover. The screen also contains six original Trading Houses and 18 achievements spanning Career, Flash, Trading Floor, Boss, Daily, streak, XP and skill mastery.
+
+The League works immediately as a clearly-labelled **local preview**. If Supabase is configured and the optional `league_scores` table from `SUPABASE-SETUP.md` is installed, authenticated users are published to a real shared weekly leaderboard using only a public trader alias, house id, tier and score. Email is never written to the public standings. Missing league infrastructure never blocks normal cloud progress sync.
+
+
 ### Career game layer
 
-### Trading House Academy v4
+### Trading House Academy v5
 
 After Merchant Foundations, the Career Path now continues through three layers:
 

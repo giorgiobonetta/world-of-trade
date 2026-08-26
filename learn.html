@@ -299,6 +299,28 @@
   <div class="wrap tab-wrap"><div id="practiceHub"></div></div>
 </main>
 
+
+<!-- LEAGUE / COMPETE -->
+<main id="leagueScreen" class="screen">
+  <header class="section-top"><div><span class="eyebrow">Competitive desk</span><h1>League</h1></div><div class="mini-xp">★ <b id="leagueXp">0</b></div></header>
+  <div class="wrap tab-wrap">
+    <section id="leagueHero" class="league-hero"></section>
+    <section class="league-panel">
+      <div class="card-title"><div><span class="eyebrow">Weekly standings</span><h2>Your League</h2></div><small id="leagueStatus">Local preview</small></div>
+      <div id="leagueBoard" class="league-board"></div>
+    </section>
+    <section class="league-panel">
+      <div class="card-title"><div><span class="eyebrow">Team competition</span><h2>Trading Houses</h2></div><small id="houseStatus">Choose your house</small></div>
+      <div id="housePicker" class="house-picker"></div>
+      <div id="houseBoard" class="house-board"></div>
+    </section>
+    <section class="league-panel">
+      <div class="card-title"><div><span class="eyebrow">Career trophies</span><h2>Achievements</h2></div><small id="achievementCount">0 / 0</small></div>
+      <div id="achievementGrid" class="achievement-grid"></div>
+    </section>
+  </div>
+</main>
+
 <!-- PROFILE -->
 <main id="profileScreen" class="screen">
   <header class="section-top"><div><span class="eyebrow">Career record</span><h1>Profile</h1></div></header>
@@ -378,6 +400,7 @@
   <button class="nav-item active" data-screen="pathScreen"><span>⌁</span><b>Path</b></button>
   <button class="nav-item" data-screen="playScreen"><span>⚡</span><b>Play</b></button>
   <button class="nav-item" data-screen="practiceScreen"><span>↻</span><b>Practice</b></button>
+  <button class="nav-item" data-screen="leagueScreen"><span>♛</span><b>League</b></button>
   <button class="nav-item" data-screen="profileScreen"><span>♙</span><b>Profile</b></button>
 </nav>
 
@@ -404,6 +427,7 @@
 <script src="curriculum.js"></script>
 <script src="content-engine.js"></script>
 <script src="career.js"></script>
+<script src="competitive.js"></script>
 <script src="app.js"></script>
 <script src="pwa.js"></script>
 <script src="cloud.js"></script>

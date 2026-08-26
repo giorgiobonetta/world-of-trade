@@ -126,6 +126,18 @@
     t('the path drew every lesson', d.querySelectorAll('.node').length === 103,
       d.querySelectorAll('.node').length + ' nodes');
     t('Hélène is on the path', !!d.querySelector('#pathGreet svg'));
+    t('five main game tabs are present', d.querySelectorAll('.nav-item').length === 5,
+      d.querySelectorAll('.nav-item').length + ' tabs');
+    const lb = d.querySelector('[data-screen="leagueScreen"]');
+    if (lb) {
+      lb.click(); await attendi(80);
+      t('League screen opens', d.querySelector('#leagueScreen')?.classList.contains('active'));
+      t('League renders 6 Trading Houses', d.querySelectorAll('.house-choice').length === 6,
+        d.querySelectorAll('.house-choice').length + ' houses');
+      t('League renders 18 achievements', d.querySelectorAll('.achievement').length === 18,
+        d.querySelectorAll('.achievement').length + ' achievements');
+      d.querySelector('[data-screen="pathScreen"]')?.click(); await attendi(40);
+    }
     const marchio = d.querySelector('.brand');
     t('the logo actually loaded', !!marchio && marchio.complete && marchio.naturalWidth > 0,
       marchio ? `${marchio.naturalWidth}×${marchio.naturalHeight}` : 'missing');

@@ -39,6 +39,7 @@
   const ON = !!(CFG.url && CHIAVE) && !SANDBOX && !PERICOLO;
   const SESS = 'wot-cloud-session';
   const TABLE = 'progress';
+  const LEAGUE_TABLE = 'league_scores';
 
   const $ = s => document.querySelector(s);
   const esc = v => String(v ?? '').replace(/[&<>"']/g,
@@ -155,6 +156,37 @@
     }));
   }
 
+
+  /* ── classifica settimanale (tabella opzionale) ─────────────────── */
+  async function leagueRows(week, tier) {
+    if (!week) return [];
+    let path = `/rest/v1/${LEAGUE_TABLE}?select=user_id,week,alias,house,tier,score,updated_at&week=eq.${encodeURIComponent(week)}`;
+    if (tier) path += `&tier=eq.${encodeURIComponent(tier)}`;
+    path += '&order=score.desc&limit=500';
+    const rows = await call(path, { method:'GET', auth:false });
+    return Array.isArray(rows) ? rows : [];
+  }
+
+  async function houseRows(week) {
+    if (!week) return [];
+    const path = `/rest/v1/${LEAGUE_TABLE}?select=user_id,week,alias,house,tier,score&week=eq.${encodeURIComponent(week)}&order=score.desc&limit=1000`;
+    const rows = await call(path, { method:'GET', auth:false });
+    return Array.isArray(rows) ? rows : [];
+  }
+
+  async function pushLeague(entry) {
+    const uid = idUtente();
+    if (!uid || !entry?.week) return false;
+    const alias = String(entry.alias || 'Trader').trim().replace(/\s+/g,' ').slice(0,24) || 'Trader';
+    await withFreshToken(() => call(`/rest/v1/${LEAGUE_TABLE}`, {
+      method:'POST', auth:true,
+      headers:{ Prefer:'resolution=merge-duplicates,return=minimal' },
+      body:[{ user_id:uid, week:String(entry.week), alias, house:entry.house || null,
+        tier:String(entry.tier || 'bronze'), score:Math.max(0,Math.round(Number(entry.score)||0)), updated_at:new Date().toISOString() }],
+    }));
+    return true;
+  }
+
   /* ── fusione ──────────────────────────────────────────────────────── */
   // Regole: nessuna lezione completata può sparire, nessun XP contato due volte.
   // Per ogni valore numerico si tiene il migliore fra i due lati.
@@ -167,6 +199,22 @@
     };
     const bossCompleted = maxMap(a.boss?.completed, b.boss?.completed);
     const bossCleared = Object.values(bossCompleted).filter(v => Number(v) >= 60).length;
+
+    const mergeCompetitive = (x = {}, y = {}) => {
+      const hx = x.history || {}, hy = y.history || {};
+      const history = maxMap(hx, hy);
+      const wx = String(x.week || ''), wy = String(y.week || '');
+      const newer = wy > wx ? y : x;
+      if (wx && wy && wx === wy) {
+        const starts = [Number(x.startXp), Number(y.startXp)].filter(v => Number.isFinite(v) && v >= 0);
+        return { ...newer, week:wx, startXp:starts.length ? Math.min(...starts) : 0,
+          tier:newer.tier || x.tier || y.tier || 'bronze', alias:newer.alias || x.alias || y.alias || '', house:newer.house || x.house || y.house || '',
+          seasons:Math.max(Number(x.seasons)||0,Number(y.seasons)||0), history,
+          lastPlacement:Number(newer.lastPlacement)||Number(x.lastPlacement)||Number(y.lastPlacement)||null,
+          lastSeason:newer.lastSeason || x.lastSeason || y.lastSeason || null };
+      }
+      return { ...(newer || {}), history, seasons:Math.max(Number(x.seasons)||0,Number(y.seasons)||0) };
+    };
     const mergeDaily = (x = {}, y = {}) => {
       const dx = x.day || '', dy = y.day || '';
       if (dx && dy && dx !== dy) return { ...(dx > dy ? x : y) };
@@ -227,6 +275,7 @@
         deals: maxMap(a.dailyHistory?.deals, b.dailyHistory?.deals),
         perfect: maxMap(a.dailyHistory?.perfect, b.dailyHistory?.perfect),
       },
+      competitive: mergeCompetitive(a.competitive, b.competitive),
       updatedAt: Math.max(Number(a.updatedAt) || 0, Number(b.updatedAt) || 0),
     };
   }
@@ -275,6 +324,7 @@
         const fuso = merge(locale, remoto);
         if (window.__LEARN__) window.__LEARN__.replaceState(fuso);
         await push(fuso);
+        try { if (window.__LEARN__?.leagueEntry) await pushLeague(window.__LEARN__.leagueEntry()); } catch (leagueError) { /* optional table may not exist yet */ }
         dirty = false;
         stato('Saved to your account', 'ok');
         setTimeout(() => { if (!dirty) stato(''); }, 2600);
@@ -451,7 +501,7 @@
   }
 
   Object.assign(window.WOT_CLOUD_API, {
-    signUp, signIn, pull, push, sincronizza, merge, apri, chiudi, disegna, esci,
+    signUp, signIn, pull, push, leagueRows, houseRows, pushLeague, sincronizza, merge, apri, chiudi, disegna, esci,
     vaiA, leggiRitorno, idUtente, chiUtente,
   });
   // Object.assign copierebbe il VALORE del getter, non il getter:

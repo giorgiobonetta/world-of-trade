@@ -194,3 +194,64 @@ si sovrascrivono:
 
 La fusione è commutativa e idempotente: l'ordine non conta e rifarla non cambia niente.
 Entrambe le proprietà sono verificate dai test in `sync.mjs`.
+
+
+---
+
+## 8 · Classifica settimanale reale (opzionale, v5)
+
+La tabella `progress` resta privata. La League usa invece una seconda tabella minimale:
+non contiene email né stato della carriera, soltanto alias pubblico, Trading House,
+divisione e XP della settimana.
+
+In **SQL Editor** esegui anche questo blocco se vuoi attivare la classifica online:
+
+```sql
+create table public.league_scores (
+  week       text not null,
+  user_id    uuid not null references auth.users(id) on delete cascade,
+  alias      text not null check (char_length(alias) between 3 and 24),
+  house      text,
+  tier       text not null default 'bronze',
+  score      integer not null default 0 check (score >= 0),
+  updated_at timestamptz not null default now(),
+  primary key (week, user_id)
+);
+
+alter table public.league_scores enable row level security;
+
+-- La classifica deve poter essere letta anche da chi non ha fatto login.
+-- Non contiene email: l'interfaccia mostra solo alias/house/tier/score.
+create policy "league pubblica in lettura"
+  on public.league_scores for select
+  using (true);
+
+-- Un utente autenticato può pubblicare soltanto la propria riga.
+create policy "league inserisce solo se stesso"
+  on public.league_scores for insert
+  with check (auth.uid() = user_id);
+
+create policy "league aggiorna solo se stesso"
+  on public.league_scores for update
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+create index league_scores_week_tier_score_idx
+  on public.league_scores (week, tier, score desc);
+```
+
+### Privacy della League
+
+La tabella pubblica contiene solamente:
+
+- `alias` scelto dal giocatore;
+- house selezionata;
+- divisione competitiva;
+- XP settimanali;
+- identificativo tecnico `user_id` usato da Supabase per impedire che un utente
+  modifichi la riga di un altro.
+
+**Non contiene l'email.** L'app non mostra mai `user_id` nell'interfaccia.
+
+Se non crei questa tabella, il tab League continua a funzionare come **Local preview**
+e il normale salvataggio cloud della carriera resta operativo.

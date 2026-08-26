@@ -20,6 +20,7 @@
 
   const UNITS = window.CURRICULUM || [];
   const GAME = window.WOT_GAME || { skills:{}, unitMeta:{}, ranks:[], randomFlash:null, bossCatalog:[], makeBossDeal:null, makeDailyDeal:null, dailyMeta:null };
+  const COMP = window.WOT_COMP || { divisions:[], houses:[], achievements:[], weekKey:()=>'', weekRange:()=>'', division:id=>({id,name:'Bronze',promote:200}), seasonMove:id=>id, localOpponents:()=>[] };
   const CONTENT = window.WOT_CONTENT || { makeMasterySet:null, worldCatalog:[] };
   const allLessons = UNITS.flatMap(u => u.lessons.map(l => ({ ...l, unitId: u.id })));
   const skillIdForLesson = lessonId => {
@@ -83,6 +84,7 @@
     daily: { day:null, dealDone:false, dealBest:0, dealPlays:0, flashBest:0, flashCorrect:0, trainingRuns:0, bossRuns:0, claimed:{}, bonusClaimed:false },
     dailyStats: { deals:0, perfectDays:0 },
     dailyHistory: { deals:{}, perfect:{} },
+    competitive: { week:null, startXp:0, tier:'bronze', alias:'', house:'', seasons:0, history:{}, lastPlacement:null, lastSeason:null },
   });
   let state = load();
 
@@ -93,7 +95,7 @@
       const s = JSON.parse(raw);
       const obj = v => (v && typeof v === 'object' && !Array.isArray(v)) ? v : {};
       // i salvataggi piu' vecchi non hanno questi campi: vanno ricostruiti, non assunti
-      const flash = obj(s.flash), frontier = obj(s.frontier), boss = obj(s.boss), daily = obj(s.daily), dailyStats = obj(s.dailyStats), dailyHistory = obj(s.dailyHistory);
+      const flash = obj(s.flash), frontier = obj(s.frontier), boss = obj(s.boss), daily = obj(s.daily), dailyStats = obj(s.dailyStats), dailyHistory = obj(s.dailyHistory), competitive = obj(s.competitive);
       return { ...defaultState(), ...s,
         done: Array.isArray(s.done) ? s.done.filter(id => allLessons.some(l => l.id === id)) : [],
         best: obj(s.best), misses: obj(s.misses), doneAt: obj(s.doneAt), badges: obj(s.badges),
@@ -105,11 +107,13 @@
         daily: { day:daily.day || null, dealDone:!!daily.dealDone, dealBest:Number(daily.dealBest)||0, dealPlays:Number(daily.dealPlays)||0, flashBest:Number(daily.flashBest)||0, flashCorrect:Number(daily.flashCorrect)||0, trainingRuns:Number(daily.trainingRuns)||0, bossRuns:Number(daily.bossRuns)||0, claimed:obj(daily.claimed), bonusClaimed:!!daily.bonusClaimed },
         dailyStats: { deals:Number(dailyStats.deals)||0, perfectDays:Number(dailyStats.perfectDays)||0 },
         dailyHistory: { deals:obj(dailyHistory.deals), perfect:obj(dailyHistory.perfect) },
+        competitive: { week:competitive.week || null, startXp:Number(competitive.startXp)||0, tier:competitive.tier || 'bronze', alias:String(competitive.alias||''), house:String(competitive.house||''), seasons:Number(competitive.seasons)||0, history:obj(competitive.history), lastPlacement:Number(competitive.lastPlacement)||null, lastSeason:obj(competitive.lastSeason) },
         reviews: Number(s.reviews) || 0, updatedAt: Number(s.updatedAt) || 0,
         streakNow: Number(s.streakNow) || 0, streakBest: Number(s.streakBest) || 0 };
     } catch (e) { return defaultState(); }
   }
   function save() {
+    ensureCompetitive();
     state.updatedAt = Date.now();
     try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
     // chi sincronizza col cloud ascolta questo, senza che il motore lo sappia
@@ -120,7 +124,7 @@
   function replaceState(next) {
     if (!next || typeof next !== 'object') return false;
     const obj = v => (v && typeof v === 'object' && !Array.isArray(v)) ? v : {};
-    const f = obj(next.flash), fr = obj(next.frontier), b = obj(next.boss), d = obj(next.daily), ds = obj(next.dailyStats), dh = obj(next.dailyHistory);
+    const f = obj(next.flash), fr = obj(next.frontier), b = obj(next.boss), d = obj(next.daily), ds = obj(next.dailyStats), dh = obj(next.dailyHistory), cp = obj(next.competitive);
     state = { ...defaultState(), ...next,
       done: Array.isArray(next.done) ? next.done.filter(id => allLessons.some(l => l.id === id)) : [],
       best: obj(next.best), misses: obj(next.misses), doneAt: obj(next.doneAt), badges: obj(next.badges),
@@ -130,7 +134,9 @@
       boss: { plays:Number(b.plays)||0, cleared:Math.max(Number(b.cleared)||0, Object.values(obj(b.completed)).filter(v => Number(v) >= 60).length), best:Number(b.best)||0, completed:obj(b.completed) },
       daily: { day:d.day || null, dealDone:!!d.dealDone, dealBest:Number(d.dealBest)||0, dealPlays:Number(d.dealPlays)||0, flashBest:Number(d.flashBest)||0, flashCorrect:Number(d.flashCorrect)||0, trainingRuns:Number(d.trainingRuns)||0, bossRuns:Number(d.bossRuns)||0, claimed:obj(d.claimed), bonusClaimed:!!d.bonusClaimed },
       dailyStats: { deals:Number(ds.deals)||0, perfectDays:Number(ds.perfectDays)||0 },
-      dailyHistory: { deals:obj(dh.deals), perfect:obj(dh.perfect) } }; 
+      dailyHistory: { deals:obj(dh.deals), perfect:obj(dh.perfect) },
+      competitive: { week:cp.week || null, startXp:Number(cp.startXp)||0, tier:cp.tier || 'bronze', alias:String(cp.alias||''), house:String(cp.house||''), seasons:Number(cp.seasons)||0, history:obj(cp.history), lastPlacement:Number(cp.lastPlacement)||null, lastSeason:obj(cp.lastSeason) } };
+    ensureCompetitive(); 
     try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
     _lastXp = null;
     renderPath();
@@ -276,6 +282,147 @@
       }
     }
     return out;
+  }
+
+
+  /* ── competitive layer ───────────────────────────────────────────── */
+  function traderAlias() {
+    try {
+      const k = `${KEY}:alias-seed`;
+      let n = Number(localStorage.getItem(k));
+      if (!n) { n = Math.floor(100 + Math.random() * 900); localStorage.setItem(k, String(n)); }
+      return `Trader ${n}`;
+    } catch (e) { return `Trader ${Math.floor(100 + Math.random() * 900)}`; }
+  }
+
+  function ensureCompetitive() {
+    state.competitive ||= { week:null, startXp:Number(state.xp)||0, tier:'bronze', alias:'', house:'', seasons:0, history:{}, lastPlacement:null, lastSeason:null };
+    const c = state.competitive;
+    c.history ||= {};
+    c.tier = COMP.division?.(c.tier)?.id || 'bronze';
+    if (!c.alias) c.alias = traderAlias();
+    const wk = COMP.weekKey ? COMP.weekKey(new Date()) : localDayKey();
+    if (!c.week) { c.week = wk; c.startXp = Number(state.xp)||0; return c; }
+    if (c.week !== wk) {
+      const points = Math.max(0, (Number(state.xp)||0) - (Number(c.startXp)||0));
+      c.history[c.week] = Math.max(Number(c.history[c.week])||0, points);
+      const from = c.tier;
+      const to = COMP.seasonMove ? COMP.seasonMove(from, points, c.lastPlacement) : from;
+      c.lastSeason = { week:c.week, points, placement:c.lastPlacement || null, from, to };
+      c.tier = to;
+      c.seasons = (Number(c.seasons)||0) + 1;
+      c.week = wk;
+      c.startXp = Number(state.xp)||0;
+      c.lastPlacement = null;
+    }
+    return c;
+  }
+
+  function leagueScore() {
+    const c = ensureCompetitive();
+    return Math.max(0, (Number(state.xp)||0) - (Number(c.startXp)||0));
+  }
+
+  function leagueEntry() {
+    const c = ensureCompetitive();
+    return { week:c.week, alias:c.alias, house:c.house || null, tier:c.tier, score:leagueScore() };
+  }
+
+  function achievementContext() {
+    const skillValues = Object.keys(GAME.skills || {}).map(skillScore);
+    return { done:state.done.length, xp:Number(state.xp)||0, streak:Number(state.streak)||0,
+      flashBest:Number(state.flash?.best)||0, frontierBest:Number(state.frontier?.best)||0, frontierCleared:Number(state.frontier?.cleared)||0,
+      bossBest:Number(state.boss?.best)||0, bossCleared:Number(state.boss?.cleared)||0, dailyDeals:dailyDealCount(), perfectDays:perfectDayCount(),
+      skillValues, rank:careerRank().current.name };
+  }
+
+  function unlockedAchievements() {
+    const ctx = achievementContext();
+    return (COMP.achievements || []).filter(a => { try { return !!a.test(ctx); } catch (e) { return false; } });
+  }
+
+  let leagueFetchToken = 0;
+  function renderLeagueRows(rows, online = false, houseRows = null) {
+    const host = $('#leagueBoard'); if (!host) return;
+    const c = ensureCompetitive(), uid = window.WOT_CLOUD_API?.idUtente?.();
+    const own = { user_id:uid || 'local-me', alias:c.alias, house:c.house, tier:c.tier, score:leagueScore(), me:true };
+    let list = Array.isArray(rows) ? rows.map(x => ({...x})) : [];
+    if (!online) list = [...(COMP.localOpponents?.(c.week,c.tier,own.score) || []), own];
+    else if (!list.some(x => uid && x.user_id === uid)) list.push(own);
+    list = list.filter(x => (x.tier || c.tier) === c.tier).sort((a,b) => Number(b.score||0)-Number(a.score||0));
+    const ownIndex = list.findIndex(x => x.me || (uid && x.user_id === uid));
+    const pos = ownIndex >= 0 ? ownIndex + 1 : null;
+    if (online && pos) { c.lastPlacement = pos; try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+    let shown = list.slice(0,25);
+    if (ownIndex >= 25) shown = [...shown, {separator:true}, list[ownIndex]];
+    host.innerHTML = `<div class="league-head-row"><span>#</span><span>Trader</span><span>House</span><span>XP</span></div>` + shown.map((r,i) => {
+      if (r.separator) return '<div class="league-separator">•••</div>';
+      const actual = list.indexOf(r) + 1;
+      const me = !!(r.me || (uid && r.user_id === uid));
+      const house = (COMP.houses || []).find(h => h.id === r.house);
+      return `<div class="league-row${me?' me':''}"><b>${actual}</b><span>${esc(r.alias || 'Trader')}${r.preview?' <small>preview</small>':''}</span><i>${esc(house?.icon || '—')}</i><strong>${Number(r.score)||0}</strong></div>`;
+    }).join('');
+    $('#leagueStatus').textContent = online ? `${list.length} live traders${pos ? ` · rank #${pos}` : ''}` : `Local preview${pos ? ` · rank #${pos}` : ''}`;
+    renderHouseBoard(Array.isArray(houseRows) ? houseRows : list, online);
+  }
+
+  function renderHouseBoard(rows, online) {
+    const host = $('#houseBoard'); if (!host) return;
+    const sums = {};
+    (COMP.houses || []).forEach(h => sums[h.id] = { score:0, members:0 });
+    (rows || []).forEach(r => { if (r.house && sums[r.house]) { sums[r.house].score += Number(r.score)||0; sums[r.house].members++; } });
+    const ranked = (COMP.houses || []).map(h => ({...h,...sums[h.id]})).sort((a,b)=>b.score-a.score);
+    host.innerHTML = `<div class="house-rank-head"><span>House</span><span>${online?'Weekly XP':'Preview XP'}</span></div>` + ranked.map((h,i) => `<div class="house-rank-row${state.competitive.house===h.id?' mine':''}"><b>${i+1}</b><i>${esc(h.icon)}</i><span><strong>${esc(h.name)}</strong><small>${h.members} trader${h.members===1?'':'s'}</small></span><em>${h.score}</em></div>`).join('');
+  }
+
+  async function syncLeagueOnline(token) {
+    const api = window.WOT_CLOUD_API;
+    if (!api?.leagueRows) return;
+    try {
+      await api.pushLeague?.(leagueEntry());
+      const [rows, houses] = await Promise.all([
+        api.leagueRows(state.competitive.week, state.competitive.tier),
+        api.houseRows ? api.houseRows(state.competitive.week) : Promise.resolve(null),
+      ]);
+      if (token !== leagueFetchToken || !$('#leagueScreen')?.classList.contains('active')) return;
+      renderLeagueRows(rows, true, houses);
+    } catch (e) {
+      if (token === leagueFetchToken) $('#leagueStatus').textContent = 'Local preview · online league not configured';
+    }
+  }
+
+  function renderLeagueHub() {
+    const host = $('#leagueHero'); if (!host) return;
+    const c = ensureCompetitive(), d = COMP.division?.(c.tier) || {name:'Bronze',icon:'III',promote:200};
+    const points = leagueScore();
+    const nextTarget = Number.isFinite(d.promote) ? d.promote : null;
+    const pct = nextTarget ? Math.min(100, Math.round(points / nextTarget * 100)) : 100;
+    $('#leagueXp').textContent = state.xp || 0;
+    const seasonNote = c.lastSeason && c.lastSeason.to && c.lastSeason.from !== c.lastSeason.to
+      ? `<small class="season-note">Last season · ${esc(COMP.division?.(c.lastSeason.from)?.name || c.lastSeason.from)} → ${esc(COMP.division?.(c.lastSeason.to)?.name || c.lastSeason.to)}</small>` : '';
+    host.innerHTML = `<div class="league-emblem"><span>${esc(d.icon || 'III')}</span></div><div class="league-hero-copy"><span class="eyebrow">${esc(COMP.weekRange?.(c.week) || c.week)}</span><h2>${esc(d.name)} League</h2><p>${nextTarget ? `${Math.max(0,nextTarget-points)} weekly XP to the promotion target.` : 'You are competing in the top division.'}</p>${seasonNote}<div class="league-progress"><i style="width:${pct}%"></i></div><div class="league-hero-stats"><span><b>${points}</b> weekly XP</span><span><b>${c.seasons||0}</b> seasons</span></div></div>
+      <div class="trader-card"><label for="leagueAlias">Trader alias</label><div><input id="leagueAlias" maxlength="24" value="${esc(c.alias)}" aria-label="Trader alias"><button id="leagueAliasSave">Save</button></div><small>Only this alias appears on public standings — never your email.</small></div>`;
+    $('#leagueAliasSave')?.addEventListener('click', () => {
+      const v = String($('#leagueAlias')?.value || '').trim().replace(/\s+/g,' ').slice(0,24);
+      if (v.length < 3) return;
+      c.alias = v; save(); renderLeagueHub();
+    });
+
+    const picker = $('#housePicker');
+    if (picker) {
+      picker.innerHTML = (COMP.houses || []).map(h => `<button class="house-choice${c.house===h.id?' selected':''}" data-house="${esc(h.id)}"><i>${esc(h.icon)}</i><span><b>${esc(h.name)}</b><small>${esc(h.motto)}</small></span></button>`).join('');
+      $$('[data-house]',picker).forEach(b => b.addEventListener('click', () => { c.house=b.dataset.house; save(); renderLeagueHub(); }));
+      const hs = $('#houseStatus'); if (hs) hs.textContent = c.house ? (COMP.houses.find(h=>h.id===c.house)?.name || 'House selected') : 'Choose your house';
+    }
+
+    const unlocked = unlockedAchievements(), ids = new Set(unlocked.map(a=>a.id));
+    const ag = $('#achievementGrid');
+    if (ag) ag.innerHTML = (COMP.achievements || []).map(a => `<article class="achievement${ids.has(a.id)?' unlocked':''}"><div>${esc(a.icon)}</div><span><b>${esc(a.title)}</b><small>${esc(a.copy)}</small></span>${ids.has(a.id)?'<em>UNLOCKED</em>':'<em>LOCKED</em>'}</article>`).join('');
+    const ac = $('#achievementCount'); if (ac) ac.textContent = `${unlocked.length} / ${(COMP.achievements||[]).length}`;
+
+    renderLeagueRows(null, false);
+    const token = ++leagueFetchToken;
+    syncLeagueOnline(token);
   }
 
   /* ── navigazione fra schermate ───────────────────────────────────── */
@@ -1020,7 +1167,7 @@
     <section class="flash-record"><span class="eyebrow">Daily desk record</span><div class="profile-numbers"><div><b>${dailyDealCount()}</b><span>Daily deals</span></div><div><b>${perfectDayCount()}</b><span>Perfect days</span></div><div><b>${dailyQuests().filter(q => state.daily.claimed[q.id]).length}/3</b><span>Today</span></div></div></section>`;
   }
 
-  function renderMetaScreens() { renderPlayHub(); renderPracticeHub(); renderProfile(); }
+  function renderMetaScreens() { renderPlayHub(); renderPracticeHub(); renderProfile(); if ($('#leagueScreen')?.classList.contains('active')) renderLeagueHub(); }
 
   /* ── Boss Deals ──────────────────────────────────────────────────── */
   let boss = null;
@@ -1338,5 +1485,6 @@
     allLessons, UNITS, CHECK_PASS, REVIEW_SIZE, CHECK_SIZE, HEARTS, CHECK_HEARTS,
     replaceState, defaultState, STORAGE_KEY: KEY, SOGLIE, renderStreak, isUnlocked, SANDBOX,
     careerRank, careerLevel, skillScore, startFlash, finishFlash, get flash(){return flash;}, startFrontier, unlockedMasteryWorlds,
-    startBoss, startDaily, finishBoss, quitBoss, get boss(){return boss;}, ensureDaily, dailyQuests, claimDailyQuest, localDayKey, GAME };
+    startBoss, startDaily, finishBoss, quitBoss, get boss(){return boss;}, ensureDaily, dailyQuests, claimDailyQuest, localDayKey,
+    ensureCompetitive, leagueScore, leagueEntry, renderLeagueHub, unlockedAchievements, GAME, COMP };
 })();
