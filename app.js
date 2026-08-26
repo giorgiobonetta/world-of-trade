@@ -19,7 +19,12 @@
   const XP_PER = 10;
 
   const UNITS = window.CURRICULUM || [];
+  const GAME = window.WOT_GAME || { skills:{}, unitMeta:{}, ranks:[], randomFlash:null };
   const allLessons = UNITS.flatMap(u => u.lessons.map(l => ({ ...l, unitId: u.id })));
+  const skillIdForLesson = lessonId => {
+    const lesson = allLessons.find(l => l.id === lessonId);
+    return lesson ? (GAME.unitMeta[lesson.unitId]?.skill || null) : null;
+  };
 
   /* ── effetti ─────────────────────────────────────────────────────── */
   const motionOK = () => !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -70,6 +75,8 @@
     reviews: 0,    // sessioni di ripasso fatte (ruota la selezione)
     streakNow: 0,  // risposte giuste consecutive al primo colpo, attraverso le lezioni
     streakBest: 0, // record personale, quello che si condivide
+    skillXp: {},    // pratica oltre al progresso base: skill -> punti
+    flash: { best:0, plays:0, correct:0, total:0 },
   });
   let state = load();
 
@@ -80,9 +87,13 @@
       const s = JSON.parse(raw);
       const obj = v => (v && typeof v === 'object' && !Array.isArray(v)) ? v : {};
       // i salvataggi piu' vecchi non hanno questi campi: vanno ricostruiti, non assunti
+      const flash = obj(s.flash);
       return { ...defaultState(), ...s,
         done: Array.isArray(s.done) ? s.done : [],
         best: obj(s.best), misses: obj(s.misses), doneAt: obj(s.doneAt), badges: obj(s.badges),
+        skillXp: obj(s.skillXp),
+        flash: { best:Number(flash.best)||0, plays:Number(flash.plays)||0,
+          correct:Number(flash.correct)||0, total:Number(flash.total)||0 },
         reviews: Number(s.reviews) || 0, updatedAt: Number(s.updatedAt) || 0,
         streakNow: Number(s.streakNow) || 0, streakBest: Number(s.streakBest) || 0 };
     } catch (e) { return defaultState(); }
@@ -97,8 +108,13 @@
   // usata dal livello di sincronizzazione dopo aver fuso locale e remoto
   function replaceState(next) {
     if (!next || typeof next !== 'object') return false;
+    const obj = v => (v && typeof v === 'object' && !Array.isArray(v)) ? v : {};
+    const f = obj(next.flash);
     state = { ...defaultState(), ...next,
-      done: Array.isArray(next.done) ? next.done.filter(id => allLessons.some(l => l.id === id)) : [] };
+      done: Array.isArray(next.done) ? next.done.filter(id => allLessons.some(l => l.id === id)) : [],
+      best: obj(next.best), misses: obj(next.misses), doneAt: obj(next.doneAt), badges: obj(next.badges),
+      skillXp: obj(next.skillXp),
+      flash: { best:Number(f.best)||0, plays:Number(f.plays)||0, correct:Number(f.correct)||0, total:Number(f.total)||0 } };
     try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
     _lastXp = null;
     renderPath();
@@ -194,6 +210,10 @@
   /* ── navigazione fra schermate ───────────────────────────────────── */
   function show(id) {
     $$('.screen').forEach(s => s.classList.toggle('active', s.id === id));
+    const immersive = ['lessonScreen','doneScreen','flashScreen'].includes(id);
+    document.body.classList.toggle('immersive', immersive);
+    $$('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.screen === id));
+    if (!immersive) renderMetaScreens();
     window.scrollTo(0, 0);
   }
 
@@ -206,6 +226,7 @@
     else xpEl.textContent = state.xp || 0;
     _lastXp = state.xp || 0;
     const next = nextLessonId();
+    renderCareerHero();
     const greetHost = $('#pathGreet');
     if (greetHost && window.MASCOT) {
       const done = state.done.length;
@@ -213,7 +234,7 @@
         ? 'I’m Hélène. I ran a metals desk for eleven years. Let’s start with what a trade actually is.'
         : done < allLessons.length
           ? `${done} lesson${done === 1 ? '' : 's'} down. The next one builds on the last, so keep going.`
-          : 'You’ve finished the course. Come back to the ones you rushed — the numbers stick better the second time.';
+          : 'Merchant Foundations complete. The trading floor stays open — use Flash Trading and Practice while new desks are added.';
       greetHost.innerHTML = `<div class="greet">
         <div class="greet-face">${window.MASCOT.svg('teach', 78)}</div>
         <div class="greet-copy"><strong>${esc(window.MASCOT.name)}</strong><p>${esc(line)}</p></div>
@@ -239,13 +260,13 @@
       const doneN = state.done.filter(id => allLessons.some(l => l.id === id)).length;
       const pct = total ? Math.round(doneN / total * 100) : 0;
       bar.hidden = false;
-      $('#courseLabel').textContent = `${doneN} of ${total} lessons`;
+      $('#courseLabel').textContent = `Merchant Foundations · ${doneN} of ${total} levels`;
       $('#coursePct').textContent = `${pct}%`;
       $('#courseFill').style.width = pct + '%';
       const track = $('#courseTrack');
       if (track) {
         track.setAttribute('aria-valuenow', String(pct));
-        track.setAttribute('aria-valuetext', `${doneN} of ${total} lessons complete`);
+        track.setAttribute('aria-valuetext', `${doneN} of ${total} foundation levels complete`);
       }
     }
 
@@ -270,9 +291,10 @@
       }).join('');
       const badge = state.badges[u.id];
       const ready = unitDone(u);
+      const meta = GAME.unitMeta[u.id] || {};
       return `<section class="unit">
         <div class="unit-head">
-          <span class="n">Unit ${ui + 1}</span>
+          <span class="n">Desk ${ui + 1} · ${esc(meta.division || 'Foundations')}</span>
           ${badge ? `<span class="unit-badge" title="Checkpoint passed">★ ${badge}%</span>` : ''}
           <h2>${esc(u.title)}</h2>
           <p>${esc(u.subtitle)}</p>
@@ -589,7 +611,11 @@
     }
     if (ok) {
       run.correct++;
-      if (!run.current.retry) run.firstTry++;
+      if (!run.current.retry) {
+        run.firstTry++;
+        const sid = skillIdForLesson(run.current.lessonId);
+        if (sid) state.skillXp[sid] = (Number(state.skillXp[sid]) || 0) + (run.mode === 'lesson' ? 2 : 1);
+      }
       // preso al primo colpo: l'esercizio esce dalla lista dei debiti
       if (key && !run.current.retry && state.misses[key]) {
         state.misses[key]--;
@@ -690,8 +716,181 @@
     show('doneScreen');
   }
 
+
+  /* ── carriera, skill e hub ───────────────────────────────────────── */
+  function careerLevel() { return 1 + Math.floor((Number(state.xp) || 0) / 50); }
+
+  function careerRank() {
+    const doneN = state.done.filter(id => allLessons.some(l => l.id === id)).length;
+    const xp = Number(state.xp) || 0;
+    const ranks = GAME.ranks || [];
+    let i = 0;
+    ranks.forEach((r, n) => { if (xp >= r.xp && doneN >= r.lessons) i = n; });
+    return { current: ranks[i] || { name:'Intern', xp:0, lessons:0 }, next: ranks[i + 1] || null, index:i };
+  }
+
+  function skillScore(skillId) {
+    const units = UNITS.filter(u => GAME.unitMeta[u.id]?.skill === skillId);
+    if (!units.length) return 0;
+    const lessons = units.flatMap(u => u.lessons);
+    const doneN = lessons.filter(l => isDone(l.id)).length;
+    const base = lessons.length ? (doneN / lessons.length) * 70 : 0;
+    const badges = units.map(u => Number(state.badges[u.id]) || 0);
+    const badge = badges.length ? (badges.reduce((a,b) => a+b,0) / badges.length) * .15 : 0;
+    const practice = Math.min(15, (Number(state.skillXp[skillId]) || 0) * .45);
+    return Math.min(100, Math.round(base + badge + practice));
+  }
+
+  function renderCareerHero() {
+    const host = $('#careerHero'); if (!host) return;
+    const { current, next } = careerRank();
+    const xp = Number(state.xp) || 0;
+    const doneN = state.done.filter(id => allLessons.some(l => l.id === id)).length;
+    let pct = 100, copy = 'Top rank reached';
+    if (next) {
+      const xpPct = next.xp ? Math.min(1, xp / next.xp) : 1;
+      const lessonPct = next.lessons ? Math.min(1, doneN / next.lessons) : 1;
+      pct = Math.round(Math.min(xpPct, lessonPct) * 100);
+      const needs = [];
+      if (xp < next.xp) needs.push(`${next.xp - xp} XP`);
+      if (doneN < next.lessons) needs.push(`${next.lessons - doneN} level${next.lessons - doneN === 1 ? '' : 's'}`);
+      copy = needs.length ? `${needs.join(' + ')} to ${next.name}` : `Ready for ${next.name}`;
+    }
+    host.innerHTML = `<section class="career-hero">
+      <div class="career-badge"><span>LEVEL</span><b>${careerLevel()}</b></div>
+      <div class="career-copy"><span class="career-label">CURRENT ROLE</span><h2>${esc(current.name)}</h2>
+        <p>${esc(copy)}</p><div class="career-track" role="progressbar" aria-label="Career promotion progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></div></div>
+    </section>`;
+  }
+
+  function renderPlayHub() {
+    const xp = $('#playXp'); if (xp) xp.textContent = state.xp || 0;
+    const best = $('#flashBest'); if (best) best.textContent = state.flash.best || 0;
+    const runs = $('#flashRuns'); if (runs) runs.textContent = state.flash.plays || 0;
+  }
+
+  function renderPracticeHub() {
+    const host = $('#practiceHub'); if (!host) return;
+    const due = dueCount();
+    const available = state.done.length > 0;
+    host.innerHTML = `<section class="practice-card">
+      <div class="practice-orb">↻</div><span class="eyebrow">Personalised queue</span>
+      <h2>${available ? (due ? `${due} item${due === 1 ? '' : 's'} need attention` : 'Keep your earlier skills warm') : 'Complete your first level to unlock Practice'}</h2>
+      <p>${available ? 'World of Trade weights mistakes and older material more heavily, so weak concepts return before strong ones.' : 'Practice is built from questions you have already encountered.'}</p>
+      <button id="practiceStart" class="btn primary wide" ${available ? '' : 'disabled'}>${due ? 'Train weak skills' : 'Start practice'}</button>
+    </section>`;
+    $('#practiceStart')?.addEventListener('click', startReview);
+  }
+
+  function renderProfile() {
+    const host = $('#profileBody'); if (!host) return;
+    const { current, next } = careerRank();
+    const rows = Object.entries(GAME.skills || {}).map(([id, sk]) => {
+      const score = skillScore(id);
+      return `<div class="skill-row"><div class="skill-top"><span><i>${esc(sk.icon)}</i>${esc(sk.short)}</span><b>${score}</b></div>
+        <div class="skill-track" role="progressbar" aria-label="${esc(sk.name)} mastery" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${score}"><i style="width:${score}%"></i></div></div>`;
+    }).join('');
+    const accuracy = state.flash.total ? Math.round(state.flash.correct / state.flash.total * 100) : 0;
+    host.innerHTML = `<section class="profile-rank"><span class="eyebrow">Current role</span><h2>${esc(current.name)}</h2>
+      <div class="profile-numbers"><div><b>${careerLevel()}</b><span>Level</span></div><div><b>${state.xp || 0}</b><span>XP</span></div><div><b>${state.streak || 0}</b><span>Day streak</span></div></div>
+      ${next ? `<p>Next promotion: <strong>${esc(next.name)}</strong> · ${next.xp} XP and ${next.lessons} foundation levels.</p>` : '<p>You reached the top career rank.</p>'}
+    </section>
+    <section class="skill-card"><div class="card-title"><div><span class="eyebrow">Desk capability</span><h2>Your skills</h2></div><small>0–100</small></div>${rows}</section>
+    <section class="flash-record"><span class="eyebrow">Flash Trading record</span><div class="profile-numbers"><div><b>${state.flash.best || 0}</b><span>Best score</span></div><div><b>${state.flash.plays || 0}</b><span>Runs</span></div><div><b>${accuracy}%</b><span>Accuracy</span></div></div></section>`;
+  }
+
+  function renderMetaScreens() { renderPlayHub(); renderPracticeHub(); renderProfile(); }
+
+  /* ── Flash Trading ───────────────────────────────────────────────── */
+  let flash = null;
+  function startFlash() {
+    if (!GAME.randomFlash) return;
+    clearInterval(flash?.timer);
+    flash = { started:Date.now(), seconds:60, score:0, combo:0, correct:0, total:0, question:null, locked:false, timer:null };
+    $('#flashTime').textContent = '60'; $('#flashScore').textContent = '0'; $('#flashCombo').textContent = '×0';
+    $('#flashFeedback').textContent = '';
+    show('flashScreen');
+    nextFlashQuestion();
+    flash.timer = setInterval(() => {
+      if (!flash) return;
+      const left = Math.max(0, 60 - Math.floor((Date.now() - flash.started) / 1000));
+      flash.seconds = left; $('#flashTime').textContent = String(left);
+      $('#flashTime').parentElement?.classList.toggle('danger', left <= 10);
+      if (left <= 0) finishFlash(true);
+    }, 250);
+  }
+
+  function nextFlashQuestion() {
+    if (!flash) return;
+    flash.question = GAME.randomFlash(); flash.locked = false;
+    const q = flash.question, host = $('#flashBody');
+    const tag = GAME.skills[q.skill]?.short || 'Trading';
+    if (q.type === 'choice') {
+      host.innerHTML = `<article class="flash-question"><span class="q-kicker">${esc(tag)} · quick decision</span><h2>${esc(q.prompt)}</h2>
+        <div class="flash-options">${q.options.map((o,i) => `<button class="flash-opt" data-flash-choice="${i}">${esc(o)}</button>`).join('')}</div></article>`;
+      $$('[data-flash-choice]', host).forEach(b => b.addEventListener('click', () => answerFlash(Number(b.dataset.flashChoice))));
+    } else {
+      host.innerHTML = `<article class="flash-question"><span class="q-kicker">${esc(tag)} · mental maths</span><h2>${esc(q.prompt)}</h2>
+        <div class="flash-input"><input id="flashInput" type="number" inputmode="decimal" autocomplete="off" aria-label="Your answer" placeholder="Answer"/><span>${esc(q.unit || '')}</span></div>
+        <button id="flashSubmit" class="btn primary wide">Submit</button></article>`;
+      $('#flashSubmit').addEventListener('click', () => answerFlash($('#flashInput').value));
+      $('#flashInput').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); answerFlash(e.currentTarget.value); } });
+      setTimeout(() => $('#flashInput')?.focus(), 0);
+    }
+  }
+
+  function answerFlash(value) {
+    if (!flash || flash.locked) return;
+    const q = flash.question;
+    if (q.type === 'numeric' && String(value).trim() === '') return;
+    flash.locked = true; flash.total++;
+    const ok = q.type === 'choice'
+      ? Number(value) === q.answer
+      : Number.isFinite(Number(value)) && Math.abs(Number(value) - q.answer) <= (q.tolerance || 0);
+    const fb = $('#flashFeedback');
+    if (ok) {
+      flash.correct++; flash.combo++;
+      const points = 10 + Math.min(20, Math.max(0, flash.combo - 1) * 2);
+      flash.score += points;
+      const sid = q.skill; if (sid) state.skillXp[sid] = (Number(state.skillXp[sid]) || 0) + 1;
+      fb.className = 'flash-feedback good'; fb.textContent = `Correct · +${points}`;
+    } else {
+      flash.combo = 0;
+      fb.className = 'flash-feedback bad'; fb.textContent = `Not quite · ${q.why}`;
+    }
+    $('#flashScore').textContent = flash.score; $('#flashCombo').textContent = `×${flash.combo}`;
+    setTimeout(() => { if (flash) { fb.textContent = ''; fb.className = 'flash-feedback'; nextFlashQuestion(); } }, ok ? 320 : 850);
+  }
+
+  function finishFlash(completed) {
+    if (!flash) return;
+    clearInterval(flash.timer);
+    const result = { ...flash }; flash = null;
+    const gained = completed ? Math.max(5, Math.round(result.score / 10)) : 0;
+    if (completed) {
+      state.flash.plays = (state.flash.plays || 0) + 1;
+      state.flash.correct = (state.flash.correct || 0) + result.correct;
+      state.flash.total = (state.flash.total || 0) + result.total;
+      state.flash.best = Math.max(state.flash.best || 0, result.score);
+      state.xp = (state.xp || 0) + gained;
+      touchStreak(); save();
+    }
+    if (!completed) { show('playScreen'); return; }
+    const acc = result.total ? Math.round(result.correct / result.total * 100) : 0;
+    $('#flashBody').innerHTML = `<section class="flash-result"><div class="flash-trophy">⚡</div><span class="eyebrow">Run complete</span><h1>${result.score}</h1><p>points</p>
+      <div class="profile-numbers"><div><b>${result.correct}/${result.total}</b><span>Correct</span></div><div><b>${acc}%</b><span>Accuracy</span></div><div><b>+${gained}</b><span>XP</span></div></div>
+      <button id="flashAgain" class="btn primary wide">Play again</button><button id="flashBack" class="link-btn">Back to Play</button></section>`;
+    $('#flashFeedback').textContent = '';
+    $('#flashAgain').addEventListener('click', startFlash);
+    $('#flashBack').addEventListener('click', () => show('playScreen'));
+    if (result.score >= (state.flash.best || 0)) confetti(50);
+  }
+
   /* ── agganci ─────────────────────────────────────────────────────── */
   $('#checkButton').addEventListener('click', onCheck);
+  $('#flashStart')?.addEventListener('click', startFlash);
+  $('#flashQuit')?.addEventListener('click', () => finishFlash(false));
+  $$('.nav-item').forEach(b => b.addEventListener('click', () => show(b.dataset.screen)));
   $('#continueButton').addEventListener('click', () => { show('pathScreen'); renderPath(); });
   $('#quitButton').addEventListener('click', () => { run = null; show('pathScreen'); renderPath(); });
   $('#resetButton').addEventListener('click', () => {
@@ -726,5 +925,6 @@
   window.__LEARN__ = { get state(){return state;}, get run(){return run;}, startLesson, onCheck, renderPath,
     startReview, startCheckpoint, reviewItems, checkpointItems, dueCount, exKey, unitDone,
     allLessons, UNITS, CHECK_PASS, REVIEW_SIZE, CHECK_SIZE, HEARTS, CHECK_HEARTS,
-    replaceState, defaultState, STORAGE_KEY: KEY, SOGLIE, renderStreak, isUnlocked, SANDBOX };
+    replaceState, defaultState, STORAGE_KEY: KEY, SOGLIE, renderStreak, isUnlocked, SANDBOX,
+    careerRank, careerLevel, skillScore, startFlash, finishFlash, get flash(){return flash;}, GAME };
 })();

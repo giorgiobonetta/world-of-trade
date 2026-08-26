@@ -288,6 +288,38 @@ amount of looking had caught:
 Both fixed, and the suite now also refuses `var(--muted)` on any selector known to sit
 on a light card, so the same mistake cannot come back by copy-paste.
 
+## A silent failure worth remembering
+
+```js
+document.addEventListener('DOMContentLoaded', avvia);
+if (document.readyState !== 'loading') avvia();
+let avviato = false;                 // ← declared after the call
+async function avvia() {
+  if (avviato) return;               // ← ReferenceError, in the temporal dead zone
+```
+
+If the document was already parsed when the script ran, `avvia()` was called before
+`avviato` existed. Two things then conspired to hide it:
+
+- `avvia` is **`async`**, so a synchronous throw inside it does not throw at the call
+  site — it becomes a rejected promise. No red error, nothing in the way.
+- The sign-in UI is drawn *inside* `avvia`, so it simply never appeared. Everything
+  else worked. `WOT_CLOUD_API` existed, `enabled` was `true`, `#cloudHost` was in the
+  DOM — and the panel was empty.
+
+The user found it, not the tests, and the tests could not have found it: the harness
+dispatched `DOMContentLoaded` itself after evaluating the scripts, handing them a
+second chance a real browser would never give. Two fixes to the harness, both of which
+make it able to fail:
+
+- an unhandled promise rejection now counts as an error, because an `async` function
+  that fails is otherwise completely silent;
+- when a test asks for an already-loaded document, the scripts are evaluated **after**
+  jsdom has fired `DOMContentLoaded`, not before.
+
+With the bug restored, `avvio.mjs` now reports exactly the symptom that was reported
+to me: *"the sign-in button is drawn — empty"*.
+
 ## One CSS rule that matters
 
 ```css
@@ -433,3 +465,18 @@ Two engine bugs were found while writing these units and are covered by
 bank filtered by text, so placing "a" removed every "a"), and a `pairs` exercise
 with two identical right-hand labels rejected a correct match on the second one —
 which had been silently marking correct answers wrong in Unit 2.
+
+
+## Career layer (v13)
+
+The learning app now treats the original 31 lessons as **Chapter 1 — Merchant Foundations** rather than the end of the game. The new game layer adds:
+
+- Career ranks from Intern to Partner, with XP + foundation-level requirements.
+- Eight desk skills: Physical Trading, Operations & Incoterms, Pricing, Hedging & Derivatives, Trade Finance, Execution & Documents, Freight & Chartering, and Desk Risk.
+- A persistent Profile screen with 0–100 skill mastery.
+- A Play hub and **Flash Trading**, a repeatable 60-second mode with rule-generated, mechanically verifiable questions, score combos, XP and skill progression.
+- A dedicated Practice hub using the existing weighted mistake/recency engine.
+- Bottom navigation for Path / Play / Practice / Profile.
+- Backward-compatible local saves and cloud merge support for the new `skillXp` and `flash` fields.
+
+`career.js` contains game metadata, rank thresholds, skill definitions and Flash Trading generators. `curriculum.js` remains the curated source of truth for the main learning path. AI-generated content is intentionally not enabled yet: the architecture leaves it as a later layer behind a controlled knowledge base and validation step.

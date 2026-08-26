@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>World of Trade — learn physical commodity trading</title>
-<meta name="description" content="Learn physical commodity trading step by step: 31 short lessons on incoterms, pricing, hedging, trade finance, execution, freight and desk risk." />
+<meta name="description" content="Build a career in physical commodity trading through levels, practice and fast trading challenges." />
 <meta name="theme-color" content="#071232" />
 <link rel="icon" href="world-of-trade-premium-icon-192.png" type="image/png" />
 <link rel="manifest" href="manifest.webmanifest" />
@@ -238,9 +238,11 @@
   </header>
   <div class="wrap">
     <div class="intro">
-      <h1>Learn physical commodity trading</h1>
-      <p>Short lessons, from the very basics to how a merchant desk really works. Five minutes at a time.</p>
+      <span class="eyebrow">Career Path · Chapter 1</span>
+      <h1>Build your trading career</h1>
+      <p>Start as an intern. Learn the mechanics, prove your skills and work your way up the trading floor.</p>
     </div>
+    <div id="careerHero"></div>
     <div id="pathGreet"></div>
     <p id="offlineFlag" class="offline-flag" role="status" hidden></p>
     <div id="reviewHost"></div>
@@ -256,6 +258,50 @@
   <p id="lockedHint" class="locked-hint" role="status" hidden></p>
   <p class="gl-row"><a class="gl-back" href="glossary.html">Glossary — every term, explained</a></p>
   <p class="reset-row"><button id="resetButton" class="link-btn">Reset all progress</button></p>
+  </div>
+</main>
+
+<!-- PLAY -->
+<main id="playScreen" class="screen">
+  <header class="section-top"><div><span class="eyebrow">Trading Floor</span><h1>Play</h1></div><div class="mini-xp">★ <b id="playXp">0</b></div></header>
+  <div class="wrap tab-wrap">
+    <section class="mode-hero">
+      <span class="mode-kicker">⚡ Infinite practice</span>
+      <h2>Flash Trading</h2>
+      <p>60 seconds. Fresh commercial and risk questions every run. Build a combo, beat your high score and earn XP.</p>
+      <div class="mode-stats"><span>Best <b id="flashBest">0</b></span><span>Runs <b id="flashRuns">0</b></span></div>
+      <button id="flashStart" class="btn primary wide">Start 60-second run</button>
+    </section>
+    <div class="mode-grid">
+      <article class="mode-card locked-mode"><span>DAILY</span><h3>Deal of the Day</h3><p>One complete trade scenario, refreshed every day.</p><small>Next build</small></article>
+      <article class="mode-card locked-mode"><span>BOSS</span><h3>Boss Deals</h3><p>Multi-step cases where price, freight, finance and execution collide.</p><small>Next build</small></article>
+    </div>
+  </div>
+</main>
+
+<!-- PRACTICE HUB -->
+<main id="practiceScreen" class="screen">
+  <header class="section-top"><div><span class="eyebrow">Adaptive training</span><h1>Practice</h1></div></header>
+  <div class="wrap tab-wrap"><div id="practiceHub"></div></div>
+</main>
+
+<!-- PROFILE -->
+<main id="profileScreen" class="screen">
+  <header class="section-top"><div><span class="eyebrow">Career record</span><h1>Profile</h1></div></header>
+  <div class="wrap tab-wrap"><div id="profileBody"></div></div>
+</main>
+
+<!-- FLASH TRADING -->
+<main id="flashScreen" class="screen">
+  <header class="flash-top">
+    <button id="flashQuit" class="icon-btn" aria-label="Leave Flash Trading">✕</button>
+    <div class="flash-clock"><span>TIME</span><b id="flashTime">60</b></div>
+    <div class="flash-score"><span>SCORE</span><b id="flashScore">0</b></div>
+    <div class="flash-combo"><span>COMBO</span><b id="flashCombo">×0</b></div>
+  </header>
+  <div class="wrap flash-wrap">
+    <div id="flashBody"></div>
+    <p id="flashFeedback" class="flash-feedback" role="status" aria-live="polite"></p>
   </div>
 </main>
 
@@ -300,6 +346,14 @@
   </div>
 </main>
 
+
+<nav id="gameNav" class="game-nav" aria-label="Game sections">
+  <button class="nav-item active" data-screen="pathScreen"><span>⌁</span><b>Path</b></button>
+  <button class="nav-item" data-screen="playScreen"><span>⚡</span><b>Play</b></button>
+  <button class="nav-item" data-screen="practiceScreen"><span>↻</span><b>Practice</b></button>
+  <button class="nav-item" data-screen="profileScreen"><span>♙</span><b>Profile</b></button>
+</nav>
+
 <div id="shareDialog" class="cloud-dialog" role="dialog" aria-modal="true"
      aria-labelledby="shareTitle" hidden>
   <div class="cloud-panel share-panel">
@@ -321,6 +375,7 @@
 <script src="supabase-config.js"></script>
 <script src="mascot.js"></script>
 <script src="curriculum.js"></script>
+<script src="career.js"></script>
 <script src="app.js"></script>
 <script src="pwa.js"></script>
 <script src="cloud.js"></script>

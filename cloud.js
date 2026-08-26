@@ -178,6 +178,13 @@
       badges: maxMap(a.badges, b.badges),
       doneAt: maxMap(a.doneAt, b.doneAt),
       misses: maxMap(a.misses, b.misses),
+      skillXp: maxMap(a.skillXp, b.skillXp),
+      flash: {
+        best: Math.max(Number(a.flash?.best) || 0, Number(b.flash?.best) || 0),
+        plays: Math.max(Number(a.flash?.plays) || 0, Number(b.flash?.plays) || 0),
+        correct: Math.max(Number(a.flash?.correct) || 0, Number(b.flash?.correct) || 0),
+        total: Math.max(Number(a.flash?.total) || 0, Number(b.flash?.total) || 0),
+      },
       updatedAt: Math.max(Number(a.updatedAt) || 0, Number(b.updatedAt) || 0),
     };
   }

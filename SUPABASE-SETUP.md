@@ -48,26 +48,65 @@ codice permetterebbe a chiunque di leggere e scrivere le carriere di tutti gli a
 
 ## 3 · Copia le due chiavi
 
-**Project Settings** → **API**:
+Nella barra a sinistra, in fondo: **Project Settings** (l'ingranaggio) → **API**.
+Su alcuni progetti la voce si chiama **API Keys**, o le trovi nel pulsante
+**Connect** in alto.
 
-- **Project URL** → qualcosa tipo `https://abcdefgh.supabase.co`
-- **anon public** → una stringa lunga che inizia con `eyJ…`
+Ti servono **due** cose:
 
-Aprile `supabase-config.js` e incollale:
+**a) Project URL** — in cima, qualcosa come `https://abcdefgh.supabase.co`.
+
+**b) La chiave PUBBLICA.** Qui dipende da quanto è nuovo il progetto:
+
+| Se vedi… | Prendi | Ha questa forma |
+|---|---|---|
+| `anon` `public` | quella | `eyJhbGciOiJI...` (lunghissima) |
+| `Publishable key` | quella | `sb_publishable_...` |
+| un pulsante **Create new API keys** | il progetto è ancora sulle chiavi vecchie: usa `anon public` | `eyJ...` |
+
+Vanno bene entrambe. Le chiavi `anon` funzionano ancora ma Supabase le sta
+dismettendo entro fine 2026, quindi se il tuo progetto ha già la `publishable`,
+usa quella.
+
+### La chiave da NON toccare
+
+Nella stessa pagina c'è **`service_role`** (o **`sb_secret_...`**). Quella scavalca
+tutte le policy di sicurezza del punto 2: chi ce l'ha può leggere, modificare e
+cancellare qualunque riga di qualunque utente.
+
+**Non deve finire nel sito, mai.** Se la incolli per sbaglio in
+`supabase-config.js`, l'app se ne accorge: si spegne e mostra un avviso rosso invece
+di funzionare. Ma il danno è già fatto — vai su **Project Settings → API** e
+revocala (*rotate*) subito.
+
+La chiave pubblica invece **è fatta per stare nel codice**: sta nel sorgente di ogni
+sito che usa Supabase. Non è un segreto. Quello che protegge i dati sono le policy
+che hai creato al punto 2, non la segretezza della chiave.
+
+## 4 · Incolla le chiavi nel codice
+
+Apri `supabase-config.js` e riempi due campi (tre se vuoi il link di condivisione):
 
 ```js
 window.WOT_CLOUD = {
   url: 'https://abcdefgh.supabase.co',
-  anonKey: 'eyJhbGciOi…',
+
+  anonKey: 'eyJhbGciOi…',        // se hai la chiave vecchia, metti qui
+  publishableKey: '',            // se hai quella nuova, metti qui invece
+
+  siteUrl: 'https://world-of-trade.vercel.app',
 };
 ```
 
-La chiave `anon` è **pubblica per definizione**: sta nel codice di ogni sito che usa
-Supabase e non è un segreto. Quello che protegge i dati sono le policy del punto 2.
-La chiave **`service_role`** invece è un segreto assoluto: non deve finire mai nel
-codice del sito, in nessuna circostanza.
+Riempi **uno** dei due campi della chiave, non serve entrambi. Ricarica solo questo
+file su GitHub e aspetta il redeploy.
 
-## 4 · Conferma via email
+Come capire se ha funzionato: apri `/learn`, e sotto il percorso deve comparire
+**"Save your progress to an account"**. Se non compare, apri la console del browser
+(F12) e guarda se c'è un errore — di solito è un URL con uno spazio o una barra di
+troppo in fondo.
+
+## 5 · Conferma via email
 
 **Authentication** → **Providers** → **Email**.
 
@@ -83,7 +122,7 @@ Sul piano gratuito Supabase manda poche email al giorno da un mittente condiviso
 finiscono facilmente nello spam. Se il progetto cresce, si collega un servizio SMTP
 proprio in **Authentication → Emails**.
 
-## 5 · Accesso con LinkedIn (opzionale)
+## 6 · Accesso con LinkedIn (opzionale)
 
 Questa parte richiede un passaggio in più perché LinkedIn è più esigente di altri.
 
@@ -113,10 +152,17 @@ LinkedIn, per Supabase sono due account distinti a meno che tu non attivi
 **Authentication → Settings → Link identities with the same email**. Consiglio di
 attivarlo, altrimenti la stessa persona si ritrova due carriere separate.
 
-## 6 · Pubblica
+## 7 · Prova
 
-Carica tutto e apri il sito. Sotto il percorso comparirà
-**"Save your progress to an account"**.
+1. Apri `/learn` e registrati con la tua email.
+2. Fai una lezione.
+3. In Supabase, **Table Editor** → `progress`: deve esserci una riga con il tuo
+   `user_id` e il JSON della carriera dentro `state`.
+4. Apri il sito in una finestra anonima, accedi con lo stesso account: deve
+   ritrovare la lezione fatta.
+
+Il punto 3 è quello che conferma che le policy funzionano. Se la riga non compare,
+l'errore è quasi sempre nel blocco SQL del punto 2.
 
 ---
 
