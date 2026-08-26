@@ -57,6 +57,7 @@
   /* ── stato ───────────────────────────────────────────────────────── */
   const defaultState = () => ({
     done: [], xp: 0, streak: 0, lastDay: null, best: {},
+    updatedAt: 0,   // quando questo dispositivo ha toccato la carriera l'ultima volta
     misses: {},    // 'u1l1#3' -> quante volte sbagliato, non ancora recuperato
     doneAt: {},    // quando una lezione e' stata completata (per l'anzianita')
     badges: {},    // punteggio migliore al checkpoint di ciascuna unita'
@@ -74,10 +75,26 @@
       return { ...defaultState(), ...s,
         done: Array.isArray(s.done) ? s.done : [],
         best: obj(s.best), misses: obj(s.misses), doneAt: obj(s.doneAt), badges: obj(s.badges),
-        reviews: Number(s.reviews) || 0 };
+        reviews: Number(s.reviews) || 0, updatedAt: Number(s.updatedAt) || 0 };
     } catch (e) { return defaultState(); }
   }
-  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+  function save() {
+    state.updatedAt = Date.now();
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+    // chi sincronizza col cloud ascolta questo, senza che il motore lo sappia
+    try { window.dispatchEvent(new CustomEvent('wot:saved', { detail: { state } })); } catch (e) {}
+  }
+
+  // usata dal livello di sincronizzazione dopo aver fuso locale e remoto
+  function replaceState(next) {
+    if (!next || typeof next !== 'object') return false;
+    state = { ...defaultState(), ...next,
+      done: Array.isArray(next.done) ? next.done.filter(id => allLessons.some(l => l.id === id)) : [] };
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+    _lastXp = null;
+    renderPath();
+    return true;
+  }
 
   function touchStreak() {
     const today = new Date().toISOString().slice(0, 10);
@@ -638,5 +655,6 @@
   renderPath();
   window.__LEARN__ = { get state(){return state;}, get run(){return run;}, startLesson, onCheck, renderPath,
     startReview, startCheckpoint, reviewItems, checkpointItems, dueCount, exKey, unitDone,
-    allLessons, UNITS, CHECK_PASS, REVIEW_SIZE, CHECK_SIZE, HEARTS, CHECK_HEARTS };
+    allLessons, UNITS, CHECK_PASS, REVIEW_SIZE, CHECK_SIZE, HEARTS, CHECK_HEARTS,
+    replaceState, defaultState, STORAGE_KEY: KEY };
 })();

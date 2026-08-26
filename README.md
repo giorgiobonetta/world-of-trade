@@ -174,6 +174,37 @@ away, while the app icons must stay fully opaque because a launcher icon needs i
 background. Checking that a file exists says nothing about whether the black square
 is gone.
 
+## Saving a career to an account
+
+Optional, off by default, and irrelevant to how the app runs. `supabase-config.js`
+ships empty; while it is empty there is no login UI, no network call, and the app is
+byte-for-byte the experience it was before. Setup instructions are in
+`SUPABASE-SETUP.md`.
+
+**No SDK.** Supabase is reached over its plain REST endpoints with `fetch` — signup,
+password grant, refresh grant, logout, and a PostgREST upsert. That is about 120 lines
+against a 120KB dependency, it keeps the no-build-step property, and it means the
+service worker still has a complete shell to cache for offline use.
+
+**Merging, not overwriting.** Signing in on a second device is the dangerous moment: a
+naive implementation picks a winner and silently destroys the other career. Here the
+two states are merged field by field — union of completed lessons, maximum of XP,
+per-lesson best accuracy, highest badge, highest outstanding mistake count, longest
+streak. XP takes the maximum rather than the sum, because summing would double-count
+the lessons both sides already had. The merge is commutative and idempotent, and
+`sync.mjs` asserts both.
+
+**Failure is expected, not exceptional.** The network can be gone, the token can expire,
+the session can die. Each has a defined behaviour: work locally and retry when `online`
+fires; refresh the token once and retry; sign out cleanly with "nothing was lost". The
+raw Supabase errors are translated — a user should never be shown the string
+`JWT expired`. `resilienza.mjs` covers all three.
+
+Two bugs came out of writing those tests. `Object.assign` copies the *value* of a
+getter rather than the getter itself, so the `dirty` flag was frozen at `false`
+forever and nothing would ever have retried. And a failed refresh surfaced
+`JWT expired` to the user instead of signing them out.
+
 ## The five exercise types
 
 - **choice** — multiple choice, the workhorse
