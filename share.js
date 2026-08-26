@@ -14,7 +14,7 @@
   function testoPost(n, lezioni) {
     return `${n} correct answers in a row on World of Trade.
 
-It is a free app for learning physical commodity trading step by step — incoterms, quotational periods, basis, hedging, trade finance, freight and chartering, desk risk. ${lezioni} lessons, no account needed.
+It is a free app for learning physical commodity trading step by step — incoterms, quotational periods, basis, hedging, trade finance, freight and chartering, desk risk. ${lezioni} lessons, with a secure account required to enter the game.
 
 If you work in commodities, see how far you get: ${sito()}
 

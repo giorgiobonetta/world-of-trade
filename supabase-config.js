@@ -1,6 +1,6 @@
 /* Configurazione del salvataggio in cloud.
    Finché url e chiave restano vuoti, l'app funziona esattamente come prima:
-   nessun login, progressi solo sul dispositivo. Istruzioni in SUPABASE-SETUP.md. */
+   il gioco resta bloccato finché l’autenticazione non viene configurata. Istruzioni in SUPABASE-SETUP.md. */
 window.WOT_CLOUD = {
   url: '',        // es. 'https://abcdefgh.supabase.co'
 

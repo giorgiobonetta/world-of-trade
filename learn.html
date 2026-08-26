@@ -17,7 +17,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" />
 <link rel="stylesheet" href="styles.css" />
 </head>
-<body>
+<body class="auth-locked">
 
 <svg class="backdrop" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice"
      xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
@@ -224,18 +224,46 @@
 </svg>
 
 
-<!-- PERCORSO -->
-<main id="pathScreen" class="screen active">
-  <header class="topbar">
+<!-- ACCESSO OBBLIGATORIO -->
+<section id="authGate" class="auth-gate" aria-labelledby="authGateTitle">
+  <div class="auth-gate-card">
+    <img class="auth-gate-logo" src="logo-crest-220.webp" alt="World of Trade" width="239" height="220"
+         onerror="this.onerror=null;this.src='logo-crest-220.png'" />
+    <span class="eyebrow">Your trading career starts here</span>
+    <h1 id="authGateTitle">Enter World of Trade</h1>
+    <p>Sign in or create an account before accessing the Career Path, Trading Floor and League. Your progress is tied to your account and follows you across devices.</p>
+    <div class="auth-gate-actions">
+      <button id="authSignIn" class="btn primary" type="button" disabled>Sign in</button>
+      <button id="authSignUp" class="btn auth-secondary" type="button" disabled>Create account</button>
+    </div>
+    <p id="authGateStatus" class="auth-gate-status" role="status">Checking secure access…</p>
+  </div>
+</section>
+
+<!-- NAVIGAZIONE PRINCIPALE -->
+<header id="appHeader" class="app-header">
+  <div class="app-header-inner">
     <a class="brand-link" href="index.html" aria-label="World of Trade — home">
-      <img class="brand" src="logo-crest-220.webp" alt="World of Trade"
-           width="239" height="220"
-           onerror="this.onerror=null;this.src='logo-crest-220.png'" /></a>
-    <div class="stats">
+      <img class="brand" src="logo-crest-220.webp" alt="World of Trade" width="239" height="220"
+           onerror="this.onerror=null;this.src='logo-crest-220.png'" />
+    </a>
+    <nav id="gameNav" class="game-nav" aria-label="Game sections">
+      <button class="nav-item active" data-screen="pathScreen"><span>⌁</span><b>Path</b></button>
+      <button class="nav-item" data-screen="playScreen"><span>⚡</span><b>Play</b></button>
+      <button class="nav-item" data-screen="practiceScreen"><span>↻</span><b>Practice</b></button>
+      <button class="nav-item" data-screen="leagueScreen"><span>♛</span><b>League</b></button>
+      <button class="nav-item" data-screen="profileScreen"><span>♙</span><b>Profile</b></button>
+    </nav>
+    <div class="stats header-stats" aria-label="Player rewards and level">
       <div class="stat streak" title="Day streak"><i aria-hidden="true">🔥</i><b id="statStreak">0</b></div>
+      <div class="stat level" title="Career level"><i aria-hidden="true">LV</i><b id="statLevel">1</b></div>
       <div class="stat gold" title="Experience"><i aria-hidden="true">★</i><b id="statXp">0</b></div>
     </div>
-  </header>
+  </div>
+</header>
+
+<!-- PERCORSO -->
+<main id="pathScreen" class="screen active">
   <div class="wrap">
     <div class="intro">
       <span class="eyebrow">Career Path · Trading House Academy</span>
@@ -267,7 +295,7 @@
 
 <!-- PLAY -->
 <main id="playScreen" class="screen">
-  <header class="section-top"><div><span class="eyebrow">Trading Floor</span><h1>Play</h1></div><div class="mini-xp">★ <b id="playXp">0</b></div></header>
+  <header class="section-top"><div><span class="eyebrow">Trading Floor</span><h1>Play</h1></div></header>
   <div class="wrap tab-wrap">
     <section class="mode-hero">
       <span class="mode-kicker">⚡ Infinite practice</span>
@@ -302,7 +330,7 @@
 
 <!-- LEAGUE / COMPETE -->
 <main id="leagueScreen" class="screen">
-  <header class="section-top"><div><span class="eyebrow">Competitive desk</span><h1>League</h1></div><div class="mini-xp">★ <b id="leagueXp">0</b></div></header>
+  <header class="section-top"><div><span class="eyebrow">Competitive desk</span><h1>League</h1></div></header>
   <div class="wrap tab-wrap">
     <section id="leagueHero" class="league-hero"></section>
     <section class="league-panel">
@@ -396,14 +424,6 @@
 </main>
 
 
-<nav id="gameNav" class="game-nav" aria-label="Game sections">
-  <button class="nav-item active" data-screen="pathScreen"><span>⌁</span><b>Path</b></button>
-  <button class="nav-item" data-screen="playScreen"><span>⚡</span><b>Play</b></button>
-  <button class="nav-item" data-screen="practiceScreen"><span>↻</span><b>Practice</b></button>
-  <button class="nav-item" data-screen="leagueScreen"><span>♛</span><b>League</b></button>
-  <button class="nav-item" data-screen="profileScreen"><span>♙</span><b>Profile</b></button>
-</nav>
-
 <div id="shareDialog" class="cloud-dialog" role="dialog" aria-modal="true"
      aria-labelledby="shareTitle" hidden>
   <div class="cloud-panel share-panel">
@@ -417,8 +437,7 @@
   <div class="cloud-panel">
     <button id="cloudClose" class="cloud-close" aria-label="Close">✕</button>
     <div id="cloudDialogBody"></div>
-    <p class="cloud-fine">Your email is used only to identify your account. Progress stays
-      on this device too, and you can keep playing without signing in.</p>
+    <p class="cloud-fine">Your email is used only to identify your account. An account is required to enter World of Trade; your private career progress stays protected.</p>
   </div>
 </div>
 

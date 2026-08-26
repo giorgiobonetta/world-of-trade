@@ -116,6 +116,7 @@
     ensureCompetitive();
     state.updatedAt = Date.now();
     try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+    try { renderTopStats(); } catch (e) {}
     // chi sincronizza col cloud ascolta questo, senza che il motore lo sappia
     try { window.dispatchEvent(new CustomEvent('wot:saved', { detail: { state } })); } catch (e) {}
   }
@@ -437,12 +438,18 @@
 
   /* ── schermata percorso ──────────────────────────────────────────── */
   let _lastXp = null;
-  function renderPath() {
-    const xpEl = $('#statXp'), stEl = $('#statStreak');
-    stEl.textContent = state.streak || 0;
-    if (_lastXp !== null && state.xp > _lastXp) { countUp(xpEl, state.xp); bump(xpEl.parentElement); }
-    else xpEl.textContent = state.xp || 0;
+  function renderTopStats() {
+    const xpEl = $('#statXp'), stEl = $('#statStreak'), lvEl = $('#statLevel');
+    if (stEl) stEl.textContent = state.streak || 0;
+    if (lvEl) lvEl.textContent = careerLevel();
+    if (xpEl) {
+      if (_lastXp !== null && state.xp > _lastXp) { countUp(xpEl, state.xp); bump(xpEl.parentElement); }
+      else xpEl.textContent = state.xp || 0;
+    }
     _lastXp = state.xp || 0;
+  }
+  function renderPath() {
+    renderTopStats();
     const next = nextLessonId();
     renderCareerHero();
     renderWorldMap();
@@ -1167,7 +1174,7 @@
     <section class="flash-record"><span class="eyebrow">Daily desk record</span><div class="profile-numbers"><div><b>${dailyDealCount()}</b><span>Daily deals</span></div><div><b>${perfectDayCount()}</b><span>Perfect days</span></div><div><b>${dailyQuests().filter(q => state.daily.claimed[q.id]).length}/3</b><span>Today</span></div></div></section>`;
   }
 
-  function renderMetaScreens() { renderPlayHub(); renderPracticeHub(); renderProfile(); if ($('#leagueScreen')?.classList.contains('active')) renderLeagueHub(); }
+  function renderMetaScreens() { renderTopStats(); renderPlayHub(); renderPracticeHub(); renderProfile(); if ($('#leagueScreen')?.classList.contains('active')) renderLeagueHub(); }
 
   /* ── Boss Deals ──────────────────────────────────────────────────── */
   let boss = null;

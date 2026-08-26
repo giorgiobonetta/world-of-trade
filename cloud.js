@@ -52,6 +52,7 @@
     session = s;
     try { s ? localStorage.setItem(SESS, JSON.stringify(s)) : localStorage.removeItem(SESS); } catch (e) {}
   };
+  session = loadSession();
 
   /* ── chiamate ─────────────────────────────────────────────────────── */
   async function call(path, { method = 'POST', body, auth = false, headers = {} } = {}) {
@@ -280,6 +281,28 @@
     };
   }
 
+  function aggiornaGate(messaggioGate = '', tipo = '') {
+    const gate = $('#authGate');
+    const status = $('#authGateStatus');
+    const locked = !session;
+    document.body.classList.toggle('auth-locked', locked);
+    if (gate) gate.hidden = !locked;
+    if (status) {
+      status.textContent = messaggioGate || (locked ? 'Sign in or create an account to continue.' : 'Access granted.');
+      status.className = 'auth-gate-status' + (tipo ? ' ' + tipo : '');
+    }
+  }
+
+  function gateNonConfigurato() {
+    aggiornaGate(PERICOLO
+      ? 'Authentication is blocked because supabase-config.js contains a secret key. Replace it with the public publishable/anon key.'
+      : SANDBOX
+        ? 'Secure access is disabled in sandbox mode.'
+        : 'Authentication is required. Configure Supabase in supabase-config.js before the game can be used.', 'warn');
+    $('#authSignIn')?.setAttribute('disabled','');
+    $('#authSignUp')?.setAttribute('disabled','');
+  }
+
   window.WOT_CLOUD_API = { merge, messaggio, get session() { return session; },
     enabled: ON, chiaveSegreta: PERICOLO, segreta };
 
@@ -300,17 +323,23 @@
     document.addEventListener('DOMContentLoaded', agganciaChiusure, { once: true });
   else agganciaChiusure();
 
-  if (!ON) return;   // non configurato: nessuna interfaccia, nessuna chiamata
+  if (!ON) {
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', gateNonConfigurato, { once:true });
+    else gateNonConfigurato();
+    return;
+  }
 
   /* ── stato della sincronizzazione ─────────────────────────────────── */
   let inFlight = null, dirty = false, timer = null;
 
   function stato(testo, tipo = '') {
     const el = $('#cloudStatus');
-    if (!el) return;
-    el.textContent = testo || '';
-    el.className = 'cloud-status' + (tipo ? ' ' + tipo : '');
-    el.hidden = !testo;
+    if (el) {
+      el.textContent = testo || '';
+      el.className = 'cloud-status' + (tipo ? ' ' + tipo : '');
+      el.hidden = !testo;
+    }
+    if (document.body.classList.contains('auth-locked') && testo) aggiornaGate(testo, tipo);
   }
 
   async function sincronizza({ silenzioso = false } = {}) {
@@ -353,6 +382,7 @@
 
   /* ── interfaccia ──────────────────────────────────────────────────── */
   function disegna() {
+    aggiornaGate();
     const host = $('#cloudHost');
     if (!host) return;
     if (session) {
@@ -370,7 +400,7 @@
       $('#cloudOut').addEventListener('click', esci);
     } else {
       host.innerHTML = `<button id="cloudOpen" class="cloud-cta">
-          <span aria-hidden="true">☁</span> Save your progress to an account</button>
+          <span aria-hidden="true">☁</span> Account required — sign in</button>
         <p id="cloudStatus" class="cloud-status" hidden></p>`;
       $('#cloudOpen').addEventListener('click', () => apri('in'));
     }
@@ -445,7 +475,7 @@
         else {
           // il progetto richiede la conferma via email: non c'è ancora una sessione
           chiudi(); disegna();
-          stato('Account created. Confirm it from your inbox, then sign in.', 'ok');
+          stato('Account created. Confirm it from your inbox, then sign in to enter World of Trade.', 'ok');
           return;
         }
       } else {
@@ -465,12 +495,11 @@
     try { await call('/auth/v1/logout', { auth: true }); } catch (e) {}
     putSession(null);
     disegna();
-    stato('Signed out. Your progress stays on this device.', 'ok');
+    stato('Signed out. Sign in again to enter World of Trade.', 'ok');
     setTimeout(() => stato(''), 3200);
   }
 
   /* ── avvio ────────────────────────────────────────────────────────── */
-  session = loadSession();
   // la bandiera va dichiarata PRIMA di qualunque chiamata:
   // dichiararla dopo la mette nella temporal dead zone e la prima
   // invocazione lancia ReferenceError, lasciando l'interfaccia non disegnata
@@ -480,6 +509,9 @@
   else avvia();
   async function avvia() {
     if (avviato) return; avviato = true;
+    const signInGate = $('#authSignIn'), signUpGate = $('#authSignUp');
+    if (signInGate) { signInGate.disabled = false; signInGate.addEventListener('click', () => apri('in')); }
+    if (signUpGate) { signUpGate.disabled = false; signUpGate.addEventListener('click', () => apri('up')); }
     $('#cloudClose')?.addEventListener('click', chiudi);
     $('#cloudDialog')?.addEventListener('click', e => { if (e.target.id === 'cloudDialog') chiudi(); });
 
@@ -502,7 +534,7 @@
 
   Object.assign(window.WOT_CLOUD_API, {
     signUp, signIn, pull, push, leagueRows, houseRows, pushLeague, sincronizza, merge, apri, chiudi, disegna, esci,
-    vaiA, leggiRitorno, idUtente, chiUtente,
+    vaiA, leggiRitorno, idUtente, chiUtente, aggiornaGate,
   });
   // Object.assign copierebbe il VALORE del getter, non il getter:
   // dirty resterebbe congelato a false per sempre.

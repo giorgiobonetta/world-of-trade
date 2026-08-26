@@ -1,8 +1,6 @@
 # Attivare il salvataggio della carriera
 
-Serve un progetto Supabase gratuito. Dieci minuti, una volta sola.
-Finché non lo fai, l'app funziona esattamente come prima: nessun login, progressi
-salvati solo sul dispositivo. Non si rompe niente.
+Serve un progetto Supabase. L'accesso è ora obbligatorio: finché URL e chiave pubblica non sono configurati, World of Trade mostra la schermata di accesso ma non permette di entrare nel gioco. Una volta configurato, ogni giocatore deve registrarsi o accedere prima di usare Career Path, Play, Practice e League.
 
 ---
 

@@ -1,5 +1,14 @@
 # World of Trade — Learn
 
+## v5.1 — Mandatory Access + Top Navigation
+
+- Registration/sign-in is required before the game shell becomes accessible.
+- Signing out or losing the session returns the player to the access gate.
+- Path, Play, Practice, League and Profile now live in the sticky top header beside streak, career level and XP.
+- Landing-page CTAs now lead to Sign in / Create account.
+- Supabase remains the authentication backend; with an empty config the game intentionally stays locked.
+
+
 Learn physical commodity trading step by step. Short lessons, immediate feedback,
 from the very basics upward.
 
@@ -20,7 +29,7 @@ then open `http://localhost:8000`. Deploys to Vercel as-is — no build step.
 | `index.html` | `/` | Landing page — pitch, curriculum, a live sample exercise, CTA |
 | `learn.html` | `/learn` | The app itself (the path, the lessons, progress) |
 | `sw.js`, `pwa.js`, `manifest.webmanifest` | — | Installability and offline |
-| `cloud.js`, `supabase-config.js` | — | Optional account and cloud save |
+| `cloud.js`, `supabase-config.js` | — | Mandatory authentication and cloud career save |
 | `share.js` | — | Streak card and LinkedIn sharing |
 | `glossary.html` | `/glossary` | 70 terms, searchable, linked to the lessons |
 | `selftest.html` | `/selftest` | In-browser diagnostics; `noindex`, not linked from the UI |
@@ -230,9 +239,7 @@ is gone.
 
 ## Saving a career to an account
 
-Optional, off by default, and irrelevant to how the app runs. `supabase-config.js`
-ships empty; while it is empty there is no login UI, no network call, and the app is
-byte-for-byte the experience it was before. Setup instructions are in
+Authentication is now required before entering the game. `supabase-config.js` ships empty for security; while it is empty the mandatory access gate stays locked and explains that Supabase must be configured. Once configured, users must sign in or create an account before the game shell is revealed; career progress then syncs to that authenticated account. Setup instructions are in
 `SUPABASE-SETUP.md`.
 
 **No SDK.** Supabase is reached over its plain REST endpoints with `fetch` — signup,
