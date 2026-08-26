@@ -4,11 +4,27 @@
 */
 (() => {
   'use strict';
+  let RNG = Math.random;
   const r = (a, b, step = 1) => {
-    const n = Math.floor(Math.random() * (Math.floor((b - a) / step) + 1));
+    const n = Math.floor(RNG() * (Math.floor((b - a) / step) + 1));
     return a + n * step;
   };
-  const one = a => a[Math.floor(Math.random() * a.length)];
+  const one = a => a[Math.floor(RNG() * a.length)];
+  const hash = str => {
+    let h = 2166136261 >>> 0;
+    for (const ch of String(str)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); }
+    return h >>> 0;
+  };
+  const seeded = seed => {
+    let a = seed >>> 0;
+    return () => {
+      a |= 0; a = a + 0x6D2B79F5 | 0;
+      let t = Math.imul(a ^ a >>> 15, 1 | a);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  };
+  const withRng = (rng, fn) => { const prev = RNG; RNG = rng; try { return fn(); } finally { RNG = prev; } };
   const round = (n, d = 0) => Number(n.toFixed(d));
 
   const skills = {
@@ -22,7 +38,7 @@
     risk:      { name:'Desk Risk', short:'Risk', icon:'△', description:'Control exposure, concentration, liquidity and tail scenarios.' },
   };
 
-  const unitMeta = {
+  const foundationUnitMeta = {
     u1:{ division:'Physical Trading', skill:'trading', chapter:'Merchant Foundations' },
     u2:{ division:'Operations', skill:'operations', chapter:'Merchant Foundations' },
     u3:{ division:'Pricing', skill:'pricing', chapter:'Merchant Foundations' },
@@ -33,16 +49,18 @@
     u7:{ division:'Risk', skill:'risk', chapter:'Merchant Foundations' },
   };
 
+  const unitMeta = { ...foundationUnitMeta, ...(window.WOT_CONTENT?.unitMeta || {}) };
+
   const ranks = [
     { id:'intern', name:'Intern', xp:0, lessons:0 },
-    { id:'graduate-analyst', name:'Graduate Analyst', xp:80, lessons:4 },
-    { id:'analyst', name:'Analyst', xp:180, lessons:8 },
-    { id:'junior-trader', name:'Junior Trader', xp:320, lessons:14 },
-    { id:'trader', name:'Trader', xp:500, lessons:22 },
-    { id:'senior-trader', name:'Senior Trader', xp:750, lessons:31 },
-    { id:'desk-head', name:'Desk Head', xp:1200, lessons:31 },
-    { id:'head-trading', name:'Head of Trading', xp:2000, lessons:31 },
-    { id:'partner', name:'Partner', xp:3500, lessons:31 },
+    { id:'graduate-analyst', name:'Graduate Analyst', xp:120, lessons:6 },
+    { id:'analyst', name:'Analyst', xp:300, lessons:15 },
+    { id:'junior-trader', name:'Junior Trader', xp:650, lessons:31 },
+    { id:'trader', name:'Trader', xp:1200, lessons:45 },
+    { id:'senior-trader', name:'Senior Trader', xp:2200, lessons:65 },
+    { id:'desk-head', name:'Desk Head', xp:3500, lessons:85 },
+    { id:'head-trading', name:'Head of Trading', xp:5000, lessons:103 },
+    { id:'partner', name:'Partner', xp:8000, lessons:103 },
   ];
 
   // Every template returns a fresh, mechanically verifiable question.
@@ -250,12 +268,35 @@
     return { id:d.id, desk:d.desk, title:d.title, difficulty:d.difficulty, unlock:d.unlock, icon:d.icon, accent:d.accent };
   });
   const makeBossDeal = id => {
-    const make = bossDealFactories.find(f => f().id === id);
-    return make ? make() : null;
+    const i = bossCatalog.findIndex(x => x.id === id);
+    return i >= 0 ? bossDealFactories[i]() : null;
+  };
+
+  // Daily Deal: one deterministic, internally consistent scenario per calendar day.
+  // The content changes tomorrow, but reopening today recreates exactly the same numbers.
+  const makeDailyDeal = dayKey => {
+    const seed = hash(`daily:${dayKey}`);
+    const i = seed % bossDealFactories.length;
+    return withRng(seeded(seed), () => {
+      const base = bossDealFactories[i]();
+      const steps = base.steps.slice(0, 4);
+      return { ...base,
+        id:`daily-${dayKey}`,
+        sourceBossId:base.id,
+        daily:true,
+        title:`${base.desk} Desk — ${base.title}`,
+        brief:`Today's desk brief. ${base.brief}`,
+        steps,
+      };
+    });
+  };
+  const dailyMeta = dayKey => {
+    const d = makeDailyDeal(dayKey);
+    return d ? { id:d.id, desk:d.desk, title:d.title, difficulty:d.difficulty, icon:d.icon, accent:d.accent, steps:d.steps.length } : null;
   };
 
   window.WOT_GAME = {
     skills, unitMeta, ranks, flashTemplates, randomFlash: () => one(flashTemplates)(),
-    bossCatalog, makeBossDeal,
+    bossCatalog, makeBossDeal, makeDailyDeal, dailyMeta,
   };
 })();

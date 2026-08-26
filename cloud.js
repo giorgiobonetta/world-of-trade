@@ -167,6 +167,24 @@
     };
     const bossCompleted = maxMap(a.boss?.completed, b.boss?.completed);
     const bossCleared = Object.values(bossCompleted).filter(v => Number(v) >= 60).length;
+    const mergeDaily = (x = {}, y = {}) => {
+      const dx = x.day || '', dy = y.day || '';
+      if (dx && dy && dx !== dy) return { ...(dx > dy ? x : y) };
+      const claimed = { ...(x.claimed || {}) };
+      for (const k of Object.keys(y.claimed || {})) claimed[k] = !!(claimed[k] || y.claimed[k]);
+      return {
+        day: dx || dy || null,
+        dealDone: !!(x.dealDone || y.dealDone),
+        dealBest: Math.max(Number(x.dealBest)||0, Number(y.dealBest)||0),
+        dealPlays: Math.max(Number(x.dealPlays)||0, Number(y.dealPlays)||0),
+        flashBest: Math.max(Number(x.flashBest)||0, Number(y.flashBest)||0),
+        flashCorrect: Math.max(Number(x.flashCorrect)||0, Number(y.flashCorrect)||0),
+        trainingRuns: Math.max(Number(x.trainingRuns)||0, Number(y.trainingRuns)||0),
+        bossRuns: Math.max(Number(x.bossRuns)||0, Number(y.bossRuns)||0),
+        claimed,
+        bonusClaimed: !!(x.bonusClaimed || y.bonusClaimed),
+      };
+    };
     return {
       done: [...new Set([...(a.done || []), ...(b.done || [])])],
       xp: Math.max(Number(a.xp) || 0, Number(b.xp) || 0),
@@ -187,11 +205,27 @@
         correct: Math.max(Number(a.flash?.correct) || 0, Number(b.flash?.correct) || 0),
         total: Math.max(Number(a.flash?.total) || 0, Number(b.flash?.total) || 0),
       },
+      frontier: {
+        best: Math.max(Number(a.frontier?.best) || 0, Number(b.frontier?.best) || 0),
+        plays: Math.max(Number(a.frontier?.plays) || 0, Number(b.frontier?.plays) || 0),
+        cleared: Math.max(Number(a.frontier?.cleared) || 0, Number(b.frontier?.cleared) || 0),
+        correct: Math.max(Number(a.frontier?.correct) || 0, Number(b.frontier?.correct) || 0),
+        total: Math.max(Number(a.frontier?.total) || 0, Number(b.frontier?.total) || 0),
+      },
       boss: {
         best: Math.max(Number(a.boss?.best) || 0, Number(b.boss?.best) || 0),
         plays: Math.max(Number(a.boss?.plays) || 0, Number(b.boss?.plays) || 0),
         cleared: Math.max(bossCleared, Number(a.boss?.cleared) || 0, Number(b.boss?.cleared) || 0),
         completed: bossCompleted,
+      },
+      daily: mergeDaily(a.daily, b.daily),
+      dailyStats: {
+        deals: Math.max(Number(a.dailyStats?.deals)||0, Number(b.dailyStats?.deals)||0),
+        perfectDays: Math.max(Number(a.dailyStats?.perfectDays)||0, Number(b.dailyStats?.perfectDays)||0),
+      },
+      dailyHistory: {
+        deals: maxMap(a.dailyHistory?.deals, b.dailyHistory?.deals),
+        perfect: maxMap(a.dailyHistory?.perfect, b.dailyHistory?.perfect),
       },
       updatedAt: Math.max(Number(a.updatedAt) || 0, Number(b.updatedAt) || 0),
     };

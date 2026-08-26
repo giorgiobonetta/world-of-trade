@@ -19,7 +19,8 @@
   const XP_PER = 10;
 
   const UNITS = window.CURRICULUM || [];
-  const GAME = window.WOT_GAME || { skills:{}, unitMeta:{}, ranks:[], randomFlash:null, bossCatalog:[], makeBossDeal:null };
+  const GAME = window.WOT_GAME || { skills:{}, unitMeta:{}, ranks:[], randomFlash:null, bossCatalog:[], makeBossDeal:null, makeDailyDeal:null, dailyMeta:null };
+  const CONTENT = window.WOT_CONTENT || { makeMasterySet:null, worldCatalog:[] };
   const allLessons = UNITS.flatMap(u => u.lessons.map(l => ({ ...l, unitId: u.id })));
   const skillIdForLesson = lessonId => {
     const lesson = allLessons.find(l => l.id === lessonId);
@@ -77,7 +78,11 @@
     streakBest: 0, // record personale, quello che si condivide
     skillXp: {},    // pratica oltre al progresso base: skill -> punti
     flash: { best:0, plays:0, correct:0, total:0 },
+    frontier: { best:0, plays:0, cleared:0, correct:0, total:0 },
     boss: { plays:0, cleared:0, best:0, completed:{} },
+    daily: { day:null, dealDone:false, dealBest:0, dealPlays:0, flashBest:0, flashCorrect:0, trainingRuns:0, bossRuns:0, claimed:{}, bonusClaimed:false },
+    dailyStats: { deals:0, perfectDays:0 },
+    dailyHistory: { deals:{}, perfect:{} },
   });
   let state = load();
 
@@ -88,14 +93,18 @@
       const s = JSON.parse(raw);
       const obj = v => (v && typeof v === 'object' && !Array.isArray(v)) ? v : {};
       // i salvataggi piu' vecchi non hanno questi campi: vanno ricostruiti, non assunti
-      const flash = obj(s.flash), boss = obj(s.boss);
+      const flash = obj(s.flash), frontier = obj(s.frontier), boss = obj(s.boss), daily = obj(s.daily), dailyStats = obj(s.dailyStats), dailyHistory = obj(s.dailyHistory);
       return { ...defaultState(), ...s,
-        done: Array.isArray(s.done) ? s.done : [],
+        done: Array.isArray(s.done) ? s.done.filter(id => allLessons.some(l => l.id === id)) : [],
         best: obj(s.best), misses: obj(s.misses), doneAt: obj(s.doneAt), badges: obj(s.badges),
         skillXp: obj(s.skillXp),
         flash: { best:Number(flash.best)||0, plays:Number(flash.plays)||0,
           correct:Number(flash.correct)||0, total:Number(flash.total)||0 },
+        frontier: { best:Number(frontier.best)||0, plays:Number(frontier.plays)||0, cleared:Number(frontier.cleared)||0, correct:Number(frontier.correct)||0, total:Number(frontier.total)||0 },
         boss: { plays:Number(boss.plays)||0, cleared:Math.max(Number(boss.cleared)||0, Object.values(obj(boss.completed)).filter(v => Number(v) >= 60).length), best:Number(boss.best)||0, completed:obj(boss.completed) },
+        daily: { day:daily.day || null, dealDone:!!daily.dealDone, dealBest:Number(daily.dealBest)||0, dealPlays:Number(daily.dealPlays)||0, flashBest:Number(daily.flashBest)||0, flashCorrect:Number(daily.flashCorrect)||0, trainingRuns:Number(daily.trainingRuns)||0, bossRuns:Number(daily.bossRuns)||0, claimed:obj(daily.claimed), bonusClaimed:!!daily.bonusClaimed },
+        dailyStats: { deals:Number(dailyStats.deals)||0, perfectDays:Number(dailyStats.perfectDays)||0 },
+        dailyHistory: { deals:obj(dailyHistory.deals), perfect:obj(dailyHistory.perfect) },
         reviews: Number(s.reviews) || 0, updatedAt: Number(s.updatedAt) || 0,
         streakNow: Number(s.streakNow) || 0, streakBest: Number(s.streakBest) || 0 };
     } catch (e) { return defaultState(); }
@@ -111,13 +120,17 @@
   function replaceState(next) {
     if (!next || typeof next !== 'object') return false;
     const obj = v => (v && typeof v === 'object' && !Array.isArray(v)) ? v : {};
-    const f = obj(next.flash), b = obj(next.boss);
+    const f = obj(next.flash), fr = obj(next.frontier), b = obj(next.boss), d = obj(next.daily), ds = obj(next.dailyStats), dh = obj(next.dailyHistory);
     state = { ...defaultState(), ...next,
       done: Array.isArray(next.done) ? next.done.filter(id => allLessons.some(l => l.id === id)) : [],
       best: obj(next.best), misses: obj(next.misses), doneAt: obj(next.doneAt), badges: obj(next.badges),
       skillXp: obj(next.skillXp),
       flash: { best:Number(f.best)||0, plays:Number(f.plays)||0, correct:Number(f.correct)||0, total:Number(f.total)||0 },
-      boss: { plays:Number(b.plays)||0, cleared:Math.max(Number(b.cleared)||0, Object.values(obj(b.completed)).filter(v => Number(v) >= 60).length), best:Number(b.best)||0, completed:obj(b.completed) } };
+      frontier: { best:Number(fr.best)||0, plays:Number(fr.plays)||0, cleared:Number(fr.cleared)||0, correct:Number(fr.correct)||0, total:Number(fr.total)||0 },
+      boss: { plays:Number(b.plays)||0, cleared:Math.max(Number(b.cleared)||0, Object.values(obj(b.completed)).filter(v => Number(v) >= 60).length), best:Number(b.best)||0, completed:obj(b.completed) },
+      daily: { day:d.day || null, dealDone:!!d.dealDone, dealBest:Number(d.dealBest)||0, dealPlays:Number(d.dealPlays)||0, flashBest:Number(d.flashBest)||0, flashCorrect:Number(d.flashCorrect)||0, trainingRuns:Number(d.trainingRuns)||0, bossRuns:Number(d.bossRuns)||0, claimed:obj(d.claimed), bonusClaimed:!!d.bonusClaimed },
+      dailyStats: { deals:Number(ds.deals)||0, perfectDays:Number(ds.perfectDays)||0 },
+      dailyHistory: { deals:obj(dh.deals), perfect:obj(dh.perfect) } }; 
     try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
     _lastXp = null;
     renderPath();
@@ -125,11 +138,66 @@
   }
 
   function touchStreak() {
-    const today = new Date().toISOString().slice(0, 10);
+    const todayDate = new Date(), yesterdayDate = new Date();
+    yesterdayDate.setDate(todayDate.getDate() - 1);
+    const today = localDayKey(todayDate), yesterday = localDayKey(yesterdayDate);
     if (state.lastDay === today) return;
-    const yesterday = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
     state.streak = state.lastDay === yesterday ? (state.streak || 0) + 1 : 1;
     state.lastDay = today;
+  }
+
+
+  /* ── Daily loop ─────────────────────────────────────────────────── */
+  const localDayKey = (date = new Date()) => {
+    const y = date.getFullYear(), m = String(date.getMonth()+1).padStart(2,'0'), d = String(date.getDate()).padStart(2,'0');
+    return `${y}-${m}-${d}`;
+  };
+  const hashDay = str => {
+    let h = 2166136261 >>> 0;
+    for (const ch of String(str)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); }
+    return h >>> 0;
+  };
+  function ensureDaily() {
+    const day = localDayKey();
+    if (!state.daily || state.daily.day !== day) {
+      state.daily = { day, dealDone:false, dealBest:0, dealPlays:0, flashBest:0, flashCorrect:0, trainingRuns:0, bossRuns:0, claimed:{}, bonusClaimed:false };
+    }
+    state.dailyStats ||= { deals:0, perfectDays:0 };
+    state.dailyHistory ||= { deals:{}, perfect:{} };
+    state.dailyHistory.deals ||= {}; state.dailyHistory.perfect ||= {};
+    state.daily.claimed ||= {};
+    return state.daily;
+  }
+  const dailyDealCount = () => Math.max(Number(state.dailyStats?.deals)||0, Object.keys(state.dailyHistory?.deals || {}).length);
+  const perfectDayCount = () => Math.max(Number(state.dailyStats?.perfectDays)||0, Object.keys(state.dailyHistory?.perfect || {}).length);
+  function dailyQuests() {
+    const d = ensureDaily(), seed = hashDay(d.day);
+    const flashScoreTarget = 100 + (seed % 4) * 20;
+    const flashCorrectTarget = 6 + (seed % 3) * 2;
+    const deal = { id:'deal', icon:'◆', title:'Close today’s deal', copy:'Complete the Deal of the Day.', reward:35, done:!!d.dealDone, progress:d.dealDone ? 1 : 0, target:1 };
+    const flashScore = { id:'flash-score', icon:'⚡', title:`Score ${flashScoreTarget} in Flash`, copy:'One strong 60-second run is enough.', reward:25, done:d.flashBest >= flashScoreTarget, progress:Math.min(d.flashBest,flashScoreTarget), target:flashScoreTarget };
+    const flashCorrect = { id:'flash-correct', icon:'✓', title:`Get ${flashCorrectTarget} Flash answers right`, copy:'Correct answers accumulate across today’s runs.', reward:25, done:d.flashCorrect >= flashCorrectTarget, progress:Math.min(d.flashCorrect,flashCorrectTarget), target:flashCorrectTarget };
+    const training = { id:'training', icon:'↻', title:'Complete one training session', copy:'Finish a Career level or a Practice session.', reward:25, done:d.trainingRuns >= 1, progress:Math.min(d.trainingRuns,1), target:1 };
+    const bossQ = { id:'boss', icon:'♜', title:'Enter the dealing room', copy:'Complete one Boss Deal run today.', reward:30, done:d.bossRuns >= 1, progress:Math.min(d.bossRuns,1), target:1 };
+    const variants = [[flashScore,training],[flashCorrect,bossQ],[flashScore,bossQ]];
+    return [deal, ...variants[seed % variants.length]];
+  }
+  function claimDailyQuest(id) {
+    ensureDaily();
+    const q = dailyQuests().find(x => x.id === id);
+    if (!q || !q.done || state.daily.claimed[id]) return;
+    state.daily.claimed[id] = true;
+    state.xp = (state.xp || 0) + q.reward;
+    touchStreak();
+    const allClaimed = dailyQuests().every(x => state.daily.claimed[x.id]);
+    if (allClaimed && !state.daily.bonusClaimed) {
+      state.daily.bonusClaimed = true;
+      state.dailyStats.perfectDays = (state.dailyStats.perfectDays || 0) + 1;
+      state.dailyHistory.perfect[state.daily.day] = 1;
+      state.xp += 25;
+      confetti(60);
+    }
+    save(); renderMetaScreens();
   }
 
   const isDone = id => state.done.includes(id);
@@ -230,6 +298,7 @@
     _lastXp = state.xp || 0;
     const next = nextLessonId();
     renderCareerHero();
+    renderWorldMap();
     const greetHost = $('#pathGreet');
     if (greetHost && window.MASCOT) {
       const done = state.done.length;
@@ -237,7 +306,7 @@
         ? 'I’m Hélène. I ran a metals desk for eleven years. Let’s start with what a trade actually is.'
         : done < allLessons.length
           ? `${done} lesson${done === 1 ? '' : 's'} down. The next one builds on the last, so keep going.`
-          : 'Merchant Foundations complete. The trading floor stays open — use Flash Trading and Practice while new desks are added.';
+          : 'Trading House Academy complete. The Trading Floor stays open forever — run generated desk challenges, Flash Trading and Boss Deals.';
       greetHost.innerHTML = `<div class="greet">
         <div class="greet-face">${window.MASCOT.svg('teach', 78)}</div>
         <div class="greet-copy"><strong>${esc(window.MASCOT.name)}</strong><p>${esc(line)}</p></div>
@@ -263,13 +332,13 @@
       const doneN = state.done.filter(id => allLessons.some(l => l.id === id)).length;
       const pct = total ? Math.round(doneN / total * 100) : 0;
       bar.hidden = false;
-      $('#courseLabel').textContent = `Merchant Foundations · ${doneN} of ${total} levels`;
+      $('#courseLabel').textContent = `Trading House Academy · ${doneN} of ${total} levels`;
       $('#coursePct').textContent = `${pct}%`;
       $('#courseFill').style.width = pct + '%';
       const track = $('#courseTrack');
       if (track) {
         track.setAttribute('aria-valuenow', String(pct));
-        track.setAttribute('aria-valuetext', `${doneN} of ${total} foundation levels complete`);
+        track.setAttribute('aria-valuetext', `${doneN} of ${total} Career levels complete`);
       }
     }
 
@@ -295,7 +364,11 @@
       const badge = state.badges[u.id];
       const ready = unitDone(u);
       const meta = GAME.unitMeta[u.id] || {};
-      return `<section class="unit">
+      const phase = meta.phase || meta.chapter || 'Merchant Foundations';
+      const prevMeta = ui > 0 ? (GAME.unitMeta[UNITS[ui-1].id] || {}) : {};
+      const prevPhase = prevMeta.phase || prevMeta.chapter || 'Merchant Foundations';
+      const phaseHead = ui === 0 || phase !== prevPhase ? `<div class="phase-divider"><span>${esc(phase)}</span><i></i></div>` : '';
+      return `${phaseHead}<section class="unit" id="unit-${esc(u.id)}">
         <div class="unit-head">
           <span class="n">Desk ${ui + 1} · ${esc(meta.division || 'Foundations')}</span>
           ${badge ? `<span class="unit-badge" title="Checkpoint passed">★ ${badge}%</span>` : ''}
@@ -370,6 +443,22 @@
     const items = reviewItems();
     if (!items.length) return;
     startRun({ mode: 'review', items, banner: 'Practice · things you have already seen' });
+  }
+
+  function unlockedMasteryWorlds() {
+    const doneN = state.done.filter(id => allLessons.some(l => l.id === id)).length;
+    if (doneN < 31) return 0;
+    return Math.max(1, Math.min((CONTENT.worldCatalog || []).length || 1, 1 + Math.floor(Math.max(0, doneN - 31) / 6)));
+  }
+
+  function startFrontier() {
+    if (!CONTENT.makeMasterySet) return;
+    const worlds = unlockedMasteryWorlds();
+    if (!worlds) return;
+    const seed = `${Date.now()}:${state.frontier?.plays || 0}:${state.xp || 0}`;
+    const items = CONTENT.makeMasterySet(seed, 10, worlds);
+    startRun({ mode:'frontier', items, hearts:5,
+      banner:`Trading Floor Run · 10 decisions · ${worlds} specialist desk${worlds === 1 ? '' : 's'} in rotation` });
   }
 
   function startCheckpoint(unitId) {
@@ -616,7 +705,7 @@
       run.correct++;
       if (!run.current.retry) {
         run.firstTry++;
-        const sid = skillIdForLesson(run.current.lessonId);
+        const sid = run.current.skill || skillIdForLesson(run.current.lessonId);
         if (sid) state.skillXp[sid] = (Number(state.skillXp[sid]) || 0) + (run.mode === 'lesson' ? 2 : 1);
       }
       // preso al primo colpo: l'esercizio esce dalla lista dei debiti
@@ -666,6 +755,13 @@
   }
 
   function failRun() {
+    if (run?.mode === 'frontier') {
+      state.frontier.plays = (state.frontier.plays || 0) + 1;
+      state.frontier.correct = (state.frontier.correct || 0) + (run.firstTry || 0);
+      state.frontier.total = (state.frontier.total || 0) + (run.total || 0);
+      touchStreak(); save();
+      run = null; show('playScreen'); return;
+    }
     run = null;
     show('pathScreen');
     renderPath();
@@ -691,6 +787,17 @@
       state.reviews = (state.reviews || 0) + 1;
       title = 'Practice done';
       goal = 'Anything you missed here will come back again until it sticks.';
+    } else if (mode === 'frontier') {
+      gained = Math.max(5, Math.round(8 + acc * .18));
+      state.frontier.plays = (state.frontier.plays || 0) + 1;
+      state.frontier.correct = (state.frontier.correct || 0) + run.firstTry;
+      state.frontier.total = (state.frontier.total || 0) + run.total;
+      state.frontier.best = Math.max(Number(state.frontier.best)||0, acc);
+      if (acc >= 70) state.frontier.cleared = (state.frontier.cleared || 0) + 1;
+      title = acc >= 70 ? 'Trading Floor Run cleared' : 'Trading Floor Run complete';
+      goal = acc >= 70
+        ? 'Fresh questions are generated every run. Keep rotating through the desks and push the score higher.'
+        : 'The floor stays open. Build the weak skills and run another book when you are ready.';
     } else {
       const unit = run.unit;
       const passed = acc >= CHECK_PASS;
@@ -704,6 +811,7 @@
     }
 
     state.xp = (state.xp || 0) + gained;
+    if (mode === 'lesson' || mode === 'review' || mode === 'frontier') { ensureDaily(); state.daily.trainingRuns = (state.daily.trainingRuns || 0) + 1; }
     touchStreak();
     save();
     $('#doneTitle').textContent = title;
@@ -715,10 +823,13 @@
     countUp($('#doneXp'), gained, '+');
     countUp($('#doneAcc'), acc, '', '%');
     if (mode !== 'checkpoint' || acc >= CHECK_PASS) confetti(acc === 100 ? 60 : 40);
+    doneReturnScreen = mode === 'frontier' ? 'playScreen' : 'pathScreen';
     run = null;
     show('doneScreen');
   }
 
+
+  let doneReturnScreen = 'pathScreen';
 
   /* ── carriera, skill e hub ───────────────────────────────────────── */
   function careerLevel() { return 1 + Math.floor((Number(state.xp) || 0) / 50); }
@@ -742,6 +853,43 @@
     const badge = badges.length ? (badges.reduce((a,b) => a+b,0) / badges.length) * .15 : 0;
     const practice = Math.min(15, (Number(state.skillXp[skillId]) || 0) * .45);
     return Math.min(100, Math.round(base + badge + practice));
+  }
+
+  function careerWorldGroups() {
+    const foundations = UNITS.filter(u => String(u.id).startsWith('u'));
+    const advanced = UNITS.filter(u => !String(u.id).startsWith('u'));
+    const groups = [];
+    if (foundations.length) groups.push({ id:'foundations', title:'Merchant Foundations', subtitle:'Core mechanics every desk must know.', icon:'MF', units:foundations });
+    advanced.forEach(u => {
+      const meta = GAME.unitMeta[u.id] || {};
+      groups.push({ id:u.id, title:u.title, subtitle:u.subtitle, icon:meta.icon || '◆', units:[u], phase:meta.phase || meta.chapter || 'Desk Academy' });
+    });
+    return groups;
+  }
+
+  function renderWorldMap() {
+    const host = $('#worldMapHost'); if (!host) return;
+    const next = nextLessonId();
+    const groups = careerWorldGroups();
+    host.innerHTML = groups.map(g => {
+      const lessons = g.units.flatMap(u => u.lessons);
+      const doneN = lessons.filter(l => isDone(l.id)).length;
+      const total = lessons.length;
+      const active = lessons.some(l => l.id === next);
+      const complete = total > 0 && doneN === total;
+      const unlocked = complete || active || doneN > 0;
+      const pct = total ? Math.round(doneN/total*100) : 0;
+      const target = g.units[0]?.id;
+      return `<button class="world-card${complete?' complete':active?' active':unlocked?' unlocked':' locked'}" data-world-target="${esc(target)}" ${unlocked ? '' : 'disabled'}>
+        <span class="world-icon">${complete ? '✓' : esc(g.icon)}</span><span class="world-copy"><small>${esc(g.phase || (g.id === 'foundations' ? 'CORE' : 'SPECIALIST DESK'))}</small><strong>${esc(g.title)}</strong><em>${doneN}/${total} levels · ${pct}%</em></span>
+        <i class="world-mini-track"><b style="width:${pct}%"></b></i>
+      </button>`;
+    }).join('');
+    $$('[data-world-target]', host).forEach(b => b.addEventListener('click', () => {
+      const el = document.getElementById(`unit-${b.dataset.worldTarget}`);
+      if (el) el.scrollIntoView({ behavior: motionOK() ? 'smooth' : 'auto', block:'start' });
+    }));
+    const count = $('#careerCount'); if (count) count.textContent = `${allLessons.length} levels · ${UNITS.length} desks`;
   }
 
   function renderCareerHero() {
@@ -794,10 +942,48 @@
     const rec = $('#bossRecord'); if (rec) rec.textContent = `${state.boss.cleared || 0} cleared`;
   }
 
+  function renderDailyHub() {
+    ensureDaily();
+    const meta = GAME.dailyMeta ? GAME.dailyMeta(state.daily.day) : null;
+    const copy = $('#dailyCardCopy');
+    const start = $('#dailyStart');
+    if (copy) copy.textContent = meta ? `${meta.desk} desk · ${meta.steps} decisions · ${state.daily.dealDone ? `best ${state.daily.dealBest}%` : 'new today'}` : 'One complete trade scenario, refreshed every day.';
+    if (start) start.textContent = state.daily.dealDone ? 'Run today’s deal again' : 'Open today’s deal';
+
+    const host = $('#dailyQuestHub');
+    if (host) {
+      const qs = dailyQuests();
+      host.innerHTML = qs.map(q => {
+        const claimed = !!state.daily.claimed[q.id];
+        const pct = Math.min(100, Math.round((q.progress / q.target) * 100));
+        return `<article class="quest-row${q.done ? ' done' : ''}${claimed ? ' claimed' : ''}">
+          <div class="quest-icon">${esc(q.icon)}</div><div class="quest-copy"><h3>${esc(q.title)}</h3><p>${esc(q.copy)}</p>
+          <div class="quest-progress"><i style="width:${pct}%"></i></div><small>${q.progress} / ${q.target}</small></div>
+          <button class="quest-claim" data-quest-claim="${esc(q.id)}" ${q.done && !claimed ? '' : 'disabled'}>${claimed ? 'Claimed' : `+${q.reward} XP`}</button>
+        </article>`;
+      }).join('');
+      $$('[data-quest-claim]', host).forEach(b => b.addEventListener('click', () => claimDailyQuest(b.dataset.questClaim)));
+      const claimedN = qs.filter(q => state.daily.claimed[q.id]).length;
+      const rec = $('#dailyQuestRecord'); if (rec) rec.textContent = `${claimedN} / ${qs.length} claimed`;
+      const bonus = $('#dailyBonus');
+      if (bonus) bonus.innerHTML = state.daily.bonusClaimed
+        ? `<span>✓</span><div><b>Desk bonus collected</b><small>All daily objectives complete · +25 XP</small></div>`
+        : `<span>★</span><div><b>Complete all 3 quests</b><small>Collect every quest reward for a +25 XP desk bonus.</small></div>`;
+    }
+  }
+
   function renderPlayHub() {
     const xp = $('#playXp'); if (xp) xp.textContent = state.xp || 0;
     const best = $('#flashBest'); if (best) best.textContent = state.flash.best || 0;
     const runs = $('#flashRuns'); if (runs) runs.textContent = state.flash.plays || 0;
+    const fBest = $('#frontierBest'); if (fBest) fBest.textContent = `${state.frontier.best || 0}%`;
+    const fRuns = $('#frontierRuns'); if (fRuns) fRuns.textContent = state.frontier.plays || 0;
+    const frontierWorlds = unlockedMasteryWorlds();
+    const frontierBtn = $('#frontierStart'); if (frontierBtn) { frontierBtn.disabled = !frontierWorlds; frontierBtn.textContent = frontierWorlds ? 'Start desk run' : 'Complete Foundations'; }
+    const frontierCopy = $('#frontierCopy'); if (frontierCopy) frontierCopy.textContent = frontierWorlds
+      ? `10 fresh questions across ${frontierWorlds} specialist desk${frontierWorlds === 1 ? '' : 's'}. Every run is regenerated.`
+      : 'Complete all 31 Merchant Foundations levels to unlock the endless specialist rotation.';
+    renderDailyHub();
     renderBossHub();
   }
 
@@ -829,7 +1015,9 @@
     </section>
     <section class="skill-card"><div class="card-title"><div><span class="eyebrow">Desk capability</span><h2>Your skills</h2></div><small>0–100</small></div>${rows}</section>
     <section class="flash-record"><span class="eyebrow">Flash Trading record</span><div class="profile-numbers"><div><b>${state.flash.best || 0}</b><span>Best score</span></div><div><b>${state.flash.plays || 0}</b><span>Runs</span></div><div><b>${accuracy}%</b><span>Accuracy</span></div></div></section>
-    <section class="flash-record"><span class="eyebrow">Boss Deal record</span><div class="profile-numbers"><div><b>${state.boss.best || 0}%</b><span>Best result</span></div><div><b>${state.boss.cleared || 0}</b><span>Deals cleared</span></div><div><b>${state.boss.plays || 0}</b><span>Runs</span></div></div></section>`;
+    <section class="flash-record"><span class="eyebrow">Trading Floor Run</span><div class="profile-numbers"><div><b>${state.frontier.best || 0}%</b><span>Best result</span></div><div><b>${state.frontier.plays || 0}</b><span>Runs</span></div><div><b>${state.frontier.cleared || 0}</b><span>Cleared</span></div></div></section>
+    <section class="flash-record"><span class="eyebrow">Boss Deal record</span><div class="profile-numbers"><div><b>${state.boss.best || 0}%</b><span>Best result</span></div><div><b>${state.boss.cleared || 0}</b><span>Deals cleared</span></div><div><b>${state.boss.plays || 0}</b><span>Runs</span></div></div></section>
+    <section class="flash-record"><span class="eyebrow">Daily desk record</span><div class="profile-numbers"><div><b>${dailyDealCount()}</b><span>Daily deals</span></div><div><b>${perfectDayCount()}</b><span>Perfect days</span></div><div><b>${dailyQuests().filter(q => state.daily.claimed[q.id]).length}/3</b><span>Today</span></div></div></section>`;
   }
 
   function renderMetaScreens() { renderPlayHub(); renderPracticeHub(); renderProfile(); }
@@ -842,13 +1030,10 @@
     return `${v < 0 ? '−' : v > 0 ? '+' : ''}$${Math.abs(v).toLocaleString('en-US')}`;
   };
 
-  function startBoss(id) {
-    const meta = (GAME.bossCatalog || []).find(x => x.id === id);
-    if (!meta || !bossUnlocked(meta) || !GAME.makeBossDeal) return;
-    const deal = GAME.makeBossDeal(id);
+  function launchDeal(deal, kind = 'boss') {
     if (!deal) return;
-    boss = { deal, index:-1, pnl:Number(deal.basePnl)||0, answers:[], locked:false };
-    $('#bossDesk').textContent = `${deal.desk.toUpperCase()} DESK · BOSS DEAL`;
+    boss = { deal, kind, index:-1, pnl:Number(deal.basePnl)||0, answers:[], locked:false };
+    $('#bossDesk').textContent = kind === 'daily' ? `${deal.desk.toUpperCase()} DESK · DEAL OF THE DAY` : `${deal.desk.toUpperCase()} DESK · BOSS DEAL`;
     $('#bossTitle').textContent = deal.title;
     $('#bossStepText').textContent = 'Briefing';
     $('#bossProgressFill').style.width = '0%';
@@ -858,12 +1043,24 @@
     renderBossBrief();
   }
 
+  function startBoss(id) {
+    const meta = (GAME.bossCatalog || []).find(x => x.id === id);
+    if (!meta || !bossUnlocked(meta) || !GAME.makeBossDeal) return;
+    launchDeal(GAME.makeBossDeal(id), 'boss');
+  }
+
+  function startDaily() {
+    ensureDaily();
+    if (!GAME.makeDailyDeal) return;
+    launchDeal(GAME.makeDailyDeal(state.daily.day), 'daily');
+  }
+
   function renderBossBrief() {
     if (!boss) return;
     const d = boss.deal;
     $('#bossBody').innerHTML = `<section class="deal-brief">
       <div class="deal-stamp"><span>${esc(d.icon || 'B')}</span><small>${esc(d.accent || d.desk)}</small></div>
-      <span class="eyebrow">Incoming opportunity</span><h1>${esc(d.title)}</h1><p>${esc(d.brief)}</p>
+      <span class="eyebrow">${boss.kind === 'daily' ? 'Today’s assignment' : 'Incoming opportunity'}</span><h1>${esc(d.title)}</h1><p>${esc(d.brief)}</p>
       <div class="deal-facts">${(d.facts || []).map(f => `<span>${esc(f)}</span>`).join('')}</div>
       <div class="deal-economics"><span>Theoretical gross P&amp;L</span><b>${money(d.basePnl)}</b><small>Your decisions can protect or destroy it.</small></div>
       <button id="bossBegin" class="btn primary wide">Enter dealing room</button>
@@ -915,7 +1112,7 @@
     const impact = Number(ok ? step.pnl?.correct : step.pnl?.wrong) || 0;
     boss.pnl += impact;
     boss.answers.push({ index:boss.index, skill:step.skill, label:step.label || `Decision ${boss.index+1}`, ok, impact });
-    if (ok && step.skill) state.skillXp[step.skill] = (Number(state.skillXp[step.skill]) || 0) + 3;
+    if (ok && step.skill) state.skillXp[step.skill] = (Number(state.skillXp[step.skill]) || 0) + (boss.kind === 'daily' ? 2 : 3);
 
     if (step.type === 'choice') {
       $$('[data-boss-choice]', $('#bossBody')).forEach(b => {
@@ -941,18 +1138,32 @@
 
   function finishBoss() {
     if (!boss) return;
-    const result = boss, d = result.deal;
+    const result = boss, d = result.deal, isDaily = result.kind === 'daily';
     const correct = result.answers.filter(a => a.ok).length;
     const total = d.steps.length;
     const acc = total ? Math.round(correct / total * 100) : 0;
     const cleared = acc >= 60;
     const stars = Math.max(1, Math.min(5, Math.ceil(acc / 20)));
-    const prior = Number(state.boss.completed?.[d.id]) || 0;
-    const gained = cleared ? 30 + Math.round(acc * .4) : 12 + Math.round(acc * .15);
-    state.boss.plays = (state.boss.plays || 0) + 1;
-    if (cleared && prior < 60) state.boss.cleared = (state.boss.cleared || 0) + 1;
-    state.boss.completed[d.id] = Math.max(prior, acc);
-    state.boss.best = Math.max(Number(state.boss.best)||0, acc);
+    let gained = 0, firstDaily = false;
+
+    if (isDaily) {
+      ensureDaily();
+      firstDaily = !state.daily.dealDone;
+      gained = firstDaily ? 20 + Math.round(acc * .15) : 0;
+      state.daily.dealPlays = (state.daily.dealPlays || 0) + 1;
+      state.daily.dealBest = Math.max(Number(state.daily.dealBest)||0, acc);
+      state.daily.dealDone = true;
+      state.dailyHistory.deals[state.daily.day] = Math.max(Number(state.dailyHistory.deals[state.daily.day])||0, acc);
+      if (firstDaily) state.dailyStats.deals = (state.dailyStats.deals || 0) + 1;
+    } else {
+      const prior = Number(state.boss.completed?.[d.id]) || 0;
+      gained = cleared ? 30 + Math.round(acc * .4) : 12 + Math.round(acc * .15);
+      state.boss.plays = (state.boss.plays || 0) + 1;
+      if (cleared && prior < 60) state.boss.cleared = (state.boss.cleared || 0) + 1;
+      state.boss.completed[d.id] = Math.max(prior, acc);
+      state.boss.best = Math.max(Number(state.boss.best)||0, acc);
+      ensureDaily(); state.daily.bossRuns = (state.daily.bossRuns || 0) + 1;
+    }
     state.xp = (state.xp || 0) + gained;
     touchStreak(); save();
 
@@ -968,26 +1179,28 @@
     }).join('');
     const decisionRows = result.answers.map(a => `<div class="deal-log-row"><span>${a.ok ? '✓' : '×'} ${esc(a.label)}</span><b>${a.impact ? money(a.impact) : '—'}</b></div>`).join('');
     const starLine = Array.from({length:5},(_,i)=>`<span class="${i<stars?'lit':''}">★</span>`).join('');
-    const pct = 100;
     $('#bossStepText').textContent = 'Deal closed';
-    $('#bossProgressFill').style.width = `${pct}%`;
+    $('#bossProgressFill').style.width = '100%';
     $('.boss-progress')?.setAttribute('aria-valuenow','100');
     $('#bossFeedback').className = 'boss-feedback'; $('#bossFeedback').innerHTML = '';
+    const label = isDaily ? 'Daily deal complete' : (cleared ? 'Boss cleared' : 'Deal review');
+    const rewardCopy = gained ? `+${gained}` : '—';
+    const replayNote = isDaily && !firstDaily ? '<p class="boss-note">Daily completion XP is awarded once per day. Replays still train your desk skills and can improve today’s score.</p>' : '';
     $('#bossBody').innerHTML = `<section class="boss-result">
-      <span class="eyebrow">${cleared ? 'Boss cleared' : 'Deal review'}</span><h1>${esc(d.title)}</h1>
+      <span class="eyebrow">${label}</span><h1>${esc(d.title)}</h1>
       <div class="boss-stars" aria-label="${stars} out of 5 stars">${starLine}</div>
       <div class="boss-result-pnl"><span>Simulated desk P&amp;L</span><b class="${result.pnl >= 0 ? 'positive' : 'negative'}">${money(result.pnl)}</b><small>Started at ${money(d.basePnl)} theoretical gross P&amp;L</small></div>
-      <div class="boss-summary-grid"><div><b>${acc}%</b><span>Decision score</span></div><div><b>${correct}/${total}</b><span>Correct</span></div><div><b>+${gained}</b><span>XP</span></div></div>
+      <div class="boss-summary-grid"><div><b>${acc}%</b><span>Decision score</span></div><div><b>${correct}/${total}</b><span>Correct</span></div><div><b>${rewardCopy}</b><span>XP</span></div></div>
       <section class="boss-breakdown"><h3>Desk capability</h3>${skillRows}</section>
       <section class="deal-log"><div class="deal-log-row head"><span>Decision log</span><b>P&amp;L impact</b></div>${decisionRows}</section>
-      <p class="boss-note">The P&amp;L is a training simulation: it shows how the decisions in this scenario affect the economics, not a market forecast.</p>
-      <button id="bossAgain" class="btn primary wide">Run a fresh version</button><button id="bossBack" class="link-btn">Back to Trading Floor</button>
+      <p class="boss-note">The P&amp;L is a training simulation: it shows how the decisions in this scenario affect the economics, not a market forecast.</p>${replayNote}
+      <button id="bossAgain" class="btn primary wide">${isDaily ? 'Run today’s deal again' : 'Run a fresh version'}</button><button id="bossBack" class="link-btn">Back to Trading Floor</button>
     </section>`;
     const id = d.id;
     boss = null;
-    $('#bossAgain').addEventListener('click', () => startBoss(id));
+    $('#bossAgain').addEventListener('click', () => isDaily ? startDaily() : startBoss(id));
     $('#bossBack').addEventListener('click', () => show('playScreen'));
-    if (cleared) confetti(stars === 5 ? 70 : 45);
+    if ((isDaily && firstDaily) || (!isDaily && cleared)) confetti(stars === 5 ? 70 : 45);
   }
 
   function quitBoss() { boss = null; show('playScreen'); }
@@ -1064,6 +1277,9 @@
       state.flash.total = (state.flash.total || 0) + result.total;
       state.flash.best = Math.max(state.flash.best || 0, result.score);
       state.xp = (state.xp || 0) + gained;
+      ensureDaily();
+      state.daily.flashBest = Math.max(Number(state.daily.flashBest)||0, result.score);
+      state.daily.flashCorrect = (Number(state.daily.flashCorrect)||0) + result.correct;
       touchStreak(); save();
     }
     if (!completed) { show('playScreen'); return; }
@@ -1080,12 +1296,14 @@
   /* ── agganci ─────────────────────────────────────────────────────── */
   $('#checkButton').addEventListener('click', onCheck);
   $('#flashStart')?.addEventListener('click', startFlash);
+  $('#frontierStart')?.addEventListener('click', startFrontier);
+  $('#dailyStart')?.addEventListener('click', startDaily);
   $('#flashQuit')?.addEventListener('click', () => finishFlash(false));
   $('#bossQuit')?.addEventListener('click', quitBoss);
   $('#bossBrowse')?.addEventListener('click', () => $('#bossShelf')?.scrollIntoView({ behavior: motionOK() ? 'smooth' : 'auto', block:'start' }));
   $$('.nav-item').forEach(b => b.addEventListener('click', () => show(b.dataset.screen)));
-  $('#continueButton').addEventListener('click', () => { show('pathScreen'); renderPath(); });
-  $('#quitButton').addEventListener('click', () => { run = null; show('pathScreen'); renderPath(); });
+  $('#continueButton').addEventListener('click', () => { show(doneReturnScreen); if (doneReturnScreen === 'pathScreen') renderPath(); });
+  $('#quitButton').addEventListener('click', () => { const target = run?.mode === 'frontier' ? 'playScreen' : 'pathScreen'; run = null; show(target); if (target === 'pathScreen') renderPath(); });
   $('#resetButton').addEventListener('click', () => {
     if (!confirm('Reset all progress? This cannot be undone.')) return;
     state = defaultState(); save(); renderPath();
@@ -1119,6 +1337,6 @@
     startReview, startCheckpoint, reviewItems, checkpointItems, dueCount, exKey, unitDone,
     allLessons, UNITS, CHECK_PASS, REVIEW_SIZE, CHECK_SIZE, HEARTS, CHECK_HEARTS,
     replaceState, defaultState, STORAGE_KEY: KEY, SOGLIE, renderStreak, isUnlocked, SANDBOX,
-    careerRank, careerLevel, skillScore, startFlash, finishFlash, get flash(){return flash;},
-    startBoss, finishBoss, quitBoss, get boss(){return boss;}, GAME };
+    careerRank, careerLevel, skillScore, startFlash, finishFlash, get flash(){return flash;}, startFrontier, unlockedMasteryWorlds,
+    startBoss, startDaily, finishBoss, quitBoss, get boss(){return boss;}, ensureDaily, dailyQuests, claimDailyQuest, localDayKey, GAME };
 })();

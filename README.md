@@ -37,13 +37,35 @@ Every text/background pair on it clears WCAG AA (lowest measured 4.59:1).
 
 ## What's here
 
-**8 units, 31 lessons, 145 exercises.**
+**20 units, 103 Career levels, 505 Career exercises — plus regenerated Trading Floor runs.**
 
 ### Career game layer
 
-The original curriculum is now **Chapter 1 — Merchant Foundations**, not the end of the product.
-`career.js` sits above the curated lessons and defines eight desk skills, nine career ranks,
-24 rule-based Flash Trading generators and the Boss Deal catalogue. Existing lesson ids and
+### Trading House Academy v4
+
+After Merchant Foundations, the Career Path now continues through three layers:
+
+- **Desk Academy I** — Market Analysis & Fundamentals, Commercial Trading, Freight & Chartering.
+- **Desk Academy II** — Trade Finance & Credit, Risk Management, Derivatives & Options.
+- **Commodity Desks** — Metals, Oil & Products, Gas & LNG, Power, Agriculture, Origination & Contracts.
+
+Each specialist world contains 6 levels. The Trading House Map at the top of the Path shows
+which desks are complete, active or locked and jumps directly to an unlocked desk. Career
+ranks were rebalanced for the 103-level path: the original 31 Foundations now correspond
+to the Junior Trader milestone; Trader, Senior Trader, Desk Head and Head of Trading require
+progress through the specialist desks as well as XP. Partner remains an XP-heavy endgame rank.
+
+**Trading Floor Run** is the endless layer. It unlocks after all 31 Merchant Foundations levels,
+then generates a fresh 10-question run from the specialist content engine. More specialist desks
+enter the rotation as the learner advances. Runs have 5 lives, a 70% clear threshold, XP rewards
+and persistent best/clear statistics. There is no final Trading Floor Run level.
+
+`CONTENT-ENGINE.md` documents the AI-ready content contract. The current generator is deliberately
+rule-based so answers are mechanically verifiable; future AI-generated packs must pass the same
+validation boundary before they can enter the game.
+
+
+The original 31-lesson curriculum remains **Merchant Foundations**, but it is now the first stage of a much larger Trading House Academy. `content-engine.js` adds 12 specialist worlds / 72 levels through deterministic, validated content templates, bringing the Career Path to 103 levels. `career.js` sits above the curriculum and defines eight desk skills, nine career ranks, 24 rule-based Flash Trading generators and the Boss Deal catalogue. Existing lesson ids and
 localStorage keys are unchanged, so old progress remains valid.
 
 **Flash Trading** is a repeatable 60-second mode with fresh arithmetic/commercial variants,
@@ -52,6 +74,8 @@ is established at briefing, then hedging, finance, freight, credit, quality and 
 can preserve or erode it. Boss v1 ships with Metals, Oil and Agriculture cases. The latter two
 unlock progressively with XP/foundation levels; every case is generated from a factory so repeat
 runs change the numbers while keeping the answer mechanically verifiable.
+
+**Deal of the Day** now reuses the same simulation engine with deterministic daily seeding: every user opening the app on the same calendar day gets the same desk and internally consistent numbers on that device, while tomorrow generates a new case. The first completion pays XP; replays improve the score without turning the daily into an XP farm. **Desk Quests** add three objectives per day, selected deterministically from Deal, Flash, Career/Practice and Boss activity. Quest rewards are claimed individually and clearing all three adds a desk bonus. Daily history is stored by date so cloud merges can union completed days instead of losing them to a max-only counter.
 
 Boss state is saved under `state.boss` (`plays`, `cleared`, `best`, `completed`) and included in
 the Supabase merge. `completed` stores the best decision score per deal; unique clears are derived
@@ -120,7 +144,7 @@ The service worker splits its strategy on purpose:
   hard to talk a user out of afterwards.
 - **Everything else is cache-first**, revalidated in the background. That is what makes
   it start instantly and work offline.
-- The cache name carries a version (`wot-learn-v14` in this build). Bump `VERSION` in `sw.js` on any
+- The cache name carries a version (`wot-learn-v16` in this build). Bump `VERSION` in `sw.js` on any
   release that changes the shell — `activate` deletes every cache that is not the
   current one, which is the mechanism that evicts a stale client.
 - Precache adds files one at a time rather than with `addAll`, so one missing file

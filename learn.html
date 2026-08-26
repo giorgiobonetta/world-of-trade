@@ -238,11 +238,15 @@
   </header>
   <div class="wrap">
     <div class="intro">
-      <span class="eyebrow">Career Path · Chapter 1</span>
+      <span class="eyebrow">Career Path · Trading House Academy</span>
       <h1>Build your trading career</h1>
-      <p>Start as an intern. Learn the mechanics, prove your skills and work your way up the trading floor.</p>
+      <p>Start as an intern, master the core desks, specialise by commodity and work your way toward the top of the trading house.</p>
     </div>
     <div id="careerHero"></div>
+    <section class="world-map-shell">
+      <div class="card-title"><div><span class="eyebrow">Trading house map</span><h2>Your desks</h2></div><small id="careerCount">0 levels</small></div>
+      <div id="worldMapHost" class="world-map"></div>
+    </section>
     <div id="pathGreet"></div>
     <p id="offlineFlag" class="offline-flag" role="status" hidden></p>
     <div id="reviewHost"></div>
@@ -273,9 +277,15 @@
       <button id="flashStart" class="btn primary wide">Start 60-second run</button>
     </section>
     <div class="mode-grid">
-      <article class="mode-card locked-mode"><span>DAILY</span><h3>Deal of the Day</h3><p>One complete trade scenario, refreshed every day.</p><small>Next build</small></article>
+      <article class="mode-card daily-teaser" id="dailyCard"><span>DAILY</span><h3>Deal of the Day</h3><p id="dailyCardCopy">One complete trade scenario, refreshed every day.</p><button id="dailyStart" class="mini-action">Open today’s deal</button></article>
       <article class="mode-card boss-teaser"><span>BOSS</span><h3>Boss Deals</h3><p>Multi-step cases where your decisions change the economics of the trade.</p><button id="bossBrowse" class="mini-action">Open dealing room</button></article>
+      <article class="mode-card frontier-teaser"><span>ENDLESS</span><h3>Trading Floor Run</h3><p id="frontierCopy">10 fresh questions across unlocked desks. No final level: every run is regenerated.</p><div class="frontier-meta"><small>Best <b id="frontierBest">0%</b></small><small>Runs <b id="frontierRuns">0</b></small></div><button id="frontierStart" class="mini-action">Start desk run</button></article>
     </div>
+    <section class="daily-quests" id="dailyQuestShelf">
+      <div class="card-title"><div><span class="eyebrow">Daily objectives</span><h2>Desk Quests</h2></div><small id="dailyQuestRecord">0 / 3 claimed</small></div>
+      <div id="dailyQuestHub" class="quest-list"></div>
+      <div id="dailyBonus" class="daily-bonus"></div>
+    </section>
     <section class="boss-shelf" id="bossShelf">
       <div class="card-title"><div><span class="eyebrow">Decision simulations</span><h2>Boss Deals</h2></div><small id="bossRecord">0 cleared</small></div>
       <div id="bossHub" class="boss-grid"></div>
@@ -392,6 +402,7 @@
 <script src="supabase-config.js"></script>
 <script src="mascot.js"></script>
 <script src="curriculum.js"></script>
+<script src="content-engine.js"></script>
 <script src="career.js"></script>
 <script src="app.js"></script>
 <script src="pwa.js"></script>
