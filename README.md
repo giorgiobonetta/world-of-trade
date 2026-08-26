@@ -39,6 +39,24 @@ Every text/background pair on it clears WCAG AA (lowest measured 4.59:1).
 
 **8 units, 31 lessons, 145 exercises.**
 
+### Career game layer
+
+The original curriculum is now **Chapter 1 — Merchant Foundations**, not the end of the product.
+`career.js` sits above the curated lessons and defines eight desk skills, nine career ranks,
+24 rule-based Flash Trading generators and the Boss Deal catalogue. Existing lesson ids and
+localStorage keys are unchanged, so old progress remains valid.
+
+**Flash Trading** is a repeatable 60-second mode with fresh arithmetic/commercial variants,
+combo scoring and skill XP. **Boss Deals** are multi-step simulations: a theoretical gross P&L
+is established at briefing, then hedging, finance, freight, credit, quality and execution decisions
+can preserve or erode it. Boss v1 ships with Metals, Oil and Agriculture cases. The latter two
+unlock progressively with XP/foundation levels; every case is generated from a factory so repeat
+runs change the numbers while keeping the answer mechanically verifiable.
+
+Boss state is saved under `state.boss` (`plays`, `cleared`, `best`, `completed`) and included in
+the Supabase merge. `completed` stores the best decision score per deal; unique clears are derived
+from that map so clearing different deals on two devices cannot be lost during merge.
+
 | Unit | Lessons |
 |---|---|
 | 1 · What a physical trade is | Two sides and a cargo · Where the margin goes · The cargo has to move · Getting paid |
@@ -102,7 +120,7 @@ The service worker splits its strategy on purpose:
   hard to talk a user out of afterwards.
 - **Everything else is cache-first**, revalidated in the background. That is what makes
   it start instantly and work offline.
-- The cache name carries a version (`wot-learn-v3`). Bump `VERSION` in `sw.js` on any
+- The cache name carries a version (`wot-learn-v14` in this build). Bump `VERSION` in `sw.js` on any
   release that changes the shell — `activate` deletes every cache that is not the
   current one, which is the mechanism that evicts a stale client.
 - Precache adds files one at a time rather than with `addAll`, so one missing file

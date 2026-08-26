@@ -274,8 +274,12 @@
     </section>
     <div class="mode-grid">
       <article class="mode-card locked-mode"><span>DAILY</span><h3>Deal of the Day</h3><p>One complete trade scenario, refreshed every day.</p><small>Next build</small></article>
-      <article class="mode-card locked-mode"><span>BOSS</span><h3>Boss Deals</h3><p>Multi-step cases where price, freight, finance and execution collide.</p><small>Next build</small></article>
+      <article class="mode-card boss-teaser"><span>BOSS</span><h3>Boss Deals</h3><p>Multi-step cases where your decisions change the economics of the trade.</p><button id="bossBrowse" class="mini-action">Open dealing room</button></article>
     </div>
+    <section class="boss-shelf" id="bossShelf">
+      <div class="card-title"><div><span class="eyebrow">Decision simulations</span><h2>Boss Deals</h2></div><small id="bossRecord">0 cleared</small></div>
+      <div id="bossHub" class="boss-grid"></div>
+    </section>
   </div>
 </main>
 
@@ -302,6 +306,19 @@
   <div class="wrap flash-wrap">
     <div id="flashBody"></div>
     <p id="flashFeedback" class="flash-feedback" role="status" aria-live="polite"></p>
+  </div>
+</main>
+
+<!-- BOSS DEAL -->
+<main id="bossScreen" class="screen">
+  <header class="boss-top">
+    <button id="bossQuit" class="icon-btn" aria-label="Leave Boss Deal">✕</button>
+    <div class="boss-head-copy"><span id="bossDesk">BOSS DEAL</span><b id="bossTitle">Deal simulation</b></div>
+    <div class="boss-progress-wrap"><span id="bossStepText">Briefing</span><div class="boss-progress" role="progressbar" aria-label="Boss Deal progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="bossProgressFill"></i></div></div>
+  </header>
+  <div class="wrap boss-wrap">
+    <div id="bossBody"></div>
+    <div id="bossFeedback" class="boss-feedback" role="status" aria-live="polite"></div>
   </div>
 </main>
 

@@ -165,6 +165,8 @@
       for (const k of Object.keys(y)) out[k] = Math.max(Number(out[k]) || 0, Number(y[k]) || 0);
       return out;
     };
+    const bossCompleted = maxMap(a.boss?.completed, b.boss?.completed);
+    const bossCleared = Object.values(bossCompleted).filter(v => Number(v) >= 60).length;
     return {
       done: [...new Set([...(a.done || []), ...(b.done || [])])],
       xp: Math.max(Number(a.xp) || 0, Number(b.xp) || 0),
@@ -184,6 +186,12 @@
         plays: Math.max(Number(a.flash?.plays) || 0, Number(b.flash?.plays) || 0),
         correct: Math.max(Number(a.flash?.correct) || 0, Number(b.flash?.correct) || 0),
         total: Math.max(Number(a.flash?.total) || 0, Number(b.flash?.total) || 0),
+      },
+      boss: {
+        best: Math.max(Number(a.boss?.best) || 0, Number(b.boss?.best) || 0),
+        plays: Math.max(Number(a.boss?.plays) || 0, Number(b.boss?.plays) || 0),
+        cleared: Math.max(bossCleared, Number(a.boss?.cleared) || 0, Number(b.boss?.cleared) || 0),
+        completed: bossCompleted,
       },
       updatedAt: Math.max(Number(a.updatedAt) || 0, Number(b.updatedAt) || 0),
     };

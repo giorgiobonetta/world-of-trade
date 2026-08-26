@@ -1,0 +1,8 @@
+{
+  "name": "wot-learn-tests",
+  "private": true,
+  "type": "module",
+  "description": "Suite di test dell'app. Non fa parte del sito: escluso dal deploy via .vercelignore.",
+  "scripts": { "test": "node run.mjs" },
+  "devDependencies": { "jsdom": "^24.0.0" }
+}

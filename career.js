@@ -129,5 +129,133 @@
       why:'Different counterparties can still share one chokepoint. Concentration can be geographic, operational or financial.' }),
   ];
 
-  window.WOT_GAME = { skills, unitMeta, ranks, flashTemplates, randomFlash: () => one(flashTemplates)() };
+  // Boss Deals are factories so each run starts with fresh but internally consistent numbers.
+  // A step may add a simulated P&L impact based on the player's decision. That turns the
+  // exercise into a deal simulation instead of a long quiz.
+  const bossDealFactories = [
+    () => {
+      const qty = 5000;
+      const benchmark = r(2200, 2500, 25);
+      const buyPrem = r(130, 170, 5);
+      const freight = r(36, 48, 2);
+      const spread = r(78, 104, 2);
+      const sellPrem = buyPrem + freight + spread;
+      const gross = sellPrem - buyPrem - freight;
+      const rate = one([6, 6.5, 7, 7.5]);
+      const days = 60;
+      const financed = benchmark + buyPrem;
+      const financePt = round(financed * (rate / 100) * days / 360, 1);
+      const freightShock = r(8, 14, 2);
+      const rescue = r(2, 5);
+      const claim = r(10, 16, 2);
+      const basePnl = round(gross * qty, 0);
+      return {
+        id:'boss-metals-01', desk:'Metals', title:'The Shanghai–Genoa Cargo', difficulty:2,
+        unlock:{ xp:0, lessons:0 }, icon:'AL', accent:'Aluminium',
+        brief:`You are on the aluminium desk. You can buy ${qty.toLocaleString('en-US')} t FOB Shanghai at LME + $${buyPrem}/t and sell the same tonnage CIF Genoa at LME + $${sellPrem}/t. Freight indication is $${freight}/t. The customer pays 60 days after delivery.`,
+        facts:[`Quantity · ${qty.toLocaleString('en-US')} t`,`Buy · LME + $${buyPrem}/t FOB Shanghai`,`Sell · LME + $${sellPrem}/t CIF Genoa`,`Freight · $${freight}/t`,`Reference LME · $${benchmark}/t`],
+        basePnl,
+        steps:[
+          { skill:'trading', type:'numeric', label:'QUOTE', prompt:'Before finance and execution costs, what is the gross merchant margin per tonne?', answer:gross, unit:'$/t', tolerance:.05,
+            why:`Delivered differential minus FOB premium and freight: ${sellPrem} − ${buyPrem} − ${freight} = $${gross}/t.`, pnl:{correct:0, wrong:0} },
+          { skill:'hedging', type:'choice', label:'HEDGE', prompt:'The cargo is now bought at a fixed all-in price and remains unsold for a few days. Aluminium then falls $12/t. Which hedge would have offset most of that physical loss?',
+            options:['Buy LME futures','Sell LME futures','Buy more physical aluminium','Leave the position open because the premium is known'], answer:1,
+            why:'Long fixed-price physical inventory carries downside flat-price risk. A short futures position is the basic offset.', pnl:{correct:0, wrong:-qty*12} },
+          { skill:'finance', type:'numeric', label:'FUNDING', prompt:`Assume the bank funds $${financed.toLocaleString('en-US')}/t for ${days} days at ${rate}% p.a. on a 360-day basis. Approximate financing cost per tonne.`,
+            answer:financePt, unit:'$/t', tolerance:.15, why:`${financed.toLocaleString('en-US')} × ${rate}% × ${days}/360 ≈ $${financePt}/t.`, pnl:{correct:-round(financePt*qty,0), wrong:-round(financePt*qty,0)} },
+          { skill:'freight', type:'choice', label:'FREIGHT', prompt:`You have sold CIF but have not fixed the vessel. A broker warns freight could jump by $${freightShock}/t. What protects the quoted margin best?`,
+            options:['Fix the freight exposure now','Wait because CIF transfers freight risk to the buyer','Buy LME futures','Increase the cargo quantity'], answer:0,
+            why:'On a fixed CIF sale the seller still carries the main carriage cost. Fixing freight removes that open cost exposure.', pnl:{correct:0, wrong:-qty*freightShock} },
+          { skill:'execution', type:'choice', label:'EXECUTION', prompt:`The booked vessel may miss the agreed shipment window. An alternative vessel costs $${rescue}/t extra; the late-shipment claim is estimated at $${claim}/t. Best desk decision?`,
+            options:[`Take the alternative vessel and protect the shipment window`,`Accept the delay and hope the buyer waives the claim`,`Cancel the hedge only`,`Ignore it because the cargo is insured`], answer:0,
+            why:'When the rescue cost is materially lower than the expected contractual/relationship cost, protecting execution preserves more value.', pnl:{correct:-qty*rescue, wrong:-qty*claim} },
+        ],
+      };
+    },
+
+    () => {
+      const qty = 30000;
+      const buy = r(78, 86, 1);
+      const freight = one([2.8,3.0,3.2,3.4]);
+      const sell = round(buy + freight + one([2.2,2.6,3.0,3.4]),1);
+      const gross = round(sell - buy - freight,1);
+      const hedgeMove = r(4,8,1);
+      const creditLimit = r(1800,2400,100)*1000;
+      const cargoValue = round(sell*qty,0);
+      const demurrageDays = r(2,5);
+      const demurrageDay = r(18000,26000,2000);
+      const basePnl = round(gross*qty,0);
+      return {
+        id:'boss-oil-01', desk:'Oil', title:'West Africa Distillate Run', difficulty:3,
+        unlock:{ xp:150, lessons:6 }, icon:'GO', accent:'Gasoil',
+        brief:`A refinery offers ${qty.toLocaleString('en-US')} bbl of gasoil FOB at $${buy.toFixed(1)}/bbl. A buyer bids $${sell.toFixed(1)}/bbl CIF West Africa. Freight is $${freight.toFixed(1)}/bbl. You must manage the open price, credit and port exposure.`,
+        facts:[`Quantity · ${qty.toLocaleString('en-US')} bbl`,`Buy · $${buy.toFixed(1)}/bbl FOB`,`Sell · $${sell.toFixed(1)}/bbl CIF`,`Freight · $${freight.toFixed(1)}/bbl`,`Buyer credit limit · $${(creditLimit/1e6).toFixed(1)}m`],
+        basePnl,
+        steps:[
+          { skill:'trading', type:'numeric', label:'MARGIN', prompt:'What is the initial gross margin per barrel before finance, credit and port costs?', answer:gross, unit:'$/bbl', tolerance:.05,
+            why:`${sell.toFixed(1)} − ${buy.toFixed(1)} − ${freight.toFixed(1)} = $${gross.toFixed(1)}/bbl.`, pnl:{correct:0,wrong:0} },
+          { skill:'hedging', type:'choice', label:'MARKET', prompt:`You own the cargo at a fixed price and the customer has not fixed its purchase yet. The futures market falls $${hedgeMove}/bbl. Which position would have offset most of the physical loss?`,
+            options:['Short futures','Long futures','Long another physical cargo','No hedge can offset flat-price exposure'], answer:0,
+            why:'Long physical loses when the market falls; a short futures hedge gains in the same direction as the required offset.', pnl:{correct:0,wrong:-qty*hedgeMove} },
+          { skill:'risk', type:'choice', label:'CREDIT', prompt:`The sale value is about $${(cargoValue/1e6).toFixed(2)}m, above the buyer's $${(creditLimit/1e6).toFixed(1)}m credit limit. What is the strongest response before loading?`,
+            options:['Obtain additional security / LC or reduce the exposure','Load anyway because the gross margin is positive','Increase payment tenor','Remove the futures hedge'], answer:0,
+            why:'A positive trade margin does not compensate for an unapproved counterparty exposure. Security, prepayment or a smaller exposure restores control.', pnl:{correct:0,wrong:-round((cargoValue-creditLimit)*.08,0)} },
+          { skill:'operations', type:'choice', label:'PORT', prompt:`Congestion is likely to create ${demurrageDays} demurrage days at $${demurrageDay.toLocaleString('en-US')}/day. You can secure a berth window now for $${round(demurrageDays*demurrageDay*.35,0).toLocaleString('en-US')}. What is economically preferable?`,
+            options:['Secure the berth window','Accept the expected demurrage','Cancel the physical sale','Buy more futures'], answer:0,
+            why:'The berth reservation costs materially less than the expected demurrage and reduces execution uncertainty.', pnl:{correct:-round(demurrageDays*demurrageDay*.35,0),wrong:-demurrageDays*demurrageDay} },
+          { skill:'pricing', type:'choice', label:'BASIS', prompt:'Your futures hedge is flat, but local delivered prices weaken relative to the benchmark. What risk is hurting the deal?',
+            options:['Basis risk','Only flat-price risk','No market risk remains','Only interest-rate duration'], answer:0,
+            why:'A futures hedge can neutralise benchmark price moves while the local physical differential still changes.', pnl:{correct:0,wrong:-qty*0.5} },
+        ],
+      };
+    },
+
+    () => {
+      const qty = 20000;
+      const fob = r(390,450,10);
+      const freight = r(28,40,2);
+      const sell = fob + freight + r(18,34,2);
+      const gross = sell-fob-freight;
+      const discount = r(8,16,2);
+      const storage = r(3,7);
+      const basePnl = gross*qty;
+      return {
+        id:'boss-agri-01', desk:'Agriculture', title:'Black Sea Grain Execution', difficulty:4,
+        unlock:{ xp:300, lessons:12 }, icon:'GR', accent:'Grain',
+        brief:`You buy ${qty.toLocaleString('en-US')} t of milling wheat FOB at $${fob}/t and sell CFR at $${sell}/t. Freight is $${freight}/t. The deal looks attractive, but documentary, quality and timing decisions will determine the final result.`,
+        facts:[`Quantity · ${qty.toLocaleString('en-US')} t`,`Buy · $${fob}/t FOB`,`Sell · $${sell}/t CFR`,`Freight · $${freight}/t`,`Initial spread · $${gross}/t`],
+        basePnl,
+        steps:[
+          { skill:'pricing', type:'numeric', label:'ECONOMICS', prompt:'Calculate the initial gross merchant margin per tonne.', answer:gross, unit:'$/t', tolerance:.05,
+            why:`${sell} − ${fob} − ${freight} = $${gross}/t.`, pnl:{correct:0,wrong:0} },
+          { skill:'execution', type:'choice', label:'DOCUMENTS', prompt:'The letter of credit requires an original inspection certificate, but the supplier can only provide a scan before the vessel sails. Best action?',
+            options:['Resolve the documentary requirement before relying on payment','Load and assume the bank will waive it','Replace the bill of lading with the scan','Ignore the LC because title already transferred'], answer:0,
+            why:'Documentary discrepancies can block payment even when the physical cargo is sound. Resolve the requirement before creating an avoidable cash risk.', pnl:{correct:0,wrong:-qty*6} },
+          { skill:'operations', type:'choice', label:'QUALITY', prompt:`Pre-loading tests show a parameter near the contractual limit. Independent re-testing costs $1/t; an off-spec outcome could mean a $${discount}/t discount. What should the desk do?`,
+            options:['Re-test before loading','Load immediately to save the test cost','Remove the quality clause','Hedge more futures'], answer:0,
+            why:'When a low-cost check can prevent a much larger quality claim, verification has positive expected value.', pnl:{correct:-qty*1,wrong:-qty*discount} },
+          { skill:'freight', type:'choice', label:'LAYCAN', prompt:`The supplier requests a five-day loading delay. Keeping the vessel waiting would cost about $${storage}/t equivalent. A replacement slot costs $2/t. Best economic choice?`,
+            options:['Use the replacement slot','Keep the original vessel waiting','Cancel the customer contract immediately','Ignore the vessel cost because the sale is CFR'], answer:0,
+            why:'CFR leaves the seller responsible for arranging main carriage. The lower-cost operational alternative protects the trade margin.', pnl:{correct:-qty*2,wrong:-qty*storage} },
+          { skill:'risk', type:'choice', label:'CONCENTRATION', prompt:'Three different buyers on your book all depend on the same discharge terminal. What risk should the desk recognise?',
+            options:['Operational/geographic concentration','No concentration because counterparties differ','Only flat-price risk','Only FX translation risk'], answer:0,
+            why:'Different counterparties can share one physical chokepoint. A terminal disruption can hit all three exposures at once.', pnl:{correct:0,wrong:-qty*1} },
+        ],
+      };
+    },
+  ];
+
+  const bossCatalog = bossDealFactories.map(make => {
+    const d = make();
+    return { id:d.id, desk:d.desk, title:d.title, difficulty:d.difficulty, unlock:d.unlock, icon:d.icon, accent:d.accent };
+  });
+  const makeBossDeal = id => {
+    const make = bossDealFactories.find(f => f().id === id);
+    return make ? make() : null;
+  };
+
+  window.WOT_GAME = {
+    skills, unitMeta, ranks, flashTemplates, randomFlash: () => one(flashTemplates)(),
+    bossCatalog, makeBossDeal,
+  };
 })();

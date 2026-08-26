@@ -19,7 +19,7 @@
   const XP_PER = 10;
 
   const UNITS = window.CURRICULUM || [];
-  const GAME = window.WOT_GAME || { skills:{}, unitMeta:{}, ranks:[], randomFlash:null };
+  const GAME = window.WOT_GAME || { skills:{}, unitMeta:{}, ranks:[], randomFlash:null, bossCatalog:[], makeBossDeal:null };
   const allLessons = UNITS.flatMap(u => u.lessons.map(l => ({ ...l, unitId: u.id })));
   const skillIdForLesson = lessonId => {
     const lesson = allLessons.find(l => l.id === lessonId);
@@ -77,6 +77,7 @@
     streakBest: 0, // record personale, quello che si condivide
     skillXp: {},    // pratica oltre al progresso base: skill -> punti
     flash: { best:0, plays:0, correct:0, total:0 },
+    boss: { plays:0, cleared:0, best:0, completed:{} },
   });
   let state = load();
 
@@ -87,13 +88,14 @@
       const s = JSON.parse(raw);
       const obj = v => (v && typeof v === 'object' && !Array.isArray(v)) ? v : {};
       // i salvataggi piu' vecchi non hanno questi campi: vanno ricostruiti, non assunti
-      const flash = obj(s.flash);
+      const flash = obj(s.flash), boss = obj(s.boss);
       return { ...defaultState(), ...s,
         done: Array.isArray(s.done) ? s.done : [],
         best: obj(s.best), misses: obj(s.misses), doneAt: obj(s.doneAt), badges: obj(s.badges),
         skillXp: obj(s.skillXp),
         flash: { best:Number(flash.best)||0, plays:Number(flash.plays)||0,
           correct:Number(flash.correct)||0, total:Number(flash.total)||0 },
+        boss: { plays:Number(boss.plays)||0, cleared:Math.max(Number(boss.cleared)||0, Object.values(obj(boss.completed)).filter(v => Number(v) >= 60).length), best:Number(boss.best)||0, completed:obj(boss.completed) },
         reviews: Number(s.reviews) || 0, updatedAt: Number(s.updatedAt) || 0,
         streakNow: Number(s.streakNow) || 0, streakBest: Number(s.streakBest) || 0 };
     } catch (e) { return defaultState(); }
@@ -109,12 +111,13 @@
   function replaceState(next) {
     if (!next || typeof next !== 'object') return false;
     const obj = v => (v && typeof v === 'object' && !Array.isArray(v)) ? v : {};
-    const f = obj(next.flash);
+    const f = obj(next.flash), b = obj(next.boss);
     state = { ...defaultState(), ...next,
       done: Array.isArray(next.done) ? next.done.filter(id => allLessons.some(l => l.id === id)) : [],
       best: obj(next.best), misses: obj(next.misses), doneAt: obj(next.doneAt), badges: obj(next.badges),
       skillXp: obj(next.skillXp),
-      flash: { best:Number(f.best)||0, plays:Number(f.plays)||0, correct:Number(f.correct)||0, total:Number(f.total)||0 } };
+      flash: { best:Number(f.best)||0, plays:Number(f.plays)||0, correct:Number(f.correct)||0, total:Number(f.total)||0 },
+      boss: { plays:Number(b.plays)||0, cleared:Math.max(Number(b.cleared)||0, Object.values(obj(b.completed)).filter(v => Number(v) >= 60).length), best:Number(b.best)||0, completed:obj(b.completed) } };
     try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
     _lastXp = null;
     renderPath();
@@ -210,7 +213,7 @@
   /* ── navigazione fra schermate ───────────────────────────────────── */
   function show(id) {
     $$('.screen').forEach(s => s.classList.toggle('active', s.id === id));
-    const immersive = ['lessonScreen','doneScreen','flashScreen'].includes(id);
+    const immersive = ['lessonScreen','doneScreen','flashScreen','bossScreen'].includes(id);
     document.body.classList.toggle('immersive', immersive);
     $$('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.screen === id));
     if (!immersive) renderMetaScreens();
@@ -763,10 +766,39 @@
     </section>`;
   }
 
+  function bossUnlocked(meta) {
+    const doneN = state.done.filter(id => allLessons.some(l => l.id === id)).length;
+    const u = meta?.unlock || {};
+    return (Number(state.xp) || 0) >= (Number(u.xp) || 0) && doneN >= (Number(u.lessons) || 0);
+  }
+
+  function renderBossHub() {
+    const host = $('#bossHub'); if (!host) return;
+    const catalog = GAME.bossCatalog || [];
+    const doneN = state.done.filter(id => allLessons.some(l => l.id === id)).length;
+    host.innerHTML = catalog.map(meta => {
+      const unlocked = bossUnlocked(meta);
+      const best = Number(state.boss.completed?.[meta.id]) || 0;
+      const u = meta.unlock || {};
+      const needs = [];
+      if ((state.xp || 0) < (u.xp || 0)) needs.push(`${u.xp - (state.xp || 0)} XP`);
+      if (doneN < (u.lessons || 0)) needs.push(`${u.lessons - doneN} foundation level${u.lessons - doneN === 1 ? '' : 's'}`);
+      return `<article class="boss-card${unlocked ? '' : ' boss-locked'}">
+        <div class="boss-card-icon">${esc(meta.icon || 'B')}</div>
+        <div class="boss-card-copy"><span>${esc(meta.desk)} desk · difficulty ${meta.difficulty || 1}</span><h3>${esc(meta.title)}</h3>
+          <p>${best ? `Best result · ${best}%` : (unlocked ? 'A multi-step commercial simulation.' : `Unlock with ${needs.join(' + ')}`)}</p></div>
+        <button class="boss-start" data-boss-id="${esc(meta.id)}" ${unlocked ? '' : 'disabled'}>${best ? 'Run again' : (unlocked ? 'Start deal' : 'Locked')}</button>
+      </article>`;
+    }).join('');
+    $$('[data-boss-id]', host).forEach(b => b.addEventListener('click', () => startBoss(b.dataset.bossId)));
+    const rec = $('#bossRecord'); if (rec) rec.textContent = `${state.boss.cleared || 0} cleared`;
+  }
+
   function renderPlayHub() {
     const xp = $('#playXp'); if (xp) xp.textContent = state.xp || 0;
     const best = $('#flashBest'); if (best) best.textContent = state.flash.best || 0;
     const runs = $('#flashRuns'); if (runs) runs.textContent = state.flash.plays || 0;
+    renderBossHub();
   }
 
   function renderPracticeHub() {
@@ -796,10 +828,169 @@
       ${next ? `<p>Next promotion: <strong>${esc(next.name)}</strong> · ${next.xp} XP and ${next.lessons} foundation levels.</p>` : '<p>You reached the top career rank.</p>'}
     </section>
     <section class="skill-card"><div class="card-title"><div><span class="eyebrow">Desk capability</span><h2>Your skills</h2></div><small>0–100</small></div>${rows}</section>
-    <section class="flash-record"><span class="eyebrow">Flash Trading record</span><div class="profile-numbers"><div><b>${state.flash.best || 0}</b><span>Best score</span></div><div><b>${state.flash.plays || 0}</b><span>Runs</span></div><div><b>${accuracy}%</b><span>Accuracy</span></div></div></section>`;
+    <section class="flash-record"><span class="eyebrow">Flash Trading record</span><div class="profile-numbers"><div><b>${state.flash.best || 0}</b><span>Best score</span></div><div><b>${state.flash.plays || 0}</b><span>Runs</span></div><div><b>${accuracy}%</b><span>Accuracy</span></div></div></section>
+    <section class="flash-record"><span class="eyebrow">Boss Deal record</span><div class="profile-numbers"><div><b>${state.boss.best || 0}%</b><span>Best result</span></div><div><b>${state.boss.cleared || 0}</b><span>Deals cleared</span></div><div><b>${state.boss.plays || 0}</b><span>Runs</span></div></div></section>`;
   }
 
   function renderMetaScreens() { renderPlayHub(); renderPracticeHub(); renderProfile(); }
+
+  /* ── Boss Deals ──────────────────────────────────────────────────── */
+  let boss = null;
+
+  const money = n => {
+    const v = Math.round(Number(n) || 0);
+    return `${v < 0 ? '−' : v > 0 ? '+' : ''}$${Math.abs(v).toLocaleString('en-US')}`;
+  };
+
+  function startBoss(id) {
+    const meta = (GAME.bossCatalog || []).find(x => x.id === id);
+    if (!meta || !bossUnlocked(meta) || !GAME.makeBossDeal) return;
+    const deal = GAME.makeBossDeal(id);
+    if (!deal) return;
+    boss = { deal, index:-1, pnl:Number(deal.basePnl)||0, answers:[], locked:false };
+    $('#bossDesk').textContent = `${deal.desk.toUpperCase()} DESK · BOSS DEAL`;
+    $('#bossTitle').textContent = deal.title;
+    $('#bossStepText').textContent = 'Briefing';
+    $('#bossProgressFill').style.width = '0%';
+    $('.boss-progress')?.setAttribute('aria-valuenow','0');
+    $('#bossFeedback').className = 'boss-feedback'; $('#bossFeedback').innerHTML = '';
+    show('bossScreen');
+    renderBossBrief();
+  }
+
+  function renderBossBrief() {
+    if (!boss) return;
+    const d = boss.deal;
+    $('#bossBody').innerHTML = `<section class="deal-brief">
+      <div class="deal-stamp"><span>${esc(d.icon || 'B')}</span><small>${esc(d.accent || d.desk)}</small></div>
+      <span class="eyebrow">Incoming opportunity</span><h1>${esc(d.title)}</h1><p>${esc(d.brief)}</p>
+      <div class="deal-facts">${(d.facts || []).map(f => `<span>${esc(f)}</span>`).join('')}</div>
+      <div class="deal-economics"><span>Theoretical gross P&amp;L</span><b>${money(d.basePnl)}</b><small>Your decisions can protect or destroy it.</small></div>
+      <button id="bossBegin" class="btn primary wide">Enter dealing room</button>
+    </section>`;
+    $('#bossBegin').addEventListener('click', () => { if (!boss) return; boss.index = 0; renderBossStep(); });
+  }
+
+  function renderBossStep() {
+    if (!boss) return;
+    const d = boss.deal, step = d.steps[boss.index];
+    if (!step) return finishBoss();
+    boss.locked = false;
+    const pct = Math.round((boss.index / d.steps.length) * 100);
+    $('#bossStepText').textContent = `Decision ${boss.index + 1} of ${d.steps.length}`;
+    $('#bossProgressFill').style.width = `${pct}%`;
+    $('.boss-progress')?.setAttribute('aria-valuenow',String(pct));
+    $('#bossFeedback').className = 'boss-feedback'; $('#bossFeedback').innerHTML = '';
+    const skill = GAME.skills[step.skill]?.short || step.skill || 'Decision';
+    if (step.type === 'choice') {
+      $('#bossBody').innerHTML = `<article class="boss-question">
+        <div class="boss-q-meta"><span>${esc(step.label || 'DECISION')}</span><i>${esc(skill)}</i></div>
+        <h2>${esc(step.prompt)}</h2>
+        <div class="boss-options">${step.options.map((o,i) => `<button class="boss-option" data-boss-choice="${i}"><span>${String.fromCharCode(65+i)}</span>${esc(o)}</button>`).join('')}</div>
+        <div class="live-pnl"><span>Desk P&amp;L</span><b>${money(boss.pnl)}</b></div>
+      </article>`;
+      $$('[data-boss-choice]', $('#bossBody')).forEach(b => b.addEventListener('click', () => answerBoss(Number(b.dataset.bossChoice))));
+    } else {
+      $('#bossBody').innerHTML = `<article class="boss-question">
+        <div class="boss-q-meta"><span>${esc(step.label || 'CALCULATE')}</span><i>${esc(skill)}</i></div>
+        <h2>${esc(step.prompt)}</h2>
+        <div class="boss-number"><input id="bossInput" type="number" step="any" inputmode="decimal" autocomplete="off" placeholder="Your answer" aria-label="Your answer"><span>${esc(step.unit || '')}</span></div>
+        <button id="bossSubmit" class="btn primary wide">Commit answer</button>
+        <div class="live-pnl"><span>Desk P&amp;L</span><b>${money(boss.pnl)}</b></div>
+      </article>`;
+      $('#bossSubmit').addEventListener('click', () => answerBoss($('#bossInput').value));
+      $('#bossInput').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); answerBoss(e.currentTarget.value); } });
+      setTimeout(() => $('#bossInput')?.focus(),0);
+    }
+  }
+
+  function answerBoss(value) {
+    if (!boss || boss.locked) return;
+    const step = boss.deal.steps[boss.index];
+    if (step.type === 'numeric' && String(value).trim() === '') return;
+    const ok = step.type === 'choice'
+      ? Number(value) === Number(step.answer)
+      : Number.isFinite(Number(value)) && Math.abs(Number(value) - Number(step.answer)) <= (Number(step.tolerance) || 0);
+    boss.locked = true;
+    const impact = Number(ok ? step.pnl?.correct : step.pnl?.wrong) || 0;
+    boss.pnl += impact;
+    boss.answers.push({ index:boss.index, skill:step.skill, label:step.label || `Decision ${boss.index+1}`, ok, impact });
+    if (ok && step.skill) state.skillXp[step.skill] = (Number(state.skillXp[step.skill]) || 0) + 3;
+
+    if (step.type === 'choice') {
+      $$('[data-boss-choice]', $('#bossBody')).forEach(b => {
+        b.disabled = true;
+        const i = Number(b.dataset.bossChoice);
+        if (i === Number(step.answer)) b.classList.add('ok');
+        else if (i === Number(value) && !ok) b.classList.add('no');
+      });
+    } else {
+      const inp = $('#bossInput'); if (inp) inp.disabled = true;
+      const sub = $('#bossSubmit'); if (sub) sub.disabled = true;
+    }
+    const impactCopy = impact === 0 ? 'No direct P&L change' : `P&L impact ${money(impact)}`;
+    $('#bossFeedback').className = `boss-feedback ${ok ? 'good' : 'bad'}`;
+    $('#bossFeedback').innerHTML = `<div><strong>${ok ? 'Decision accepted' : 'Desk warning'}</strong><p>${esc(step.why || '')}</p><small>${esc(impactCopy)}</small></div>
+      <button id="bossNext" class="btn ${ok ? 'go' : 'stop'}">${boss.index + 1 >= boss.deal.steps.length ? 'Close the deal' : 'Next decision'}</button>`;
+    $('#bossNext').addEventListener('click', () => {
+      if (!boss) return;
+      boss.index++;
+      if (boss.index >= boss.deal.steps.length) finishBoss(); else renderBossStep();
+    });
+  }
+
+  function finishBoss() {
+    if (!boss) return;
+    const result = boss, d = result.deal;
+    const correct = result.answers.filter(a => a.ok).length;
+    const total = d.steps.length;
+    const acc = total ? Math.round(correct / total * 100) : 0;
+    const cleared = acc >= 60;
+    const stars = Math.max(1, Math.min(5, Math.ceil(acc / 20)));
+    const prior = Number(state.boss.completed?.[d.id]) || 0;
+    const gained = cleared ? 30 + Math.round(acc * .4) : 12 + Math.round(acc * .15);
+    state.boss.plays = (state.boss.plays || 0) + 1;
+    if (cleared && prior < 60) state.boss.cleared = (state.boss.cleared || 0) + 1;
+    state.boss.completed[d.id] = Math.max(prior, acc);
+    state.boss.best = Math.max(Number(state.boss.best)||0, acc);
+    state.xp = (state.xp || 0) + gained;
+    touchStreak(); save();
+
+    const bySkill = {};
+    result.answers.forEach(a => {
+      bySkill[a.skill] ||= { correct:0,total:0 };
+      bySkill[a.skill].total++;
+      if (a.ok) bySkill[a.skill].correct++;
+    });
+    const skillRows = Object.entries(bySkill).map(([id,x]) => {
+      const sc = Math.round(x.correct/x.total*100);
+      return `<div class="boss-skill"><span>${esc(GAME.skills[id]?.short || id)}</span><b>${sc}</b><i><em style="width:${sc}%"></em></i></div>`;
+    }).join('');
+    const decisionRows = result.answers.map(a => `<div class="deal-log-row"><span>${a.ok ? '✓' : '×'} ${esc(a.label)}</span><b>${a.impact ? money(a.impact) : '—'}</b></div>`).join('');
+    const starLine = Array.from({length:5},(_,i)=>`<span class="${i<stars?'lit':''}">★</span>`).join('');
+    const pct = 100;
+    $('#bossStepText').textContent = 'Deal closed';
+    $('#bossProgressFill').style.width = `${pct}%`;
+    $('.boss-progress')?.setAttribute('aria-valuenow','100');
+    $('#bossFeedback').className = 'boss-feedback'; $('#bossFeedback').innerHTML = '';
+    $('#bossBody').innerHTML = `<section class="boss-result">
+      <span class="eyebrow">${cleared ? 'Boss cleared' : 'Deal review'}</span><h1>${esc(d.title)}</h1>
+      <div class="boss-stars" aria-label="${stars} out of 5 stars">${starLine}</div>
+      <div class="boss-result-pnl"><span>Simulated desk P&amp;L</span><b class="${result.pnl >= 0 ? 'positive' : 'negative'}">${money(result.pnl)}</b><small>Started at ${money(d.basePnl)} theoretical gross P&amp;L</small></div>
+      <div class="boss-summary-grid"><div><b>${acc}%</b><span>Decision score</span></div><div><b>${correct}/${total}</b><span>Correct</span></div><div><b>+${gained}</b><span>XP</span></div></div>
+      <section class="boss-breakdown"><h3>Desk capability</h3>${skillRows}</section>
+      <section class="deal-log"><div class="deal-log-row head"><span>Decision log</span><b>P&amp;L impact</b></div>${decisionRows}</section>
+      <p class="boss-note">The P&amp;L is a training simulation: it shows how the decisions in this scenario affect the economics, not a market forecast.</p>
+      <button id="bossAgain" class="btn primary wide">Run a fresh version</button><button id="bossBack" class="link-btn">Back to Trading Floor</button>
+    </section>`;
+    const id = d.id;
+    boss = null;
+    $('#bossAgain').addEventListener('click', () => startBoss(id));
+    $('#bossBack').addEventListener('click', () => show('playScreen'));
+    if (cleared) confetti(stars === 5 ? 70 : 45);
+  }
+
+  function quitBoss() { boss = null; show('playScreen'); }
 
   /* ── Flash Trading ───────────────────────────────────────────────── */
   let flash = null;
@@ -890,6 +1081,8 @@
   $('#checkButton').addEventListener('click', onCheck);
   $('#flashStart')?.addEventListener('click', startFlash);
   $('#flashQuit')?.addEventListener('click', () => finishFlash(false));
+  $('#bossQuit')?.addEventListener('click', quitBoss);
+  $('#bossBrowse')?.addEventListener('click', () => $('#bossShelf')?.scrollIntoView({ behavior: motionOK() ? 'smooth' : 'auto', block:'start' }));
   $$('.nav-item').forEach(b => b.addEventListener('click', () => show(b.dataset.screen)));
   $('#continueButton').addEventListener('click', () => { show('pathScreen'); renderPath(); });
   $('#quitButton').addEventListener('click', () => { run = null; show('pathScreen'); renderPath(); });
@@ -926,5 +1119,6 @@
     startReview, startCheckpoint, reviewItems, checkpointItems, dueCount, exKey, unitDone,
     allLessons, UNITS, CHECK_PASS, REVIEW_SIZE, CHECK_SIZE, HEARTS, CHECK_HEARTS,
     replaceState, defaultState, STORAGE_KEY: KEY, SOGLIE, renderStreak, isUnlocked, SANDBOX,
-    careerRank, careerLevel, skillScore, startFlash, finishFlash, get flash(){return flash;}, GAME };
+    careerRank, careerLevel, skillScore, startFlash, finishFlash, get flash(){return flash;},
+    startBoss, finishBoss, quitBoss, get boss(){return boss;}, GAME };
 })();
