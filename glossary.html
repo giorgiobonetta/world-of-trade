@@ -3,15 +3,12 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>World of Trade — learn physical commodity trading</title>
-<meta name="description" content="Learn physical commodity trading step by step: 31 short lessons on incoterms, pricing, hedging, trade finance, execution, freight and desk risk." />
+<title>Glossary — physical commodity trading terms | World of Trade</title>
+<meta name="description" content="Every term used in the course: laycan, NOR, demurrage, quotational period, basis, contango, TCE, Worldscale, VaR — with what it means and why it matters on a desk." />
 <meta name="theme-color" content="#071232" />
 <link rel="icon" href="world-of-trade-premium-icon-192.png" type="image/png" />
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="apple-touch-icon" href="world-of-trade-premium-icon-192.png" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="apple-mobile-web-app-title" content="World of Trade" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" />
@@ -22,25 +19,25 @@
 <svg class="backdrop" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice"
      xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
   <defs>
-    <linearGradient id="aPXsea" x1="0" y1="0" x2="0" y2="1">
+    <linearGradient id="gPXsea" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="#0d2a5e" stop-opacity="0"/>
       <stop offset="55%" stop-color="#081c40" stop-opacity="0"/>
       <stop offset="100%" stop-color="#020814" stop-opacity=".85"/>
     </linearGradient>
-    <linearGradient id="aPXglow" x1="0" y1="1" x2="0" y2="0">
+    <linearGradient id="gPXglow" x1="0" y1="1" x2="0" y2="0">
       <stop offset="0%" stop-color="#f5a623" stop-opacity=".11"/>
       <stop offset="100%" stop-color="#f5a623" stop-opacity="0"/>
     </linearGradient>
-    <linearGradient id="aPXcurve" x1="0" y1="0" x2="1" y2="0">
+    <linearGradient id="gPXcurve" x1="0" y1="0" x2="1" y2="0">
       <stop offset="0%" stop-color="#ffd45c" stop-opacity="0"/>
       <stop offset="45%" stop-color="#ffd45c" stop-opacity=".34"/>
       <stop offset="100%" stop-color="#ffd45c" stop-opacity="0"/>
     </linearGradient>
-    <linearGradient id="aPXdeep" x1="0" y1="0" x2="0" y2="1">
+    <linearGradient id="gPXdeep" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="#020814" stop-opacity="0"/>
       <stop offset="100%" stop-color="#020814" stop-opacity=".55"/>
     </linearGradient>
-    <radialGradient id="aPXport" cx=".5" cy="1" r=".8">
+    <radialGradient id="gPXport" cx=".5" cy="1" r=".8">
       <stop offset="0%" stop-color="#ffd45c" stop-opacity=".13"/>
       <stop offset="100%" stop-color="#ffd45c" stop-opacity="0"/>
     </radialGradient>
@@ -69,7 +66,7 @@
 
   <!-- la curva del carry: contango sopra, backwardation sotto -->
   <g fill="none" stroke-width="2.5" stroke-linecap="round">
-    <path d="M180 300 C360 262 560 246 820 238 C1010 232 1150 236 1280 246" stroke="url(#aPXcurve)"/>
+    <path d="M180 300 C360 262 560 246 820 238 C1010 232 1150 236 1280 246" stroke="url(#gPXcurve)"/>
   </g>
   <g fill="#ffd45c" fill-opacity=".2">
     <circle cx="180" cy="300" r="3.5"/><circle cx="500" cy="252" r="3.5"/>
@@ -162,10 +159,10 @@
 
   <!-- linea d'orizzonte e banchina -->
   <rect x="0" y="617" width="1440" height="3" fill="#7ea8f0" fill-opacity=".2"/>
-  <rect x="0" y="597" width="1440" height="22" fill="url(#aPXglow)"/>
+  <rect x="0" y="597" width="1440" height="22" fill="url(#gPXglow)"/>
 
   <!-- acqua -->
-  <rect x="0" y="621" width="1440" height="279" fill="url(#aPXsea)"/>
+  <rect x="0" y="621" width="1440" height="279" fill="url(#gPXsea)"/>
 
   <!-- riflessi delle luci sull'acqua -->
   <g fill="#ffd45c" fill-opacity=".07">
@@ -213,7 +210,7 @@
   </g>
 
   <!-- fondo scuro sotto -->
-  <rect x="0" y="760" width="1440" height="140" fill="url(#aPXdeep)"/>
+  <rect x="0" y="760" width="1440" height="140" fill="url(#gPXdeep)"/>
 
   <!-- luci del porto -->
   <g fill="#ffd45c" fill-opacity=".22">
@@ -223,107 +220,42 @@
   </g>
 </svg>
 
-
-<!-- PERCORSO -->
-<main id="pathScreen" class="screen active">
+<main class="screen active">
   <header class="topbar">
     <a class="brand-link" href="index.html" aria-label="World of Trade — home">
       <img class="brand" src="logo-crest-220.webp" alt="World of Trade"
            width="239" height="220"
            onerror="this.onerror=null;this.src='logo-crest-220.png'" /></a>
-    <div class="stats">
-      <div class="stat streak" title="Day streak"><i aria-hidden="true">🔥</i><b id="statStreak">0</b></div>
-      <div class="stat gold" title="Experience"><i aria-hidden="true">★</i><b id="statXp">0</b></div>
-    </div>
+    <a class="gl-back" href="learn.html">Back to the course</a>
   </header>
+
   <div class="wrap">
     <div class="intro">
-      <h1>Learn physical commodity trading</h1>
-      <p>Short lessons, from the very basics to how a merchant desk really works. Five minutes at a time.</p>
+      <h1>Glossary</h1>
+      <p>Every term the course uses, what it means, and why it matters on a desk.</p>
     </div>
-    <div id="pathGreet"></div>
-    <p id="offlineFlag" class="offline-flag" role="status" hidden></p>
-    <div id="reviewHost"></div>
-    <div id="pathProgress" class="course-bar" hidden>
-      <div class="course-bar-top"><span id="courseLabel"></span><span id="coursePct"></span></div>
-      <div class="course-track" id="courseTrack" role="progressbar" aria-label="Course progress"
-           aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="courseFill"></i></div>
-    </div>
-    <div id="pathBody"></div>
-      <div class="share-host"></div>
-    <div id="cloudHost" class="cloud-host"></div>
-    <div id="installHost" class="install-host"></div>
-  <p id="lockedHint" class="locked-hint" role="status" hidden></p>
-  <p class="gl-row"><a class="gl-back" href="glossary.html">Glossary — every term, explained</a></p>
-  <p class="reset-row"><button id="resetButton" class="link-btn">Reset all progress</button></p>
+
+    <form class="gl-tools" role="search" onsubmit="return false">
+      <label class="sr-only" for="glSearch">Search the glossary</label>
+      <input id="glSearch" type="search" autocomplete="off" spellcheck="false"
+             placeholder="Search a term — laycan, basis, TCE…" />
+      <label class="sr-only" for="glUnit">Filter by unit</label>
+      <select id="glUnit"></select>
+    </form>
+    <p id="glCount" class="gl-count" role="status"></p>
+
+    <div id="glBody"></div>
+    <p id="glEmpty" class="gl-empty" hidden>
+      Nothing matches that. Try a shorter word — the glossary uses desk vocabulary,
+      so "quotational" finds more than "quote".
+    </p>
+
+    <p class="reset-row"><a class="gl-back" href="learn.html">Back to the course</a></p>
   </div>
 </main>
 
-<!-- LEZIONE -->
-<main id="lessonScreen" class="screen">
-  <header class="lesson-top">
-    <button id="quitButton" class="icon-btn" aria-label="Leave lesson">✕</button>
-    <div class="progress" id="lessonProgressBar" role="progressbar" aria-label="Lesson progress"
-         aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="lessonProgress"></span></div>
-    <div class="streak-chip" id="streakChip" hidden aria-live="polite">
-      <span aria-hidden="true">🔥</span><b id="streakNum">0</b>
-      <span class="sr-only">correct answers in a row</span>
-    </div>
-    <div class="hearts" id="hearts" aria-label="Lives remaining"></div>
-  </header>
-  <p id="streakToast" class="streak-toast" role="status" hidden></p>
-  <div class="wrap lesson-wrap">
-    <p id="runBanner" class="run-banner" hidden></p>
-    <div id="exerciseArea" aria-live="polite"></div>
-  </div>
-  <footer class="lesson-foot">
-    <div id="feedback" class="feedback" role="status" aria-live="polite" hidden></div>
-    <div class="wrap foot-inner">
-      <button id="checkButton" class="btn primary" aria-describedby="checkHint" disabled>Check</button>
-      <span id="checkHint" class="sr-only">Answer the question to continue</span>
-    </div>
-  </footer>
-</main>
-
-<!-- FINE LEZIONE -->
-<main id="doneScreen" class="screen">
-  <div class="wrap done-wrap">
-    <div class="done-crest"></div>
-    <h2 id="doneTitle">Lesson complete</h2>
-    <p id="doneGoal" class="done-goal"></p>
-    <div class="done-stats">
-      <div><span>XP earned</span><strong id="doneXp">0</strong></div>
-      <div><span>Accuracy</span><strong id="doneAcc">0%</strong></div>
-    </div>
-    <div class="share-host"></div>
-    <button id="continueButton" class="btn primary wide">Continue</button>
-  </div>
-</main>
-
-<div id="shareDialog" class="cloud-dialog" role="dialog" aria-modal="true"
-     aria-labelledby="shareTitle" hidden>
-  <div class="cloud-panel share-panel">
-    <button id="shareClose" class="cloud-close" aria-label="Close">✕</button>
-    <div id="shareBody"></div>
-  </div>
-</div>
-
-<div id="cloudDialog" class="cloud-dialog" role="dialog" aria-modal="true"
-     aria-labelledby="cloudTitle" hidden>
-  <div class="cloud-panel">
-    <button id="cloudClose" class="cloud-close" aria-label="Close">✕</button>
-    <div id="cloudDialogBody"></div>
-    <p class="cloud-fine">Your email is used only to identify your account. Progress stays
-      on this device too, and you can keep playing without signing in.</p>
-  </div>
-</div>
-
-<script src="supabase-config.js"></script>
-<script src="mascot.js"></script>
 <script src="curriculum.js"></script>
-<script src="app.js"></script>
-<script src="pwa.js"></script>
-<script src="cloud.js"></script>
-<script src="share.js"></script>
+<script src="glossary.js"></script>
+<script src="glossary-page.js"></script>
 </body>
 </html>

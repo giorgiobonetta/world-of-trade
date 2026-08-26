@@ -112,7 +112,7 @@ button{font:inherit;color:inherit;border:0;background:none}
 .node.locked{opacity:.42;cursor:not-allowed;filter:saturate(.4)}
 .node.locked .medal{background:linear-gradient(180deg,#5b6a86,#333e57);color:#9fb0c9;animation:none}
 .node strong{display:block;font-size:18px;font-weight:600;line-height:1.3}
-.node small{display:block;color:var(--muted);font-size:14.5px;margin-top:3px}
+.node small{display:block;color:#dceaff;font-size:14.5px;margin-top:3px}   /* non var(--muted): su royal-mid darebbe 3.81:1 */
 .node .tag{
   position:absolute;top:-12px;right:16px;padding:4px 13px;border-radius:999px;
   background:linear-gradient(180deg,var(--gold-hi),var(--gold-mid));color:var(--ink);
@@ -553,3 +553,55 @@ input:focus{outline:none;border-color:var(--gold);box-shadow:inset 0 3px 6px rgb
 .share-acts{display:grid;gap:10px}
 .share-acts .li-btn{text-decoration:none}
 .share-msg{margin:14px 0 0;text-align:center;font-size:14.5px;color:var(--green-hi)}
+
+/* ── glossario ────────────────────────────────────────────────────── */
+.gl-back{color:var(--gold-hi);font-size:15px;font-weight:600;text-decoration:none;
+  padding:9px 15px;border-radius:12px;border:2px solid rgba(255,212,92,.28);
+  background:rgba(4,14,40,.35);white-space:nowrap}
+.gl-back:hover{background:rgba(4,14,40,.6);color:#fff}
+.gl-back:focus-visible{outline:3px solid var(--gold-hi);outline-offset:2px}
+
+.gl-tools{display:grid;grid-template-columns:1fr auto;gap:10px;margin:6px 0 12px}
+.gl-tools input,.gl-tools select{padding:14px 16px;border-radius:14px;font:inherit;font-size:16.5px;
+  color:#fff;background:rgba(4,14,40,.62);border:2px solid rgba(255,212,92,.24)}
+.gl-tools input::placeholder{color:var(--muted-2)}
+.gl-tools input:focus,.gl-tools select:focus{outline:none;border-color:var(--gold);background:rgba(4,14,40,.85)}
+.gl-tools select{max-width:44vw}
+.gl-count{margin:0 0 22px;font-size:13.5px;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--muted-2)}
+.gl-empty{margin:20px 0 0;padding:18px 20px;border-radius:var(--r-md);font-size:16px;line-height:1.55;
+  color:#e8f0ff;background:rgba(18,53,111,.55);border:2px solid rgba(255,212,92,.2)}
+
+.gl-unit{margin:0 0 30px}
+.gl-unit > h2{display:flex;align-items:center;gap:11px;flex-wrap:wrap;
+  margin:0 0 14px;font-size:20px;font-weight:700;color:#fff8e6}
+.gl-n{padding:4px 11px;border-radius:99px;font-size:12.5px;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;color:#08183f;
+  background:linear-gradient(180deg,#fff0b8,#f5a623)}
+.gl-unit dl{margin:0;display:grid;gap:11px}
+.gl-item{padding:17px 19px;border-radius:var(--r-md);
+  background:linear-gradient(180deg,var(--royal-mid),var(--royal-deep));
+  border:3px solid rgba(255,212,92,.18);
+  box-shadow:0 5px 0 rgba(5,18,48,.5),inset 0 2px 0 rgba(255,255,255,.14)}
+.gl-item dt{font-size:18px;font-weight:700;color:#fff8e6;margin:0 0 6px}
+.gl-item dd{margin:0}
+.gl-def{margin:0 0 8px;font-size:16px;line-height:1.55;color:#fff}
+.gl-why{margin:0 0 11px;font-size:15px;line-height:1.55;color:#d6e5ff}
+.gl-link{display:inline-block;font-size:14px;font-weight:600;color:#ffe6a3;
+  text-decoration:none;border-bottom:2px solid rgba(255,212,92,.35);padding-bottom:1px}
+.gl-link:hover{color:var(--gold-hi);border-bottom-color:var(--gold-hi)}
+.gl-link:focus-visible{outline:3px solid var(--gold-hi);outline-offset:3px}
+.gl-item.gl-target{border-color:var(--gold);box-shadow:0 5px 0 rgba(5,18,48,.5),0 0 0 4px rgba(255,212,92,.22)}
+@media (max-width:560px){
+  .gl-tools{grid-template-columns:1fr}
+  .gl-tools select{max-width:none}
+}
+.gl-row{text-align:center;padding:30px 0 0}
+.locked-hint{margin:18px 0 0;padding:13px 16px;border-radius:14px;text-align:center;
+  font-size:15px;color:#08183f;background:linear-gradient(180deg,#fff0b8,#f5a623);
+  box-shadow:0 3px 0 rgba(163,95,4,.6)}
+.node.flagged{border-color:var(--gold)!important;
+  box-shadow:0 6px 0 rgba(5,18,48,.5),0 0 0 4px rgba(255,212,92,.28)!important}
+.gl-u{display:inline-block;margin-left:8px;padding:3px 9px;border-radius:99px;
+  font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:#08183f;vertical-align:middle;background:linear-gradient(180deg,#fff0b8,#f5a623)}

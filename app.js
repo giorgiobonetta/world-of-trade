@@ -7,7 +7,12 @@
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
   const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const KEY = 'wot-learn-v1';
+  // La pagina di autodiagnosi apre l'app in un iframe e gioca davvero una lezione.
+  // Senza una chiave separata rovinerebbe i progressi di chi sta usando l'app.
+  const SANDBOX = (() => {
+    try { return new URLSearchParams(location.search).has('sandbox'); } catch (e) { return false; }
+  })();
+  const KEY = SANDBOX ? 'wot-learn-selftest' : 'wot-learn-v1';
   const HEARTS = 3;
   const CHECK_HEARTS = 5;
   const SOGLIE = [5, 10, 15, 20, 30, 50, 75, 100];   // dove la serie si festeggia
@@ -322,9 +327,14 @@
     nextExercise();
   }
 
+  const isUnlocked = id => isDone(id) || id === nextLessonId();
+
   function startLesson(lessonId) {
     const lesson = allLessons.find(l => l.id === lessonId);
     if (!lesson) return;
+    // il controllo sta qui e non nel chiamante: un link diretto, la console
+    // o un futuro pulsante non devono poter scavalcare la progressione
+    if (!isUnlocked(lessonId)) return;
     startRun({
       mode: 'lesson', lesson,
       items: lesson.exercises.map((e, i) => ({ ex: e, i, lessonId: lesson.id })),
@@ -695,8 +705,26 @@
   });
 
   renderPath();
+
+  // arrivo dal glossario: ?lesson=u4l3 apre quella lezione se è sbloccata,
+  // altrimenti evidenzia il nodo sul percorso senza forzare niente
+  (function daLink() {
+    let id = null;
+    try { id = new URLSearchParams(location.search).get('lesson'); } catch (e) {}
+    if (!id || !allLessons.some(l => l.id === id)) return;
+    if (isUnlocked(id)) { startLesson(id); return; }
+    const nodo = $(`[data-lesson="${id}"]`);
+    if (nodo) {
+      nodo.classList.add('flagged');
+      nodo.setAttribute('aria-describedby', 'lockedHint');
+      try { nodo.scrollIntoView({ block: 'center', behavior: motionOK() ? 'smooth' : 'auto' }); } catch (e) {}
+      const hint = $('#lockedHint');
+      if (hint) { hint.hidden = false; hint.textContent = 'That lesson is still locked — it comes after the ones above.'; }
+    }
+  })();
+
   window.__LEARN__ = { get state(){return state;}, get run(){return run;}, startLesson, onCheck, renderPath,
     startReview, startCheckpoint, reviewItems, checkpointItems, dueCount, exKey, unitDone,
     allLessons, UNITS, CHECK_PASS, REVIEW_SIZE, CHECK_SIZE, HEARTS, CHECK_HEARTS,
-    replaceState, defaultState, STORAGE_KEY: KEY, SOGLIE, renderStreak };
+    replaceState, defaultState, STORAGE_KEY: KEY, SOGLIE, renderStreak, isUnlocked, SANDBOX };
 })();

@@ -5,7 +5,11 @@
 (() => {
   'use strict';
   const CFG = window.WOT_CLOUD || {};
-  const ON = !!(CFG.url && CFG.anonKey);
+  // in sandbox non si tocca l'account di nessuno: niente login, niente sincronizzazione
+  const SANDBOX = (() => {
+    try { return new URLSearchParams(location.search).has('sandbox'); } catch (e) { return false; }
+  })();
+  const ON = !!(CFG.url && CFG.anonKey) && !SANDBOX;
   const SESS = 'wot-cloud-session';
   const TABLE = 'progress';
 

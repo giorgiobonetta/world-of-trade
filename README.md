@@ -22,6 +22,8 @@ then open `http://localhost:8000`. Deploys to Vercel as-is — no build step.
 | `sw.js`, `pwa.js`, `manifest.webmanifest` | — | Installability and offline |
 | `cloud.js`, `supabase-config.js` | — | Optional account and cloud save |
 | `share.js` | — | Streak card and LinkedIn sharing |
+| `glossary.html` | `/glossary` | 70 terms, searchable, linked to the lessons |
+| `selftest.html` | `/selftest` | In-browser diagnostics; `noindex`, not linked from the UI |
 | `tests/` | — | Test suite, excluded from deploy by `.vercelignore` |
 
 `vercel.json` uses `cleanUrls` and **no rewrites**, so `/` serves the landing and
@@ -236,6 +238,56 @@ unavailable, so it is wrapped, and the panel then offers text and link with no i
 instead of failing. `card.mjs` verifies the drawing with a recording 2D context —
 every fill, every string, and that nothing lands outside 1200×630.
 
+## Self-check — closing the gap a browser leaves
+
+`selftest.html`, opened on the deployed site, runs the app in an offscreen iframe and
+checks what Node cannot see. It exists because of a specific failure: a CSS rule
+cancelled the `hidden` attribute, the sign-in panel covered the whole app, and every
+test was green. The suite asserted `el.hidden === true`, which was true. The property
+was right and the rendering was wrong.
+
+What it checks that jsdom cannot:
+
+- **Real computed visibility** — every `[hidden]` element must actually resolve to
+  `display:none`, and `elementFromPoint` at the centre of the screen must return the
+  course rather than a dialog.
+- **Real contrast** — the foreground and background are read from the live computed
+  styles, the effective background is resolved by walking up ancestors and compositing
+  translucent layers, and the threshold moves to 3:1 for large or bold text as WCAG
+  allows. Every text node on the path, in a lesson and in the feedback.
+- **Layout at 390px** — horizontal overflow, elements past the right edge, text clipped
+  inside its own box, and every control at least 44px tall.
+- **Things that simply do not exist in Node** — whether the webfont loaded, whether
+  canvas can produce a PNG, whether a service worker is registered and how many cache
+  versions are lying around, whether `localStorage` is writable at all (private mode
+  throws), whether the logo image really decoded.
+- **A real lesson, played** — pick an answer, press Check, and confirm the explanation
+  is on screen rather than below the fold, and that the Continue button is reachable
+  without scrolling.
+
+It runs against `learn.html?sandbox=1`, which switches the storage key to
+`wot-learn-selftest` and disables the cloud entirely. Running the diagnostics must not
+cost the user their career or push junk to their account. The scratch key is deleted at
+the end, and `sandbox.mjs` proves the real key is byte-identical before and after a
+full lesson is played.
+
+The report is copyable, which is the point: it is how a browser I cannot run reports
+back to me.
+
+## Contrast is computed, not judged
+
+`contrasto.mjs` holds every text-on-background pair the app actually produces, against
+the **worst** background that element can land on — a card is a gradient, so a colour
+that passes at the bottom can fail at the top. Two failures came out of it that no
+amount of looking had caught:
+
+- `.gl-link` in gold on a card top: 4.12:1.
+- `.node small` — the "5 questions" line under every lesson on the main screen — using
+  `--muted` on `royal-mid`: **3.81:1**. Pre-existing, on the most-viewed screen in the app.
+
+Both fixed, and the suite now also refuses `var(--muted)` on any selector known to sit
+on a light card, so the same mistake cannot come back by copy-paste.
+
 ## One CSS rule that matters
 
 ```css
@@ -257,6 +309,25 @@ which is the only reason to trust it.
 The close handlers are also attached now regardless of configuration. A modal that
 cannot be closed takes the whole app with it, so it should not depend on a feature
 being switched on.
+
+## Glossary
+
+`glossary.html` — 70 terms, each with what it means, why it matters on a desk, and a
+link to the lesson that teaches it. Every `lesson` field is checked against the
+curriculum by the tests: a reference to a lesson that does not exist fails the suite,
+so the glossary cannot drift away from the course.
+
+With no query the terms are grouped by unit in course order, because that is where
+someone studying will look for them. **With a query the grouping is dropped for a flat
+list ranked by relevance** — typing "basis" has to put *Basis* above *Basis risk* and
+above the entries that merely mention basis in their explanation. Grouping and ranking
+are in conflict, so one of them has to give when you search.
+
+The lesson links go through `learn.html?lesson=u4l3`, and the lock check lives in
+`startLesson` rather than in the caller. A direct link, the console or some future
+button must not be able to skip the progression, and the only way to guarantee that is
+to put the check where the lesson actually starts. A locked target highlights the node
+on the path and explains itself instead of silently doing nothing.
 
 ## The five exercise types
 
