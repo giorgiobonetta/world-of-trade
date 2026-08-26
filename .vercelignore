@@ -1,0 +1,4 @@
+# La suite di test non fa parte del sito
+tests/
+*.md
+!README.md

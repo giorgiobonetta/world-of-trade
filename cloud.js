@@ -65,11 +65,48 @@
     }
   }
 
+  // LinkedIn passa da Supabase: qui basta mandare il browser all'endpoint giusto
+  // e poi raccogliere i token dal frammento dell'indirizzo al ritorno.
+  function vaiA(provider) {
+    const ritorno = location.origin + location.pathname;
+    location.href = CFG.url.replace(/\/$/, '')
+      + '/auth/v1/authorize?provider=' + encodeURIComponent(provider)
+      + '&redirect_to=' + encodeURIComponent(ritorno);
+  }
+
+  // Supabase torna con #access_token=...&refresh_token=... oppure #error=...
+  function leggiRitorno() {
+    const h = (location.hash || '').replace(/^#/, '');
+    if (!h) return null;
+    const p = new URLSearchParams(h);
+    const at = p.get('access_token'), rt = p.get('refresh_token');
+    const err = p.get('error_description') || p.get('error');
+    // l'indirizzo va ripulito in ogni caso: quei token non devono restare
+    // nella barra, nella cronologia o in un link condiviso
+    const pulisci = () => { try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { location.hash = ''; } };
+    if (err) { pulisci(); return { errore: decodeURIComponent(String(err).replace(/\+/g, ' ')) }; }
+    if (!at) return null;
+    pulisci();
+    return { sessione: { access_token: at, refresh_token: rt || null, token_type: p.get('token_type') || 'bearer' } };
+  }
+
   const signUp = (email, password) => call('/auth/v1/signup', { body: { email, password } });
   const signIn = (email, password) => call('/auth/v1/token?grant_type=password', { body: { email, password } });
 
+  const chiUtente = () => withFreshToken(() => call('/auth/v1/user', { method: 'GET', auth: true }));
+
+  // l'id utente sta anche dentro il token (campo "sub"): utile subito dopo OAuth
+  function idUtente() {
+    if (session?.user?.id) return session.user.id;
+    try {
+      const p = JSON.parse(atob(String(session.access_token).split('.')[1]
+        .replace(/-/g, '+').replace(/_/g, '/')));
+      return p.sub || null;
+    } catch (e) { return null; }
+  }
+
   async function pull() {
-    const uid = session?.user?.id;
+    const uid = idUtente();
     if (!uid) return null;
     const rows = await withFreshToken(() => call(
       `/rest/v1/${TABLE}?select=state&user_id=eq.${encodeURIComponent(uid)}`,
@@ -78,7 +115,7 @@
   }
 
   async function push(state) {
-    const uid = session?.user?.id;
+    const uid = idUtente();
     if (!uid) return;
     await withFreshToken(() => call(`/rest/v1/${TABLE}`, {
       method: 'POST', auth: true,
@@ -103,6 +140,9 @@
       streak: Math.max(Number(a.streak) || 0, Number(b.streak) || 0),
       lastDay: [a.lastDay, b.lastDay].filter(Boolean).sort().pop() || null,
       reviews: Math.max(Number(a.reviews) || 0, Number(b.reviews) || 0),
+      streakBest: Math.max(Number(a.streakBest) || 0, Number(b.streakBest) || 0),
+      // la serie in corso è del dispositivo, non della carriera: non si eredita
+      streakNow: Number(a.streakNow) || 0,
       best: maxMap(a.best, b.best),
       badges: maxMap(a.badges, b.badges),
       doneAt: maxMap(a.doneAt, b.doneAt),
@@ -166,9 +206,11 @@
   function disegna() {
     const host = $('#cloudHost');
     if (!host) return;
-    if (session?.user) {
+    if (session) {
       host.innerHTML = `<div class="cloud-box in">
-        <span class="cloud-who">Signed in as <strong>${esc(session.user.email || '')}</strong></span>
+        <span class="cloud-who">${session.user?.email
+          ? `Signed in as <strong>${esc(session.user.email)}</strong>`
+          : 'Signed in <strong>with LinkedIn</strong>'}</span>
         <span class="cloud-acts">
           <button id="cloudSync" class="link-btn">Sync now</button>
           <button id="cloudOut" class="link-btn">Sign out</button>
@@ -205,6 +247,11 @@
     $('#cloudDialogBody').innerHTML = `
       <h2 id="cloudTitle">${esc(titolo)}</h2>
       <p class="cloud-sub">${esc(sottotitolo)}</p>
+      <button type="button" id="cloudLinkedin" class="li-btn">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor"
+          d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.13 1.45-2.13 2.94v5.67H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.22.79 24 1.77 24h20.45c.98 0 1.78-.78 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg>
+        Continue with LinkedIn</button>
+      <p class="cloud-or"><span>or use your email</span></p>
       <form id="cloudForm" novalidate>
         <label class="cloud-label" for="cloudEmail">Email</label>
         <input id="cloudEmail" type="email" autocomplete="email" required />
@@ -216,6 +263,10 @@
       </form>
       <p class="cloud-alt">${esc(altroTesto)}
         <button class="link-btn" id="cloudSwap">${altroModo === 'up' ? 'Create one' : 'Sign in'}</button></p>`;
+    $('#cloudLinkedin').addEventListener('click', () => {
+      stato('Taking you to LinkedIn…');
+      vaiA('linkedin_oidc');
+    });
     $('#cloudSwap').addEventListener('click', () => altroModo === 'up' ? mostraRegistrazione() : mostraAccesso());
     $('#cloudForm').addEventListener('submit', e => { e.preventDefault(); invia(azione); });
   }
@@ -274,16 +325,31 @@
   document.addEventListener('DOMContentLoaded', avvia);
   if (document.readyState !== 'loading') avvia();
   let avviato = false;
-  function avvia() {
+  async function avvia() {
     if (avviato) return; avviato = true;
     $('#cloudClose')?.addEventListener('click', chiudi);
     $('#cloudDialog')?.addEventListener('click', e => { if (e.target.id === 'cloudDialog') chiudi(); });
+
+    const ritorno = leggiRitorno();
+    if (ritorno?.errore) { disegna(); stato(ritorno.errore, 'warn'); return; }
+    if (ritorno?.sessione) {
+      putSession(ritorno.sessione);
+      try {
+        // il frammento non contiene l'email: la chiediamo, così sappiamo chi mostrare
+        const u = await chiUtente();
+        putSession({ ...session, user: u });
+      } catch (e) { /* si sincronizza comunque: l'id arriva dal token */ }
+      disegna();
+      await sincronizza();
+      return;
+    }
     disegna();
     if (session) sincronizza({ silenzioso: true });
   }
 
   Object.assign(window.WOT_CLOUD_API, {
     signUp, signIn, pull, push, sincronizza, merge, apri, chiudi, disegna, esci,
+    vaiA, leggiRitorno, idUtente, chiUtente,
   });
   // Object.assign copierebbe il VALORE del getter, non il getter:
   // dirty resterebbe congelato a false per sempre.

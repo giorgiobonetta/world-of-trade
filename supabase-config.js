@@ -4,4 +4,6 @@
 window.WOT_CLOUD = {
   url: '',        // es. 'https://abcdefgh.supabase.co'
   anonKey: '',    // la chiave "anon public": è pubblica per progetto, va bene nel codice
+  siteUrl: '',    // opzionale: l'indirizzo pubblico del sito, per il link di condivisione
+                  // se resta vuoto si usa il dominio da cui la pagina è aperta
 };

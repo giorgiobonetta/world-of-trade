@@ -83,7 +83,37 @@ Sul piano gratuito Supabase manda poche email al giorno da un mittente condiviso
 finiscono facilmente nello spam. Se il progetto cresce, si collega un servizio SMTP
 proprio in **Authentication → Emails**.
 
-## 5 · Pubblica
+## 5 · Accesso con LinkedIn (opzionale)
+
+Questa parte richiede un passaggio in più perché LinkedIn è più esigente di altri.
+
+1. Vai su **linkedin.com/developers** → **Create app**.
+2. **Serve una Pagina LinkedIn** (una company page) da associare all'app. Se non ne
+   hai una, creane una: è gratis e ci vogliono due minuti. Senza Pagina LinkedIn non
+   ti lascia creare l'app — è il punto dove si bloccano tutti.
+3. Nella scheda **Products** aggiungi **Sign In with LinkedIn using OpenID Connect**.
+   È self-service, si attiva subito.
+4. Nella scheda **Auth**, sotto **Authorized redirect URLs**, incolla:
+
+   ```
+   https://TUO-PROGETTO.supabase.co/auth/v1/callback
+   ```
+
+   Quello è l'indirizzo di **Supabase**, non del tuo sito. Sbagliarlo è l'errore più
+   comune e produce un `redirect_uri_mismatch`.
+5. Copia **Client ID** e **Client Secret**.
+6. In Supabase: **Authentication** → **Providers** → **LinkedIn (OIDC)**. Attivalo e
+   incolla le due chiavi. Attenzione: nella lista ci sono due voci simili, `LinkedIn`
+   e `LinkedIn (OIDC)`. Serve **OIDC** — l'altra usa un'API che LinkedIn ha dismesso.
+7. Salva. Il pulsante **Continue with LinkedIn** funziona già: nel codice il provider
+   è `linkedin_oidc`.
+
+Da LinkedIn arriva nome ed email. Se un utente entra prima con l'email e poi con
+LinkedIn, per Supabase sono due account distinti a meno che tu non attivi
+**Authentication → Settings → Link identities with the same email**. Consiglio di
+attivarlo, altrimenti la stessa persona si ritrova due carriere separate.
+
+## 6 · Pubblica
 
 Carica tutto e apri il sito. Sotto il percorso comparirà
 **"Save your progress to an account"**.

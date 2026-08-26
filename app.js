@@ -9,7 +9,8 @@
   const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const KEY = 'wot-learn-v1';
   const HEARTS = 3;
-  const CHECK_HEARTS = 5;   // un checkpoint deve arrivare a darti un punteggio, non morire a metà
+  const CHECK_HEARTS = 5;
+  const SOGLIE = [5, 10, 15, 20, 30, 50, 75, 100];   // dove la serie si festeggia
   const XP_PER = 10;
 
   const UNITS = window.CURRICULUM || [];
@@ -62,6 +63,8 @@
     doneAt: {},    // quando una lezione e' stata completata (per l'anzianita')
     badges: {},    // punteggio migliore al checkpoint di ciascuna unita'
     reviews: 0,    // sessioni di ripasso fatte (ruota la selezione)
+    streakNow: 0,  // risposte giuste consecutive al primo colpo, attraverso le lezioni
+    streakBest: 0, // record personale, quello che si condivide
   });
   let state = load();
 
@@ -75,7 +78,8 @@
       return { ...defaultState(), ...s,
         done: Array.isArray(s.done) ? s.done : [],
         best: obj(s.best), misses: obj(s.misses), doneAt: obj(s.doneAt), badges: obj(s.badges),
-        reviews: Number(s.reviews) || 0, updatedAt: Number(s.updatedAt) || 0 };
+        reviews: Number(s.reviews) || 0, updatedAt: Number(s.updatedAt) || 0,
+        streakNow: Number(s.streakNow) || 0, streakBest: Number(s.streakBest) || 0 };
     } catch (e) { return defaultState(); }
   }
   function save() {
@@ -314,6 +318,7 @@
     const b = $('#runBanner');
     if (b) { b.textContent = run.banner; b.hidden = !run.banner; }
     show('lessonScreen');
+    renderStreak(false);
     nextExercise();
   }
 
@@ -355,6 +360,34 @@
     btn.textContent = 'Check';
     btn.disabled = true;
     renderExercise(run.current.ex);
+  }
+
+  function renderStreak(appenaGiusta) {
+    const chip = $('#streakChip');
+    if (!chip) return;
+    const n = state.streakNow || 0;
+    // sotto 3 non vale la pena occupare spazio sullo schermo
+    chip.hidden = n < 3;
+    if (n >= 3) {
+      $('#streakNum').textContent = n;
+      chip.classList.toggle('record', n > 0 && n === state.streakBest);
+      if (appenaGiusta) { chip.classList.remove('pop'); void chip.offsetWidth; chip.classList.add('pop'); }
+    }
+    if (appenaGiusta && SOGLIE.includes(n)) festeggia(n);
+  }
+
+  function festeggia(n) {
+    const t = $('#streakToast');
+    if (!t) return;
+    const M = window.MASCOT;
+    t.innerHTML = `<span class="st-face">${M ? M.svg('happy', 44) : ''}</span>
+      <span class="st-copy"><strong>${n} in a row</strong>
+        <small>${n === state.streakBest ? 'A new personal best.' : 'Keep it going.'}</small></span>`;
+    t.hidden = false;
+    t.classList.remove('show'); void t.offsetWidth; t.classList.add('show');
+    clearTimeout(festeggia._t);
+    festeggia._t = setTimeout(() => { t.hidden = true; }, 2600);
+    confetti(Math.min(70, 24 + n * 2));
   }
 
   function renderProgress() {
@@ -536,6 +569,14 @@
     run.state = 'feedback';
     run.answered++;
     const key = run.current.lessonId != null ? exKey(run.current.lessonId, run.current.i) : null;
+    // la serie conta solo le risposte prese al primo colpo: un ritentativo
+    // non la fa crescere, altrimenti basterebbe insistere
+    if (ok && !run.current.retry) {
+      state.streakNow = (state.streakNow || 0) + 1;
+      if (state.streakNow > (state.streakBest || 0)) state.streakBest = state.streakNow;
+    } else if (!ok) {
+      state.streakNow = 0;
+    }
     if (ok) {
       run.correct++;
       if (!run.current.retry) run.firstTry++;
@@ -568,6 +609,7 @@
     btn.className = `btn ${ok ? 'go' : 'stop'}`;
     btn.textContent = run.hearts <= 0 ? 'Out of lives' : (run.queue.length ? 'Continue' : 'Finish');
     if (!ok) { const h = $('#hearts'); h.classList.remove('lost'); void h.offsetWidth; h.classList.add('lost'); }
+    renderStreak(ok);
     renderProgress();
     if (run.hearts <= 0) setTimeout(() => failRun(), 900);
   }
@@ -656,5 +698,5 @@
   window.__LEARN__ = { get state(){return state;}, get run(){return run;}, startLesson, onCheck, renderPath,
     startReview, startCheckpoint, reviewItems, checkpointItems, dueCount, exKey, unitDone,
     allLessons, UNITS, CHECK_PASS, REVIEW_SIZE, CHECK_SIZE, HEARTS, CHECK_HEARTS,
-    replaceState, defaultState, STORAGE_KEY: KEY };
+    replaceState, defaultState, STORAGE_KEY: KEY, SOGLIE, renderStreak };
 })();

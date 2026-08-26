@@ -20,6 +20,9 @@ then open `http://localhost:8000`. Deploys to Vercel as-is — no build step.
 | `index.html` | `/` | Landing page — pitch, curriculum, a live sample exercise, CTA |
 | `learn.html` | `/learn` | The app itself (the path, the lessons, progress) |
 | `sw.js`, `pwa.js`, `manifest.webmanifest` | — | Installability and offline |
+| `cloud.js`, `supabase-config.js` | — | Optional account and cloud save |
+| `share.js` | — | Streak card and LinkedIn sharing |
+| `tests/` | — | Test suite, excluded from deploy by `.vercelignore` |
 
 `vercel.json` uses `cleanUrls` and **no rewrites**, so `/` serves the landing and
 `/learn` serves the app. Do not reuse the old simulator's `vercel.json` — its
@@ -204,6 +207,34 @@ Two bugs came out of writing those tests. `Object.assign` copies the *value* of 
 getter rather than the getter itself, so the `dirty` flag was frozen at `false`
 forever and nothing would ever have retried. And a failed refresh surfaced
 `JWT expired` to the user instead of signing them out.
+
+## Streaks and sharing
+
+A run of correct answers is counted across lessons, not inside one: `streakNow` grows
+only on answers taken **first try** — a re-queued mistake taken correctly the second
+time does not count, or insisting would be enough — and resets to zero on any wrong
+answer. `streakBest` is the record, and it is what gets shared. The chip appears at 3
+(below that it is not worth the screen space) and milestones at 5, 10, 15, 20, 30, 50,
+75 and 100 get a toast and confetti.
+
+On merge, `streakBest` takes the maximum but `streakNow` does **not** transfer: an
+in-progress run belongs to the device you are sitting at, not to the career.
+
+**What LinkedIn actually allows.** The share link (`sharing/share-offsite`) carries
+only the URL. Post text, headline and thumbnail cannot be pre-filled — the API that
+allowed it was deprecated in 2018, and everything shown in the composer comes from the
+page's Open Graph tags. Posting *on the user's behalf* needs the `w_member_social`
+permission, which requires LinkedIn app review and is not realistic here.
+
+So the share panel does the three things the user cannot do for themselves: it draws a
+1200×630 card on a canvas with their number on it, puts the post text on the clipboard,
+and opens the composer. They paste and attach. An image also travels further on
+LinkedIn than a bare link, so this is not merely a workaround.
+
+The card degrades: `getContext` throws rather than returning null when canvas is
+unavailable, so it is wrapped, and the panel then offers text and link with no image
+instead of failing. `card.mjs` verifies the drawing with a recording 2D context —
+every fill, every string, and that nothing lands outside 1200×630.
 
 ## The five exercise types
 

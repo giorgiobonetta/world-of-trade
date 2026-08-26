@@ -468,3 +468,83 @@ input:focus{outline:none;border-color:var(--gold);box-shadow:inset 0 3px 6px rgb
 .cloud-alt{margin:16px 0 0;text-align:center;font-size:14.5px;color:var(--muted)}
 .cloud-fine{margin:16px 0 0;font-size:12.5px;line-height:1.5;color:var(--muted-2);text-align:center}
 @media (prefers-reduced-motion:reduce){.cloud-dialog,.cloud-panel{animation:none}}
+
+/* ── serie di risposte corrette ───────────────────────────────────── */
+.streak-chip{display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:99px;
+  font-size:16px;font-weight:700;color:#08183f;flex:0 0 auto;
+  background:linear-gradient(180deg,#fff0b8,#f5a623);
+  box-shadow:0 3px 0 rgba(163,95,4,.75),inset 0 2px 0 rgba(255,255,255,.5)}
+.streak-chip b{font-variant-numeric:tabular-nums;min-width:1ch}
+.streak-chip span[aria-hidden]{font-size:14px;line-height:1}
+.streak-chip.record{background:linear-gradient(180deg,#fff,#ffd45c);
+  box-shadow:0 3px 0 rgba(163,95,4,.75),0 0 16px rgba(255,212,92,.6),inset 0 2px 0 rgba(255,255,255,.6)}
+.streak-chip.pop{animation:bump .34s cubic-bezier(.34,1.56,.64,1)}
+
+.streak-toast{position:fixed;left:50%;top:74px;z-index:40;margin:0;transform:translateX(-50%);
+  display:flex;align-items:center;gap:12px;padding:11px 20px 11px 12px;border-radius:99px;
+  background:linear-gradient(180deg,#2f9e69,#12492f);
+  border:3px solid rgba(168,247,200,.5);
+  box-shadow:0 10px 26px rgba(2,10,24,.6),inset 0 2px 0 rgba(255,255,255,.2);
+  opacity:0;pointer-events:none}
+.streak-toast.show{animation:toastIn 2.6s ease both}
+@keyframes toastIn{
+  0%{opacity:0;transform:translateX(-50%) translateY(-16px) scale(.9)}
+  9%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}
+  85%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}
+  100%{opacity:0;transform:translateX(-50%) translateY(-10px) scale(.96)}
+}
+.streak-toast .st-face{flex:0 0 auto;display:block}
+.streak-toast .st-face svg{display:block}
+.streak-toast .st-copy strong{display:block;font-size:17px;color:#fff}
+.streak-toast .st-copy small{display:block;font-size:13.5px;color:#c9f5dc}
+@media (prefers-reduced-motion:reduce){
+  .streak-chip.pop{animation:none}
+  .streak-toast.show{animation:none;opacity:1}
+}
+
+/* ── accesso con LinkedIn ─────────────────────────────────────────── */
+.li-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;
+  margin:0 0 4px;padding:14px 18px;border-radius:14px;cursor:pointer;font:inherit;
+  font-size:16px;font-weight:700;color:#fff;background:#0a66c2;
+  border:2px solid #0a66c2;
+  box-shadow:0 4px 0 #064681,inset 0 1px 0 rgba(255,255,255,.18);
+  transition:transform .14s var(--spring),filter .14s ease}
+.li-btn svg{flex:0 0 auto}
+.li-btn:hover{filter:brightness(1.1)}
+.li-btn:active{transform:translateY(3px);box-shadow:0 1px 0 #064681}
+.li-btn:focus-visible{outline:3px solid var(--gold-hi);outline-offset:3px}
+.cloud-or{position:relative;margin:18px 0 16px;text-align:center;
+  font-size:12.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted-2)}
+.cloud-or::before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;
+  background:rgba(255,212,92,.2)}
+.cloud-or span{position:relative;padding:0 12px;background:#102f65}
+
+/* ── condivisione su LinkedIn ─────────────────────────────────────── */
+.share-host:empty{display:none}
+.share-host{padding:4px 0 16px}
+.share-cta{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;
+  padding:14px 18px;border-radius:16px;cursor:pointer;font:inherit;
+  font-size:16px;font-weight:700;color:#fff;background:#0a66c2;
+  border:2px solid rgba(255,255,255,.18);
+  box-shadow:0 4px 0 #064681,inset 0 1px 0 rgba(255,255,255,.2);
+  transition:transform .14s var(--spring),filter .14s ease}
+.share-cta span[aria-hidden]{display:grid;place-items:center;width:22px;height:22px;
+  border-radius:4px;background:#fff;color:#0a66c2;font-size:13px;font-weight:700;line-height:1}
+.share-cta:hover{filter:brightness(1.1)}
+.share-cta:active{transform:translateY(3px);box-shadow:0 1px 0 #064681}
+.share-cta:focus-visible{outline:3px solid var(--gold-hi);outline-offset:3px}
+
+.share-panel{width:min(560px,100%)}
+.share-sub{margin:0 0 18px;color:var(--muted);font-size:15px;line-height:1.5}
+.share-card{margin:0 0 20px;border-radius:14px;overflow:hidden;
+  border:2px solid rgba(255,212,92,.24);box-shadow:0 8px 22px rgba(2,8,22,.5)}
+.share-card canvas{display:block;width:100%;height:auto}
+.share-label{display:block;margin:0 0 6px;font-size:13px;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--gold-hi)}
+#shareText{width:100%;margin:0 0 18px;padding:14px 16px;border-radius:14px;
+  font:inherit;font-size:14.5px;line-height:1.5;color:#eaf1ff;resize:vertical;
+  background:rgba(4,14,40,.6);border:2px solid rgba(255,212,92,.2)}
+#shareText:focus{outline:none;border-color:var(--gold)}
+.share-acts{display:grid;gap:10px}
+.share-acts .li-btn{text-decoration:none}
+.share-msg{margin:14px 0 0;text-align:center;font-size:14.5px;color:var(--green-hi)}
