@@ -236,6 +236,28 @@ unavailable, so it is wrapped, and the panel then offers text and link with no i
 instead of failing. `card.mjs` verifies the drawing with a recording 2D context —
 every fill, every string, and that nothing lands outside 1200×630.
 
+## One CSS rule that matters
+
+```css
+[hidden]{display:none!important}
+```
+
+The browser's own rule is `[hidden]{display:none}`, and it belongs to a weaker origin
+than anything you write. So `.cloud-dialog{display:grid}` silently cancels the
+attribute — the sign-in panel sat open over the app, and because the cloud was not
+configured `cloud.js` had returned early before wiring the close button, so nothing
+could dismiss it. Four elements were affected: both dialogs and both streak indicators.
+
+The tests had asserted `el.hidden === true`, which was correct. The property was right
+and the rendering was wrong. `visibilita.mjs` now checks the CSS text instead: it finds
+every element that can be hidden, finds every author rule that gives it a `display`,
+and requires the guard rule to exist and come first. Removing the guard makes it fail —
+which is the only reason to trust it.
+
+The close handlers are also attached now regardless of configuration. A modal that
+cannot be closed takes the whole app with it, so it should not depend on a feature
+being switched on.
+
 ## The five exercise types
 
 - **choice** — multiple choice, the workhorse

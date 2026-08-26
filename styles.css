@@ -11,6 +11,11 @@
   --r-lg:26px; --r-md:20px; --r-sm:14px;
   --spring:cubic-bezier(.34,1.56,.64,1);
 }
+/* L'attributo hidden deve vincere su qualunque regola di display.
+   Senza questa riga una classe con `display:flex` o `display:grid` lo annulla
+   silenziosamente: il pannello di accesso restava aperto e copriva l'app. */
+[hidden]{display:none!important}
+
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0}
 body{

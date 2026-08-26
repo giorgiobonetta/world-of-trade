@@ -152,6 +152,24 @@
   }
 
   window.WOT_CLOUD_API = { merge, messaggio, get session() { return session; }, enabled: ON };
+
+  // I pannelli si devono poter chiudere in ogni caso, anche se il cloud è spento:
+  // un modale che non si chiude blocca l'intera app.
+  function agganciaChiusure() {
+    document.querySelectorAll('.cloud-dialog').forEach(d => {
+      d.hidden = true;
+      d.addEventListener('click', e => { if (e.target === d) d.hidden = true; });
+      d.querySelector('.cloud-close')?.addEventListener('click', () => { d.hidden = true; });
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key !== 'Escape') return;
+      document.querySelectorAll('.cloud-dialog').forEach(d => { d.hidden = true; });
+    });
+  }
+  if (document.readyState === 'loading')
+    document.addEventListener('DOMContentLoaded', agganciaChiusure, { once: true });
+  else agganciaChiusure();
+
   if (!ON) return;   // non configurato: nessuna interfaccia, nessuna chiamata
 
   /* ── stato della sincronizzazione ─────────────────────────────────── */
