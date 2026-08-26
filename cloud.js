@@ -5,11 +5,38 @@
 (() => {
   'use strict';
   const CFG = window.WOT_CLOUD || {};
+  // Supabase sta passando da anon/service_role a publishable/secret:
+  // accettiamo entrambi i nomi, così la configurazione si legge naturale
+  const CHIAVE = CFG.anonKey || CFG.publishableKey || '';
   // in sandbox non si tocca l'account di nessuno: niente login, niente sincronizzazione
   const SANDBOX = (() => {
     try { return new URLSearchParams(location.search).has('sandbox'); } catch (e) { return false; }
   })();
-  const ON = !!(CFG.url && CFG.anonKey) && !SANDBOX;
+
+  /* Una chiave segreta in un file pubblico è la peggior cosa che possa capitare
+     a questo progetto: darebbe a chiunque accesso completo al database,
+     scavalcando le policy. Meglio spegnere tutto e dirlo forte. */
+  function segreta(k) {
+    if (!k) return false;
+    if (/^sb_secret_/.test(k)) return true;
+    try {
+      const p = JSON.parse(atob(String(k).split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+      return p.role === 'service_role';
+    } catch (e) { return false; }
+  }
+  const PERICOLO = segreta(CHIAVE);
+  if (PERICOLO) {
+    const avviso = 'STOP: supabase-config.js contains a SECRET key. '
+      + 'Remove it now, rotate it in the Supabase dashboard, and paste the '
+      + 'publishable (or anon) key instead. Cloud save is disabled until then.';
+    try { console.error(avviso); } catch (e) {}
+    document.addEventListener('DOMContentLoaded', () => {
+      const h = document.querySelector('#cloudHost');
+      if (h) h.innerHTML = '<p class="cloud-danger" role="alert">' + avviso + '</p>';
+    });
+  }
+
+  const ON = !!(CFG.url && CHIAVE) && !SANDBOX && !PERICOLO;
   const SESS = 'wot-cloud-session';
   const TABLE = 'progress';
 
@@ -27,7 +54,7 @@
 
   /* ── chiamate ─────────────────────────────────────────────────────── */
   async function call(path, { method = 'POST', body, auth = false, headers = {} } = {}) {
-    const h = { apikey: CFG.anonKey, 'Content-Type': 'application/json', ...headers };
+    const h = { apikey: CHIAVE, 'Content-Type': 'application/json', ...headers };
     if (auth && session) h.Authorization = `Bearer ${session.access_token}`;
     const res = await fetch(CFG.url.replace(/\/$/, '') + path, {
       method, headers: h, body: body === undefined ? undefined : JSON.stringify(body),
@@ -155,7 +182,8 @@
     };
   }
 
-  window.WOT_CLOUD_API = { merge, messaggio, get session() { return session; }, enabled: ON };
+  window.WOT_CLOUD_API = { merge, messaggio, get session() { return session; },
+    enabled: ON, chiaveSegreta: PERICOLO, segreta };
 
   // I pannelli si devono poter chiudere in ogni caso, anche se il cloud è spento:
   // un modale che non si chiude blocca l'intera app.
@@ -344,9 +372,13 @@
 
   /* ── avvio ────────────────────────────────────────────────────────── */
   session = loadSession();
-  document.addEventListener('DOMContentLoaded', avvia);
-  if (document.readyState !== 'loading') avvia();
+  // la bandiera va dichiarata PRIMA di qualunque chiamata:
+  // dichiararla dopo la mette nella temporal dead zone e la prima
+  // invocazione lancia ReferenceError, lasciando l'interfaccia non disegnata
   let avviato = false;
+  if (document.readyState === 'loading')
+    document.addEventListener('DOMContentLoaded', avvia, { once: true });
+  else avvia();
   async function avvia() {
     if (avviato) return; avviato = true;
     $('#cloudClose')?.addEventListener('click', chiudi);

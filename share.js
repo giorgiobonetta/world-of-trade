@@ -201,9 +201,13 @@ If you work in commodities, see how far you get: ${sito()}
     });
   }
   window.addEventListener('wot:saved', disegnaPulsanti);
-  document.addEventListener('DOMContentLoaded', avvia);
-  if (document.readyState !== 'loading') avvia();
+  // la bandiera va dichiarata PRIMA di qualunque chiamata:
+  // dichiararla dopo la mette nella temporal dead zone e la prima
+  // invocazione lancia ReferenceError, lasciando l'interfaccia non disegnata
   let avviato = false;
+  if (document.readyState === 'loading')
+    document.addEventListener('DOMContentLoaded', avvia, { once: true });
+  else avvia();
   function avvia() {
     if (avviato) return; avviato = true;
     $('#shareClose')?.addEventListener('click', chiudi);
