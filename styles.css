@@ -134,9 +134,13 @@ button{font:inherit;color:inherit;border:0;background:none}
   background:linear-gradient(180deg,var(--gold-hi),var(--gold) 45%,var(--gold-mid));
   transition:width .45s var(--spring);box-shadow:0 0 12px rgba(255,212,92,.55)}
 .progress>span::after{content:'';position:absolute;inset:2px 4px auto;height:32%;border-radius:999px;background:rgba(255,255,255,.5)}
-.hearts{display:flex;gap:5px;font-size:21px}
-.hearts .h{color:var(--red);filter:drop-shadow(0 2px 2px rgba(0,0,0,.4));transition:transform .3s var(--spring)}
-.hearts .h.gone{color:rgba(255,255,255,.16);transform:scale(.75)}
+.hearts{display:flex;align-items:center;gap:5px}
+.hearts .h{display:block;line-height:0;color:#ff6b52;
+  filter:drop-shadow(0 2px 3px rgba(2,8,22,.55));
+  transition:transform .3s var(--spring),opacity .3s ease}
+.hearts .h svg{display:block}
+/* vita spesa: il salvagente resta, spento — si vede che c'era */
+.hearts .h.gone{color:#3d4a63;opacity:.3;transform:scale(.8);filter:none}
 .hearts.lost .h{animation:heartLose .5s var(--spring)}
 @keyframes heartLose{0%,100%{transform:scale(1)}40%{transform:scale(1.3)}}
 

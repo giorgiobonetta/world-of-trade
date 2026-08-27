@@ -679,12 +679,23 @@
       bar.setAttribute('aria-valuetext', `${run.answered} of ${run.total} answered`);
     }
   }
+  /* Una vita è un salvagente: il solo simbolo che vuol dire salvare una vita
+     ed è al tempo stesso inconfondibilmente marittimo. Disegnato come cerchio
+     unico con tratteggio, così i quattro settori restano regolari a ogni misura. */
+  const SALVAGENTE = `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
+      <circle cx="12" cy="12" r="8.4" fill="none" stroke="#fdf6e8" stroke-width="6.2"/>
+      <circle cx="12" cy="12" r="8.4" fill="none" stroke="currentColor" stroke-width="6.2"
+              stroke-dasharray="6.6 6.6" stroke-dashoffset="3.3"/>
+      <circle cx="12" cy="12" r="5.3" fill="none" stroke="rgba(6,18,44,.5)" stroke-width="1"/>
+      <circle cx="12" cy="12" r="11.5" fill="none" stroke="rgba(6,18,44,.45)" stroke-width="1"/>
+    </svg>`;
+
   function renderHearts() {
     const max = run.maxHearts || HEARTS;
     const host = $('#hearts');
-    host.setAttribute('aria-label', `${run.hearts} of ${max} lives left`);
+    host.setAttribute('aria-label', `${run.hearts} of ${max} lifebuoys left`);
     host.innerHTML = Array.from({ length: max }, (_, i) =>
-      `<span class="h ${i < run.hearts ? '' : 'gone'}" aria-hidden="true">●</span>`).join('');
+      `<span class="h ${i < run.hearts ? '' : 'gone'}" aria-hidden="true">${SALVAGENTE}</span>`).join('');
   }
 
   /* ── i cinque tipi di esercizio ──────────────────────────────────── */
@@ -928,8 +939,8 @@
     const disponibile = puoRivelare();
     b.hidden = !run || run.mode === 'checkpoint';
     b.disabled = !disponibile;
-    b.textContent = run && run.hearts <= 1 ? 'Show the answer — needs a spare life'
-                                           : 'Show the answer · costs 1 life';
+    b.textContent = run && run.hearts <= 1 ? 'Show the answer — needs a spare lifebuoy'
+                                           : 'Show the answer · costs 1 lifebuoy';
   }
 
   function mostraSoluzione(ex) {
