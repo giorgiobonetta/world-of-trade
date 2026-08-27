@@ -1,0 +1,528 @@
+
+# a1 Market Analysis & Fundamentals
+
+## a1l1 Supply–demand balance — Translate a balance into price pressure.
+1. [choice] All else equal, a persistent supply deficit tends to…
+2. [choice] A balance shows a surplus but prices keep rising. What is the most likely explanation?
+3. [choice] A producing region loses export capacity for two months. What is the first-order effect?
+4. [numeric] Demand is 108 Mt and supply is 102 Mt. What is the market balance (supply − demand)?
+5. [numeric] Initial demand is 122 Mt and supply 127 Mt. A 6 Mt supply outage occurs and demand is revised by +0 Mt. New balance (supply − demand)?
+
+## a1l2 Inventories and days of cover — Use stocks relative to consumption, not in isolation.
+1. [choice] Days of cover fall from 45 to 22 while the balance stays in deficit. What does that tell you?
+2. [choice] Why do desks track floating storage separately from onshore stocks?
+3. [choice] Why compare inventories with their normal seasonal range rather than only with last month?
+4. [numeric] Stocks are 60 Mt and annual demand is 220 Mt. Approximate days of cover?
+5. [numeric] Stocks fall from 52 Mt to 48 Mt over 30 days. Average inventory draw per day?
+
+## a1l3 Term structure signals — Read contango and backwardation as commercial signals.
+1. [choice] Nearby futures above deferred futures is called…
+2. [choice] A steep contango can economically reward…
+3. [choice] You have a strong bearish view but the curve is in steep backwardation. What does the curve tell you?
+4. [numeric] Nearby futures are $750/t and deferred futures are $715/t. What is nearby minus deferred? Use a negative number for contango.
+5. [numeric] Deferred value is $28/t above prompt. Storage costs $9/t and finance $4/t. Net carry before losses?
+
+## a1l4 Regional arbitrage — Compare netbacks across regions.
+1. [choice] Two markets show the same benchmark price, but one has much higher freight to reach your buyer. Which matters for the physical decision?
+2. [choice] Why is a netback more useful than a headline benchmark when choosing where to sell?
+3. [choice] When does a regional arbitrage normally close?
+4. [numeric] Destination value is $730/t. Freight $45/t and handling $11/t. What is the implied origin netback?
+5. [numeric] Destination A pays $810/t with $40/t freight. Destination B pays $830/t with $25/t freight. By how much does A's netback exceed B's?
+
+## a1l5 Refinery & processing economics — Reason from input/output margins.
+1. [choice] Processing margins collapse to near zero across an industry. What usually follows?
+2. [choice] Why can a small change in processing yield matter more than a small move in the headline benchmark?
+3. [choice] A positive processing margin does not automatically mean a plant will run harder because…
+4. [numeric] Product value $890/t, feedstock $600/t, processing cost $35/t. Simple processing margin?
+5. [numeric] One tonne of feed costs $730. Saleable yield is 92% and product value is $830/t. Processing cost is $50/t feed. Simple margin per tonne of feed?
+
+## a1l6 Build a market view — Combine evidence without confusing view and exposure.
+1. [choice] A bullish market view and a long physical exposure are…
+2. [choice] A strong analysis note should separate facts, assumptions and conclusions because…
+3. [choice] A market view should include an invalidation condition because…
+4. [numeric] Capacity is 101 Mt a year and utilisation is 78%. Approximate output?
+5. [numeric] Demand is 67 Mt and grows 5% next year. Demand next year?
+
+# a2 Commercial Trading
+
+## a2l1 All-in margin — Move from headline spread to true contribution.
+1. [choice] A good trader should treat an unpriced operational risk as…
+2. [choice] The core question before accepting a physical trade is…
+3. [choice] Which deal would a disciplined desk prefer?
+4. [numeric] Sell $720/t, buy $645/t, freight $15/t, finance $12/t. Net trading margin?
+5. [numeric] Buy $860/t, sell $925/t, all-in costs $25/t, on 10,000 t. Total net contribution?
+
+## a2l2 Optionality has value — Recognise free options hidden in contracts.
+1. [choice] A buyer may choose the pricing month after shipment, while your purchase month is fixed. That clause gives the buyer…
+2. [choice] A buyer asks for a ±10% quantity option at their choice. What have you given away?
+3. [choice] A contract lets the buyer choose the loading window inside a two-month range. Who benefits?
+4. [choice] Why should a trader price a quantity tolerance explicitly?
+5. [numeric] A buyer has a +10% quantity option on 20,000 t at a fixed sale price. If replacement supply is $18/t more expensive when they exercise the extra volume, downside on the optional tonnes?
+
+## a2l3 Timing and QP risk — Understand quotation periods and timing mismatch.
+1. [choice] Your purchase prices on the month of loading and your sale on the month of discharge. What have you created?
+2. [choice] What does "washout" mean in a physical contract?
+3. [choice] A purchase QP and sale QP in different months should be treated first as…
+4. [numeric] Purchase prices in Month 1 and sale prices in Month 2 on 60,000 t. The Month-2 minus Month-1 spread moves $12/t against you. Approximate timing P&L?
+5. [numeric] You are economically long the Month-2 versus Month-1 spread on 30,000 t. Month 1 settles $810/t and Month 2 $795/t. Spread P&L?
+
+## a2l4 Location arbitrage — Compare routes on delivered economics.
+1. [choice] You can buy FOB A or FOB B. What should decide the origin choice for a fixed CIF sale?
+2. [choice] You can nominate one of three discharge ports. What is that worth?
+3. [choice] A location arbitrage is real only when…
+4. [numeric] You improve the netback by $12/t on 60,000 t. Total contribution?
+5. [numeric] Origin A gives a delivered margin of $36/t and Origin B $42/t on 20,000 t. Contribution advantage of A over B?
+
+## a2l5 Portfolio thinking — Manage several deals as one book.
+1. [choice] Which trade is usually better, all else equal?
+2. [choice] Why can “more volume” reduce desk quality?
+3. [choice] Why do desks look at the book rather than each trade alone?
+4. [numeric] Margin is $21/t on 20,000 t. Gross contribution?
+5. [numeric] A deal earns $16/t on 20,000 t, ties up $12,000,000 for 120 days. Approximate annualised return on capital?
+
+## a2l6 Trader judgement — Choose risk-adjusted margin over cosmetic volume.
+1. [choice] If two deals have equal expected profit, prefer the one with…
+2. [choice] A counterparty offers a price well above the market for prompt delivery. What should you check first?
+3. [choice] Why is a signed recap not the same as a concluded contract?
+4. [numeric] Gross margin $65/t, quality claim $4/t, demurrage $10/t, FX impact +$4/t. Final margin?
+5. [numeric] Headline margin $45/t, finance $9/t, expected credit cost $8/t and execution reserve $4/t. Risk-adjusted margin?
+
+# a3 Freight & Chartering
+
+## a3l1 Voyage economics — Calculate freight per tonne.
+1. [choice] The freight decision belongs at quotation time because…
+2. [choice] An owner refuses your cargo despite a freight rate above the last done. Why might that be rational?
+3. [choice] Deadfreight is typically associated with…
+4. [numeric] Voyage freight is $1,200,000 for 55,000 t. Freight per tonne?
+5. [numeric] Gross freight revenue $1,300,000, bunkers $180,000, port/other voyage costs $180,000, total voyage 30 days. Approximate TCE?
+
+## a3l2 Laycan & readiness — Understand arrival windows.
+1. [choice] Laycan is…
+2. [choice] A vessel arrives before laycan. Must the charterer automatically start laytime?
+3. [choice] Why does a laycan that is too narrow cost you money even if the ship arrives?
+4. [numeric] A time-chartered vessel waits 1 days before the agreed loading window. Hire is $22,000/day. Direct waiting-hire cost?
+5. [numeric] A laycan window spans 9 days. Your vessel ETA uncertainty is ±4 days. Ignoring other delays, how many days of nominal window remain beyond the two-sided ETA uncertainty?
+
+## a3l3 Laytime and demurrage — Price delay in port.
+1. [choice] Why is demurrage often a negotiation rather than an arithmetic result?
+2. [choice] Valid NOR has been tendered, laytime has started, the allowed laytime is exhausted and no charterparty exception applies. Port congestion continues. What normally follows?
+3. [choice] What must be checked before treating a Notice of Readiness as valid?
+4. [numeric] 3 days exceed allowed laytime. Demurrage is $16,000/day. Cost?
+5. [numeric] Statement of Facts shows 144 elapsed hours. 6 hours are excluded and allowed laytime is 72 hours. Demurrage is $32,000/day. Demurrage amount?
+
+## a3l4 Time charter thinking — Translate hire into voyage economics.
+1. [choice] What does a sub-let of a time-chartered vessel expose you to?
+2. [choice] Bunker prices rise sharply between your indication and the fixture. What happens?
+3. [choice] Under a typical time charter, which cost is normally for the charterer rather than the owner?
+4. [numeric] Time-charter hire $22,000/day for 40 days plus bunkers $450,000. Approximate voyage vessel cost?
+5. [numeric] Hire is $33,000/day for 27 days, plus $82,000 of port costs. Total cost before bunkers?
+
+## a3l5 Route optimisation — Compare routes and vessel choices.
+1. [choice] Why might a larger vessel be worse despite a lower $/t headline rate?
+2. [choice] You are quoted the same rate for two routes of equal distance. What still differs?
+3. [choice] Why do desks watch the ballast position of the fleet, not just the freight index?
+4. [numeric] A vessel ballasts 6 days, consuming 40 t/day of fuel at $750/t. Ballast bunker cost?
+5. [numeric] Route requires 12 laden days, 8 ballast days and 5 port days. Total voyage duration?
+
+## a3l6 Freight risk management — Recognise freight as a market risk.
+1. [choice] For a fixed CIF sale, an unfixed freight rate is economically…
+2. [choice] A charterer exposed to rising freight may use an FFA primarily to…
+3. [choice] In tanker freight, Worldscale 100 means…
+4. [numeric] You sold CIF on 55,000 t with freight budget $40/t. Market freight rises by $8/t before fixing. P&L impact?
+5. [numeric] Worldscale flat rate is $30/t and the fixture is WS120 on 70,000 t. Approximate freight?
+
+# a4 Trade Finance & Credit
+
+## a4l1 Working capital — Calculate funding cost.
+1. [choice] Which event can create a margin call even when your physical trade is economically hedged?
+2. [choice] Why does a desk measure days sales outstanding?
+3. [choice] Selling 60 days open account instead of cash against documents should normally…
+4. [numeric] You fund $5,000,000 of cargo for 60 days at 7% a year, on a 360-day basis. What is the interest cost?
+5. [numeric] Financing $720/t of cargo for 30 days at 6% a year on a 360-day basis. Finance cost per tonne?
+
+## a4l2 Letters of credit — Understand documentary payment security.
+1. [choice] A documentary letter of credit primarily helps the seller by…
+2. [choice] Documents under an LC are discrepant. The key risk is…
+3. [choice] Why does a seller ask for a letter of credit to be confirmed?
+4. [numeric] Confirmed LC amount $8,000,000, confirmation fee 160 bps p.a. for 120 days on a 360-day basis. Approximate fee?
+5. [numeric] A bank discounts a $11,000,000 deferred-payment LC at 4% p.a. for 120 days on a 360-day basis. Approximate discount cost?
+
+## a4l3 Counterparty limits — Use limits as scarce capacity.
+1. [choice] A credit limit is best thought of as…
+2. [choice] Credit insurance covers your buyer. Why is it not the same as being paid?
+3. [choice] Why do desks net exposures with a counterparty across contracts?
+4. [numeric] Counterparty limit $12,000,000, current exposure $2,000,000. Remaining headroom?
+5. [numeric] You sold 15,000 t open account. The mark-to-market moves $20/t in your favour before payment, increasing replacement exposure to the buyer. Additional exposure?
+
+## a4l4 Payment timing — Price payment terms.
+1. [choice] What is the practical difference between a documentary LC and a standby LC?
+2. [choice] A supplier offers you a discount if you prepay before delivery. What have you become economically?
+3. [choice] Why are payment terms part of the commodity price?
+4. [numeric] A sale earns $30/t but adds 60 days of financing on $820/t at 7% p.a. Incremental finance cost per tonne?
+5. [numeric] Inventory days 50, receivable days 50, supplier payable days 50. Approximate cash conversion cycle?
+
+## a4l5 Borrowing base logic — Think in collateral and advance rates.
+1. [choice] A bank lends against your inventory at an 80% advance rate. What happens if the price falls 30%?
+2. [choice] What does assignment of receivables give a lender?
+3. [choice] Why does a borrowing base apply advance rates or haircuts to collateral?
+4. [numeric] Eligible inventory is $5,000,000 and borrowing-base advance rate is 90%. Maximum borrowing against it?
+5. [numeric] Eligible collateral $14,000,000, advance rate 80%, existing borrowing $6,000,000. Additional borrowing availability?
+
+## a4l6 Credit-adjusted trading — Compare margin after credit cost.
+1. [choice] Best credit-adjusted trade is usually…
+2. [choice] Expected credit loss is useful commercially because…
+3. [choice] A high-margin deal that consumes nearly all remaining counterparty limit should be judged on…
+4. [numeric] Exposure $6,000,000, one-year default probability 4%, loss-given-default 50%. Simplified expected loss?
+5. [numeric] Gross margin $50/t, finance $10/t, expected credit cost $2/t and capital charge $5/t. Credit-adjusted margin?
+
+# a5 Risk Management
+
+## a5l1 Position and exposure — Net physical and paper positions.
+1. [choice] Why report position and exposure separately?
+2. [choice] Why can gross position and net flat-price exposure tell different stories?
+3. [choice] A good hedge should be assessed on…
+4. [numeric] Long physical 60,000 t and short futures 20,000 t. Net flat-price exposure?
+5. [numeric] Long physical 70,000 t. Short proxy hedge 50,000 t with hedge delta 0.7. Approximate residual equivalent exposure?
+
+## a5l2 VaR correctly used — Interpret VaR as a percentile.
+1. [choice] A one-day 99% VaR of $3m means…
+2. [choice] Your VaR is comfortably inside the limit and the desk still loses more than VaR in a day. What went wrong?
+3. [choice] What is model risk on a commodity desk?
+4. [numeric] You are long 25,000 t at $7000/t. Estimated one-day price volatility is 1.2%. Using a 95% factor of 1.645, what is the one-day parametric VaR?
+5. [numeric] One-day VaR is $2,000,000. Under the square-root-of-time approximation, what is the 10-day VaR?
+
+## a5l3 Stress testing — Look beyond historical volatility.
+1. [choice] Why run stress tests if you already have VaR?
+2. [choice] Why should a risk report show the worst historical drawdown alongside VaR?
+3. [choice] Why does an operational error belong in the risk report?
+4. [numeric] Stress scenario: a 20,000 t net-long position faces a $50/t price fall. Flat-price stress loss?
+5. [numeric] Stress losses: price $7,000,000, freight $2,000,000, counterparty $3,000,000. Combined scenario loss?
+
+## a5l4 Basis & correlation risk — Identify imperfect hedges.
+1. [choice] You hedge a physical grade with a related but different futures contract. The residual is mainly…
+2. [choice] A correlation that has held for five years breaks in a week. Why is that predictable?
+3. [choice] Why can a proxy hedge look highly correlated in normal markets and fail during stress?
+4. [numeric] A 40,000 t cross-hedged position suffers a $25/t adverse basis move while flat price is hedged. Residual basis P&L?
+5. [numeric] Physical leg gains $10,000,000 while hedge loses $6,000,000. Combined hedge result?
+
+## a5l5 Liquidity risk — See cash as a risk constraint.
+1. [choice] A profitable book can still fail because of…
+2. [choice] Why can a desk be within every price limit and still fail?
+3. [choice] Why can margin calls create a crisis on a profitable hedged trade?
+4. [numeric] Available liquidity $22,000,000. Margin call $7,000,000 and other near-term cash needs $9,000,000. Liquidity headroom?
+5. [numeric] Available cash $10,000,000; margin calls $6,000,000, supplier payments $6,000,000, customer delay reserve $4,000,000. Liquidity headroom?
+
+## a5l6 Limits and escalation — Know when to stop or escalate.
+1. [choice] When a hard risk limit is breached, the correct first principle is…
+2. [choice] A single grade, single port, single buyer trade is 40% of the book. Which limit catches this?
+3. [choice] What does a stop-loss discipline actually protect against?
+4. [numeric] Desk net-long limit 100,000 t; current net-long 140,000 t. Minimum reduction needed?
+5. [numeric] Your net long limit is 60,000 t. You are long 70,000 t physical and short 80,000 t futures. By how many tonnes are you over the limit? Use a negative number if you are inside it.
+
+# a6 Derivatives & Options
+
+## a6l1 Futures hedge mechanics — Match hedge direction to physical exposure.
+1. [choice] Long physical inventory exposed to a price fall is commonly hedged by…
+2. [choice] Why must hedge sizing start from contract units and lot sizes?
+3. [choice] Variation margin belongs in hedge design because…
+4. [numeric] You are short futures on 40,000 t and futures rise $15/t. Futures P&L?
+5. [numeric] Exposure is 45,000 t and the hedge contract is 100 t per lot. Approximate whole lots required?
+
+## a6l2 Basis after hedging — Know what flat-price hedge leaves behind.
+1. [choice] After a good futures hedge, which risk may remain?
+2. [choice] What is a basis swap used for?
+3. [choice] A cross-hedge should be monitored for…
+4. [numeric] Your flat price is hedged on 60,000 t, but the physical basis weakens $14/t. Basis P&L?
+5. [numeric] Physical value changes $10/t and the proxy hedge offsets $16/t on 40,000 t. Residual move?
+
+## a6l3 Swaps and fixed pricing — Translate fixed/floating obligations.
+1. [choice] A fixed-price purchase plus a floating-price sale leaves you primarily…
+2. [choice] A swap is useful when you want to…
+3. [choice] Why does a swap suit a refiner with steady monthly volumes?
+4. [numeric] You receive floating and pay fixed $90/t in a swap on 80,000 t. Floating settles at $85/t. Swap settlement?
+5. [numeric] Monthly-average swap: receive average, pay fixed $85/t on 50,000 t. Monthly average is $76/t. Settlement?
+
+## a6l4 Options as insurance — Understand asymmetric protection.
+1. [choice] Buying a put option gives you…
+2. [choice] You buy a put to protect a long inventory. What is the worst case?
+3. [choice] Why is selling options to earn premium dangerous for a physical desk?
+4. [numeric] Put premium is $3/t on 15,000 t. Upfront option premium cost?
+5. [numeric] You buy a put at $4/t and sell a call at $11/t on 25,000 t. Net premium paid? Use a negative number if you receive it.
+
+## a6l5 Greeks intuition — Read delta as sensitivity.
+1. [choice] An option delta of +0.40 means, approximately…
+2. [choice] Implied volatility rises sharply while the price is unchanged. What has happened?
+3. [choice] What does delta tell a hedger?
+4. [numeric] You hold options on 35,000 t with a delta of 0.45. How many tonnes of futures do they currently behave like?
+5. [numeric] Options cover 40,000 t with delta 0.55. Futures lot size is 50 t. Approximate delta-hedge lots?
+
+## a6l6 Hedge design — Design the hedge around the contract.
+1. [choice] Why can hedge ratios be less than 100%?
+2. [choice] Best hedge design starts from…
+3. [choice] Why do commodity desks often use Asian (average price) options rather than plain vanilla?
+4. [numeric] Physical exposure is 40,000 t and chosen hedge ratio is 0.9. Hedge tonnage?
+5. [numeric] Purchase and sale pricing windows leave 30,000 t exposed to a calendar spread. The spread moves $4/t against the book. P&L?
+
+# a7 Metals Desk
+
+## a7l1 LME + premium — Separate exchange price from physical premium.
+1. [choice] Why is an exchange price alone not the price a consumer pays?
+2. [choice] Why does metal form matter commercially?
+3. [choice] The all-in price of exchange-priced metal is best viewed as…
+4. [numeric] Copper LME is $8600/t and physical premium is $150/t. All-in metal price?
+5. [numeric] LME is $7,900/t and the premium is $100/t on 900 t. Total cargo value?
+
+## a7l2 Regional premiums — Read location premium moves.
+1. [choice] If LME is unchanged but the regional physical premium rises, the local market has…
+2. [choice] Why do consumers sign annual premium contracts rather than buying spot?
+3. [choice] Can physical premium exposure always be assumed unhedgeable on exchange?
+4. [numeric] Buy LME + $100/t, sell LME + $140/t, freight $35/t. Premium margin?
+5. [numeric] Regional premium strengthens $50/t on 1,750 t you are short to a customer. Premium P&L?
+
+## a7l3 Warehouse economics — Understand carry and warrants.
+1. [choice] An exchange warehouse warrant represents…
+2. [choice] Why do location and warehouse queues matter in metals?
+3. [choice] Why should a metals trader distinguish on-warrant from off-warrant inventory?
+4. [numeric] You store 600 t at $0.45/t/day for 150 days. Total warehouse rent?
+5. [numeric] Store 1,750 t for 60 days at $0.35/t/day plus $20/t financing/carry. Total carry cost?
+
+## a7l4 Concentrates & TC/RC — Translate treatment charges.
+1. [choice] Higher TC/RC, all else equal, is generally more favourable to…
+2. [choice] What is a tolling arrangement on a metals desk?
+3. [choice] Treatment and refining charges rise sharply. Who is under pressure?
+4. [numeric] A concentrate contract has a treatment charge of $40/dry metric tonne on 12,000 dmt. Gross TC amount?
+5. [numeric] Concentrate is 15,000 dmt at 24% copper with 96% payable metal. Approximate payable copper tonnes?
+
+## a7l5 Hedging metal units — Match metal units to hedges.
+1. [choice] A trader long physical copper priced off LME but hedged short LME can still lose if…
+2. [choice] A quotation period (QP) mismatch between purchase and sale creates…
+3. [choice] You hedge a copper cargo on the exchange and still lose money. What is the likely cause?
+4. [numeric] Copper exposure is 2,250 t. Standard LME Copper lot size is 25 t. Approximate whole lots?
+5. [numeric] Purchase and sale quotation periods leave 1,750 t exposed. The relevant LME calendar spread moves $20/t against you. P&L?
+
+## a7l6 Metals desk case — Combine pricing, freight and credit.
+1. [choice] The metals desk should quote a premium only after considering…
+2. [choice] Warehouse rent and load-out queues lengthen at a major location. What happens to the regional premium?
+3. [choice] What risk does financing metal in a warehouse carry beyond price?
+4. [numeric] Buy premium $160/t, sell premium $210/t, freight $15/t, finance $10/t. Net physical premium margin?
+5. [numeric] A 2,000 t metal cargo is fully flat-price hedged against a $400/t LME move, but the regional premium weakens $30/t. Residual P&L?
+
+# a8 Oil & Products Desk
+
+## a8l1 Crude differentials — Price crude around benchmarks.
+1. [choice] A physical crude differential can move even if Brent is unchanged because…
+2. [choice] Why are crude grades quoted as a differential to a benchmark?
+3. [choice] Why does a heavy sour crude usually trade below a light sweet one?
+4. [numeric] Brent is $65/bbl and a crude trades Brent +$3/bbl. Crude price?
+5. [numeric] You own 700,000 bbl of a grade whose differential weakens by $2/bbl versus the benchmark. Approximate basis P&L?
+
+## a8l2 Crack spreads — Use simple crack intuition.
+1. [choice] A refinery’s crack spread widens sharply. What is the likely commercial response?
+2. [choice] Why do desks watch refinery maintenance schedules?
+3. [choice] A refinery outage near your destination can affect…
+4. [numeric] Product value $88/bbl, crude $76/bbl, variable refining cost $4/bbl. Simple gross product-minus-feed margin?
+5. [numeric] Crude $76/bbl, gasoline $100/bbl, distillate $108/bbl. Simple 3-2-1 crack per barrel of crude?
+
+## a8l3 Prompt structure — Read prompt tightness.
+1. [choice] Strong backwardation in crude often signals…
+2. [choice] What does contango do to a floating-storage trade in products?
+3. [choice] What does a "prompt" cargo premium usually indicate?
+4. [numeric] Prompt crude is $94/bbl and deferred crude $102/bbl. Prompt minus deferred?
+5. [numeric] Forward premium $2/bbl; storage $0.6, finance $0.6, losses $0.1/bbl. Net carry?
+
+## a8l4 Cargo pricing windows — Understand pricing-window mismatch.
+1. [choice] Why does a pricing-window mismatch matter in oil cargoes?
+2. [choice] You buy a cargo pricing on the month of loading and sell pricing on the month of arrival. What is the exposure?
+3. [choice] A cargo priced on one month and sold on another is economically a position in…
+4. [numeric] A 700,000 bbl cargo has purchase and sale pricing windows one month apart. The calendar spread moves $1/bbl against you. P&L?
+5. [numeric] Purchase QP averages $75/bbl and sale QP averages $78/bbl on 700,000 bbl. Pricing-window contribution?
+
+## a8l5 Blending economics — Value components in blending.
+1. [choice] Blending is economically attractive when…
+2. [choice] Blending two components to meet a specification is attractive when…
+3. [choice] A products cargo fails the flash point specification on arrival. What is the commercial reality?
+4. [numeric] Blend 20 kbbl at 0.3% sulfur with 20 kbbl at 0.8% sulfur. Approximate blended sulfur?
+5. [numeric] Blend 20 kbbl costing $112/bbl and 40 kbbl costing $88/bbl, then sell blend at $93/bbl. Gross blend contribution before other costs, in $000?
+
+## a8l6 Products desk case — Combine margin and timing.
+1. [choice] Oil desk profitability should be decomposed into…
+2. [choice] A useful oil P&L attribution separates…
+3. [choice] For a delivered oil arbitrage, the destination benchmark is not enough because…
+4. [numeric] Ocean freight changes by $4/bbl on a 550,000 bbl cargo. P&L impact?
+5. [numeric] Destination value $109/bbl, freight $2, losses $0.4, terminal costs $0.3/bbl. Origin netback?
+
+# a9 Gas & LNG Desk
+
+## a9l1 Hub pricing — Translate hub prices.
+1. [choice] Pipeline capacity constraints primarily create…
+2. [choice] Why is gas demand more weather-sensitive than most commodities?
+3. [choice] Why can a hub price disconnect from an oil-indexed contract price?
+4. [numeric] TTF is €31/MWh and a contract is TTF €-2/MWh. Contract price?
+5. [numeric] Oil-indexed LNG formula is 0.11 × Brent + $0.8/MMBtu. Brent is $63/bbl. Contract price?
+
+## a9l2 LNG netbacks — Calculate delivered LNG netbacks.
+1. [choice] What does a regasification terminal slot give a trader?
+2. [choice] A regasification slot has option value because…
+3. [choice] When comparing LNG destination netbacks, regasification should be treated as…
+4. [numeric] Destination LNG value $17/MMBtu, shipping $4/MMBtu, regas $1/MMBtu. Netback before source cost?
+5. [numeric] Regasification costs $0.45/MMBtu on a cargo of 6,000,000 MMBtu. Total regas cost?
+
+## a9l3 Shipping economics — See freight as part of arbitrage.
+1. [choice] Why is LNG shipping capacity a commercial constraint and not just a cost?
+2. [choice] What is boil-off on an LNG voyage?
+3. [choice] What is the risk of selling a cargo before securing the ship?
+4. [numeric] A cargo of 140,000 m³ boils off 0.08% a day for 18 days. How many m³ are lost?
+5. [numeric] LNG vessel hire is $180,000/day for 20 days. Cargo energy is 4,000,000 MMBtu. Hire cost per MMBtu before fuel?
+
+## a9l4 Destination optionality — Value the right to redirect cargo.
+1. [choice] Destination optionality in LNG is valuable because…
+2. [choice] Why do destination clauses matter so much in LNG?
+3. [choice] A cargo can go to Asia or Europe. What decides it?
+4. [numeric] A 2,000,000 MMBtu cargo has a destination spread of $4/MMBtu before incremental logistics. Gross spread value?
+5. [numeric] Asia value $19/MMBtu with $5 logistics. Europe value $22/MMBtu with $2 logistics. Asia netback minus Europe netback?
+
+## a9l5 Storage & seasonality — Understand seasonal carry.
+1. [choice] Gas seasonality makes storage valuable when…
+2. [choice] Gas storage is full in early autumn. What does that usually imply for the winter spread?
+3. [choice] Gas storage is not only seasonal inventory; commercially it is also…
+4. [numeric] Winter gas $18/MMBtu, summer $12. Injection $0.3, withdrawal $0.4, finance $0.6/MMBtu. Net seasonal carry?
+5. [numeric] Storage working capacity 4,000,000 MMBtu, expected usable cycle 70% and seasonal spread $3/MMBtu before costs. Gross spread value?
+
+## a9l6 LNG desk case — Combine hub, freight and terminal constraints.
+1. [choice] An LNG arbitrage can close even if destination gas price is unchanged when…
+2. [choice] A hub hedge may not fully hedge an LNG cargo because…
+3. [choice] Before diverting an LNG cargo, the desk should compare…
+4. [numeric] Destination $19/MMBtu, source $11, shipping $3, regas $0.4, boil-off allowance $0.6/MMBtu. Simplified LNG arbitrage margin?
+5. [numeric] Cargo energy 3,000,000 MMBtu. Total voyage/handling loss is 0.8% and replacement value is $19/MMBtu. Value of lost energy?
+
+# a10 Power Desk
+
+## a10l1 Baseload & peakload — Convert MW blocks to MWh.
+1. [choice] Why is electricity commercially different from every other commodity here?
+2. [choice] Why does a peak/off-peak split exist in power contracts?
+3. [choice] Power prices go negative for several hours. What does that mean?
+4. [numeric] 90 MW delivered flat for 12 hours equals how many MWh?
+5. [numeric] A shaped contract delivers 40 MW for 6 peak hours and 70 MW for 8 off-peak hours. Total MWh?
+
+## a10l2 Shape risk — See why hourly shape matters.
+1. [choice] A monthly baseload hedge can leave risk for an hourly-shaped retail load because…
+2. [choice] A negative power price can occur when…
+3. [choice] For power, “same monthly MWh” does not guarantee an economic hedge because…
+4. [numeric] Actual load averages 80 MW for 6 hours while your baseload hedge is 100 MW. Residual energy position?
+5. [numeric] Peak price €90/MWh on 20 MWh; off-peak €90/MWh on 60 MWh. Load-weighted average price?
+
+## a10l3 Spark spreads — Link fuel and power economics.
+1. [choice] What is the spark spread?
+2. [choice] A carbon price is introduced. What changes commercially?
+3. [choice] A clean spark spread differs from a simple spark spread because it…
+4. [numeric] Power €140/MWh, gas €30/MWh(th), heat rate 2 MWh(th)/MWh(e), carbon/other €20/MWh. Simple spark margin?
+5. [numeric] Power €130/MWh, gas €35/MWh(th), heat rate 2.2, emissions 0.32 tCO₂/MWh(e), EUA €60/t and other variable cost €6/MWh. Clean spark margin?
+
+## a10l4 Location & congestion — Understand congestion basis.
+1. [choice] Congestion between two power zones can create…
+2. [choice] Transmission between two zones is constrained. What appears?
+3. [choice] What can hedge locational power basis more directly than a system-wide futures position?
+4. [numeric] You are long Zone A and short Zone B on 80,000 MWh. A-minus-B spread widens €5/MWh in your favour. P&L?
+5. [numeric] A constrained interconnector carries 175 MW for 10 hours while the zonal price spread is €10/MWh. Gross congestion value?
+
+## a10l5 Balancing exposure — Control imbalance.
+1. [choice] Balancing risk arises when…
+2. [choice] A renewable portfolio has volume risk because…
+3. [choice] Why is a renewables forecast a price input rather than a background detail?
+4. [numeric] You are short 12 MW for 8 hours and imbalance power costs €125/MWh. Gross imbalance cost?
+5. [numeric] Renewable output is 8 MW below forecast for 2 hours and replacement/imbalance energy costs €275/MWh. Gross shortfall cost?
+
+## a10l6 Power desk case — Trade a portfolio, not just an average price.
+1. [choice] Why is optional generation capacity valuable in power?
+2. [choice] Why do desks value optionality in a flexible power plant?
+3. [choice] What does a capacity payment compensate?
+4. [numeric] You hold 60,000 MWh and the spread moves $16/MWh in your favour. P&L impact?
+5. [numeric] A flexible plant has positive dispatch margin €20/MWh for 100 MW across 6 hours. Gross dispatch contribution?
+
+# a11 Agriculture Desk
+
+## a11l1 Crop balances — Read crop supply-demand.
+1. [choice] A bumper crop, all else equal, tends to…
+2. [choice] A crop forecast is most useful when paired with…
+3. [choice] Why does weather in one hemisphere move prices in the other?
+4. [numeric] Beginning stocks 35 Mt, production 130, imports 20, domestic use 100, exports 15 Mt. Ending stocks?
+5. [numeric] Ending stocks are 45 Mt and annual use is 150 Mt. Stocks-to-use ratio?
+
+## a11l2 Basis & seasonality — Separate futures from local basis.
+1. [choice] A futures hedge on wheat can leave local elevator basis risk because…
+2. [choice] Why is basis so central on an agricultural desk?
+3. [choice] Why can a perfectly hedged elevator still lose money?
+4. [numeric] Futures are $300/t and local basis is +$5/t. Physical cash price?
+5. [numeric] Futures are $330/t, basis is $-5/t, on 10,000 t. Total cash value?
+
+## a11l3 Storage carry — Calculate carry economics.
+1. [choice] Why is storage capacity at origin a commercial factor at harvest?
+2. [choice] Why must storage economics include shrink and quality deterioration, not only rent?
+3. [choice] A grain carry trade is economically attractive only if…
+4. [numeric] Deferred premium $16/t, storage $7/t, finance $4/t. Net carry before losses?
+5. [numeric] Storage $8/t, finance $4/t and expected shrink/quality cost $2/t. Minimum deferred premium needed to break even?
+
+## a11l4 Quality & inspection — Protect specifications.
+1. [choice] Why is pre-shipment quality inspection valuable in grains?
+2. [choice] Why do quality parameters matter so much in grain contracts?
+3. [choice] Why are independent certificates of quality/weight important in agricultural trade?
+4. [numeric] 55,000 t is accepted with a $17/t quality discount. P&L impact?
+5. [numeric] A 20,000 t grain cargo is 1.5 percentage points above the contractual moisture limit. The agreed discount is $1/t for each 0.5 percentage-point excess. Total quality discount?
+
+## a11l5 Freight and laycan — Manage seasonal logistics.
+1. [choice] Harvest season can create simultaneous pressure on…
+2. [choice] If a vessel misses a seasonal export window, the desk may face…
+3. [choice] What does a "delivered" contract shift compared with a farm-gate purchase?
+4. [numeric] Ocean freight is $25/t on 70,000 t of grain. Total freight?
+5. [numeric] A grain vessel incurs 5 days of demurrage at $24,000/day. Cost?
+
+## a11l6 Agri desk case — Combine basis, quality and freight.
+1. [choice] The best origin for a grain sale is the one with…
+2. [choice] A harvest is larger than expected but the basis strengthens. What could explain it?
+3. [choice] An export ban is announced in a major origin. What is the first effect?
+4. [numeric] Destination value $270/t; ocean freight $35, inland logistics $16, expected quality discount $0/t. Origin netback?
+5. [numeric] Sell $330/t, buy $275/t, freight $20, quality allowance $0, finance $4/t. Net agri margin?
+
+# a12 Origination & Contracts
+
+## a12l1 Supplier economics — Offer terms suppliers can actually perform.
+1. [choice] Good origination starts by understanding…
+2. [choice] The strongest origination relationships are usually built on…
+3. [choice] A prepayment finances a producer against future deliveries. What is the core risk?
+4. [numeric] You prepaid $18,000,000 against 6 equal monthly deliveries. 3 have been delivered. How much is still at risk?
+5. [numeric] A supplier offers a 5% discount on $7,000,000 of material if you prepay 7 months early. Ignoring default risk, approximate annualised discount yield?
+
+## a12l2 Offtake structures — Understand long-term offtake trade-offs.
+1. [choice] A long-term offtake can be valuable because it…
+2. [choice] Why can a “take-or-pay” commitment be risky for the buyer?
+3. [choice] Why is a long-term offtake contract valuable beyond its margin?
+4. [numeric] An offtake supplies 100,000 t/year and expected contribution is $14/t. Annual gross contribution?
+5. [numeric] A take-or-pay contract sets a minimum of 60,000 t. You lift 25,000 t. At $14/t, what do you owe on the shortfall?
+
+## a12l3 Incoterm negotiation — Negotiate cost and risk transfer.
+1. [choice] Changing FOB to CIF in a negotiation primarily changes…
+2. [choice] Why do desks avoid conflicting standard terms in a contract chain?
+3. [choice] When moving from FOB to CIF in a negotiation, the commercial question is not only freight cost but also…
+4. [numeric] FOB value $880/t, main freight $55/t and insurance allowance $4/t. Simplified CIF equivalent?
+5. [numeric] A contract change makes you responsible for $35/t main carriage and $8/t extra handling on 60,000 t. Added cost?
+
+## a12l4 Pricing clauses — Price contractual optionality.
+1. [choice] A buyer-controlled quotation period should be treated as…
+2. [choice] When a counterparty asks for a clause change, the trader should ask first…
+3. [choice] A buyer-controlled quantity or pricing clause should be treated as…
+4. [numeric] Buyer may choose the lower of Month 1 at $760/t or Month 2 at $735/t on 60,000 t. In this realised scenario, value transferred to the buyer versus being forced to Month 1?
+5. [numeric] Offtake volume is 40,000 t with +10% buyer option. Extra tonnes cost $8/t above contract economics when exercised. Realised option cost?
+
+## a12l5 Claims & force majeure — Use clauses without confusing legal and commercial risk.
+1. [choice] Force majeure generally aims to address…
+2. [choice] Why does a force majeure clause deserve careful reading?
+3. [choice] Why does governing law and arbitration seat matter commercially?
+4. [numeric] Contract provides liquidated damages of $0.2/t/day on 30,000 t. Delivery is 8 days late. Damages?
+5. [numeric] Verified contractual claim is $5,000,000 but the applicable liability cap is $5,000,000. Amount within the cap?
+
+## a12l6 Origination case — Turn relationships into repeatable margin.
+1. [choice] A commercially strong contract is one that…
+2. [choice] What does origination actually add to a trading business?
+3. [choice] What is the practical value of a parent company guarantee?
+4. [numeric] An offtake runs 5 years for 30,000 t a year at $14/t. Total contribution over the life of the contract?
+5. [numeric] Offtake 80,000 t/year for 7 years at $14/t gross contribution, with $2/t risk reserve. Undiscounted risk-adjusted life contribution?

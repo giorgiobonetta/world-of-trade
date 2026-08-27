@@ -36,6 +36,7 @@
     execution: { name:'Execution & Documents', short:'Execution', icon:'✓', description:'Get the cargo, documents and cash to the right place at the right time.' },
     freight:   { name:'Freight & Chartering', short:'Freight', icon:'▰', description:'Price transport, vessel economics and shipping exposure.' },
     risk:      { name:'Desk Risk', short:'Risk', icon:'△', description:'Control exposure, concentration, liquidity and tail scenarios.' },
+    compliance:{ name:'Compliance & Financial Crime', short:'Compliance', icon:'⚖', description:'Screen counterparties, vessels and documents before the trade, not after.' },
   };
 
   const foundationUnitMeta = {
@@ -46,6 +47,7 @@
     u5:{ division:'Trade Finance', skill:'finance', chapter:'Merchant Foundations' },
     u6:{ division:'Execution', skill:'execution', chapter:'Merchant Foundations' },
     u8:{ division:'Chartering', skill:'freight', chapter:'Merchant Foundations' },
+    u9:{ division:'Compliance', skill:'compliance', chapter:'Merchant Foundations' },
     u7:{ division:'Risk', skill:'risk', chapter:'Merchant Foundations' },
   };
 

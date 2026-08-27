@@ -1,0 +1,396 @@
+
+## a1 Market Analysis & Fundamentals pool=31
+0	numeric	Demand is 99 Mt and supply is 96 Mt. What is the market balance (supply − demand)?	WHY: 96 − 99 = -3 Mt. Positive is surplus; negative is deficit.
+1	choice	All else equal, a persistent supply deficit tends to…	WHY: A deficit must be met from inventories or demand destruction, which usually tightens the market.
+2	numeric	Stocks are 32 Mt and annual demand is 260 Mt. Approximate days of cover?	WHY: 32 ÷ (260 ÷ 365) = 44.9 days of cover.
+3	choice	Nearby futures above deferred futures is called…	WHY: Backwardation is an inverted curve: nearby value exceeds deferred value.
+4	choice	A steep contango can economically reward…	WHY: If the deferred premium exceeds storage, finance and losses, storing and carrying inventory can be attractive.
+5	numeric	Destination value is $720/t. Freight $35/t and handling $12/t. What is the implied origin netback?	WHY: 720 − 35 − 12 = $673/t.
+6	choice	Two markets show the same benchmark price, but one has much higher freight to reach your buyer. Which matters for the physical decision?	WHY: Physical arbitrage is decided by all-in delivered economics, not the headline benchmark alone.
+7	numeric	Product value $740/t, feedstock $650/t, processing cost $55/t. Simple processing margin?	WHY: 740 − 650 − 55 = $35/t.
+8	choice	A bullish market view and a long physical exposure are…	WHY: A view is a belief. Exposure is what your P&L actually does when the market moves.
+9	choice	A strong analysis note should separate facts, assumptions and conclusions because…	WHY: Separating evidence from assumptions makes a market view testable instead of narrative-only.
+10	choice	Days of cover fall from 45 to 22 while the balance stays in deficit. What does that tell you?	WHY: Cover measures how long the market can absorb a shock. Low cover plus a deficit is the setup for a violent move on small news.
+11	choice	A balance shows a surplus but prices keep rising. What is the most likely explanation?	WHY: A global balance hides location and quality. Material stranded behind a bottleneck does not relieve a tight consuming region.
+12	choice	Why is a netback more useful than a headline benchmark when choosing where to sell?	WHY: Two destinations can show the same benchmark and pay you very differently once the route is paid for.
+13	choice	Processing margins collapse to near zero across an industry. What usually follows?	WHY: Negative margins are self-correcting: plants cut runs, and the feedstock and product balances both shift.
+14	choice	You have a strong bearish view but the curve is in steep backwardation. What does the curve tell you?	WHY: Backwardation is the market paying for immediacy. It can coexist with a weak forward view, and it makes being short the front expensive.
+15	choice	Which evidence would most change a supply–demand view?	WHY: Views should move on quantities, not on price action that may simply be positioning.
+16	choice	Why do desks track floating storage separately from onshore stocks?	WHY: Where inventory sits changes when and where it can be delivered, which is what the physical market prices.
+17	choice	A producing region loses export capacity for two months. What is the first-order effect?	WHY: Supply that cannot move is not supply. Logistics failures show up as spreads before they show up in the balance.
+18	choice	What is the honest limit of a supply–demand balance?	WHY: Balances are directional tools. Treating them as precise is how people become confidently wrong.
+19	numeric	Capacity is 93 Mt a year and utilisation is 78%. Approximate output?	WHY: 93 × 78% = 72.5 Mt. Utilisation is where a supply forecast usually goes wrong.
+20	numeric	Demand is 73 Mt and grows 3% next year. Demand next year?	WHY: 73 × (1 + 3%) = 75.2 Mt. A few points of demand growth on a large base can absorb an entire new plant.
+21	numeric	Stocks fall from 40 Mt to 32 Mt over 30 days. Average inventory draw per day?	WHY: 8 ÷ 30 = 0.27 Mt/day.
+22	numeric	Nearby futures are $710/t and deferred futures are $720/t. What is nearby minus deferred? Use a negative number for contango.	WHY: 710 − 720 = $-10/t.
+23	numeric	Destination A pays $740/t with $30/t freight. Destination B pays $780/t with $45/t freight. By how much does A's netback exceed B's?	WHY: (740 − 30) − (780 − 45) = $-25/t.
+24	numeric	One tonne of feed costs $650. Saleable yield is 86% and product value is $930/t. Processing cost is $40/t feed. Simple margin per tonne of feed?	WHY: 930 × 86% − 650 − 40 = $109.8/t feed.
+25	numeric	Initial demand is 99 Mt and supply 97 Mt. A 6 Mt supply outage occurs and demand is revised by +1 Mt. New balance (supply − demand)?	WHY: (97 − 6) − (99 + 1) = -9 Mt.
+26	choice	Why compare inventories with their normal seasonal range rather than only with last month?	WHY: A normal seasonal draw can look bullish in isolation. Context tells you whether inventory behaviour is actually unusual.
+27	numeric	Deferred value is $16/t above prompt. Storage costs $5/t and finance $8/t. Net carry before losses?	WHY: 16 − 5 − 8 = $3/t.
+28	choice	When does a regional arbitrage normally close?	WHY: Arbitrage is an all-in delivered comparison. Once the netback advantage disappears, the trade stops paying.
+29	choice	Why can a small change in processing yield matter more than a small move in the headline benchmark?	WHY: A few yield points applied to large throughput can move the processing margin materially.
+30	choice	A market view should include an invalidation condition because…	WHY: A thesis without a falsifiable trigger becomes a story that can survive any evidence.
+
+## a2 Commercial Trading pool=31
+0	numeric	Sell $780/t, buy $720/t, freight $35/t, finance $11/t. Net trading margin?	WHY: 780 − 720 − 35 − 11 = $14/t.
+1	choice	A buyer may choose the pricing month after shipment, while your purchase month is fixed. That clause gives the buyer…	WHY: The buyer controls timing of price fixation while you carry the mismatch; that option has economic value.
+2	choice	Which trade is usually better, all else equal?	WHY: Return on capital and time matter. A slightly smaller margin can be far better if capital turns much faster.
+3	numeric	Margin is $15/t on 40,000 t. Gross contribution?	WHY: 15 × 40,000 = $600,000.
+4	choice	You can buy FOB A or FOB B. What should decide the origin choice for a fixed CIF sale?	WHY: A lower FOB price can be worse if freight, quality or execution costs more than offset it.
+5	choice	Why can “more volume” reduce desk quality?	WHY: Scarce capital, limits and operational capacity should be allocated to the best risk-adjusted opportunities.
+6	numeric	Gross margin $35/t, quality claim $8/t, demurrage $10/t, FX impact +$2/t. Final margin?	WHY: 35 − 8 − 10 + 2 = $19/t.
+7	choice	A good trader should treat an unpriced operational risk as…	WHY: Commercial pricing should reflect risks you actually retain, even if the final amount is uncertain.
+8	choice	If two deals have equal expected profit, prefer the one with…	WHY: Expected profit alone is incomplete; downside, liquidity and capital efficiency matter.
+9	choice	The core question before accepting a physical trade is…	WHY: The merchant margin only survives if the residual risks are identified and priced.
+10	choice	A buyer asks for a ±10% quantity option at their choice. What have you given away?	WHY: Operational tolerances are options. If you do not price them, the counterparty exercises them against you.
+11	choice	Your purchase prices on the month of loading and your sale on the month of discharge. What have you created?	WHY: Matching volumes is not matching risk. Different pricing windows leave you long or short the spread between them.
+12	choice	Which deal would a disciplined desk prefer?	WHY: Margin that cannot be collected or executed is not margin. Volume is a vanity metric on a physical desk.
+13	choice	You can nominate one of three discharge ports. What is that worth?	WHY: Destination flexibility is one of the most valuable and most under-priced features in a physical contract.
+14	choice	Why do desks look at the book rather than each trade alone?	WHY: Two trades that look risky alone can be flat together, and two that look safe can compound.
+15	choice	A counterparty offers a price well above the market for prompt delivery. What should you check first?	WHY: An unusually good price usually carries an unusually good reason. Often it is distress, and distress carries credit risk.
+16	choice	What does "washout" mean in a physical contract?	WHY: A washout closes a contract financially when delivery no longer makes sense for either side.
+17	choice	Your margin depends on a quality premium the buyer disputes on arrival. What was the mistake?	WHY: Quality disputes are decided by the words agreed beforehand, not by who is more certain afterwards.
+18	choice	Why is a signed recap not the same as a concluded contract?	WHY: Most commercial arguments live in the gap between the recap and the full contract.
+19	numeric	You improve the netback by $16/t on 30,000 t. Total contribution?	WHY: 30,000 × 16 = $480,000. Small per-tonne gains matter because tonnage is large.
+20	choice	A contract lets the buyer choose the loading window inside a two-month range. Who benefits?	WHY: Every flexibility belongs to someone. If the contract does not say it is yours, assume it is being used against you.
+21	numeric	Buy $660/t, sell $710/t, all-in costs $29/t, on 45,000 t. Total net contribution?	WHY: (710 − 660 − 29) × 45,000 = $945,000. The costs line is where headline spreads go to die.
+22	numeric	A buyer has a +10% quantity option on 30,000 t at a fixed sale price. If replacement supply is $10/t more expensive when they exercise the extra volume, downside on the optional tonnes?	WHY: 30,000 × 10% × $10 = $30,000.
+23	numeric	Purchase prices in Month 1 and sale prices in Month 2 on 30,000 t. The Month-2 minus Month-1 spread moves $8/t against you. Approximate timing P&L?	WHY: 30,000 × $8 = $240,000 loss.
+24	numeric	Origin A gives a delivered margin of $22/t and Origin B $20/t on 60,000 t. Contribution advantage of A over B?	WHY: (22 − 20) × 60,000 = $120,000.
+25	numeric	A deal earns $14/t on 30,000 t, ties up $24,000,000 for 90 days. Approximate annualised return on capital?	WHY: (14 × 30,000 ÷ $24,000,000) × (365 ÷ 90) × 100 ≈ 7.1%.
+26	numeric	Gross expected margin is $24/t. A 10% chance of an execution problem would cost $60/t. Simple expected margin after that risk?	WHY: 24 − 10% × 60 = $18/t.
+27	choice	Why should a trader price a quantity tolerance explicitly?	WHY: A tolerance changes how much you may have to source or place at future market conditions.
+28	numeric	You are economically long the Month-2 versus Month-1 spread on 60,000 t. Month 1 settles $740/t and Month 2 $730/t. Spread P&L?	WHY: (730 − 740) × 60,000 = $-600,000.
+29	choice	A location arbitrage is real only when…	WHY: Physical arbitrage is a chain of executable costs and rights, not a screen-price comparison.
+30	numeric	Headline margin $30/t, finance $5/t, expected credit cost $8/t and execution reserve $7/t. Risk-adjusted margin?	WHY: 30 − 5 − 8 − 7 = $10/t.
+
+## a3 Freight & Chartering pool=31
+0	numeric	Voyage freight is $600,000 for 35,000 t. Freight per tonne?	WHY: $600,000 ÷ 35,000 = $17.14/t.
+1	choice	Laycan is…	WHY: Laycan defines when the vessel must be ready to load under the charter.
+2	numeric	2 days exceed allowed laytime. Demurrage is $18,000/day. Cost?	WHY: 2 × $18,000 = $36,000.
+3	choice	A vessel arrives before laycan. Must the charterer automatically start laytime?	WHY: Arrival alone is not enough; laytime depends on the charter wording and valid notice/readiness conditions.
+4	numeric	Time-charter hire $16,000/day for 30 days plus bunkers $650,000. Approximate voyage vessel cost?	WHY: $16,000 × 30 + $650,000 = $1,130,000.
+5	choice	For a fixed CIF sale, an unfixed freight rate is economically…	WHY: You fixed the delivered sale price but not the transport cost, so rising freight erodes your margin.
+6	choice	Why might a larger vessel be worse despite a lower $/t headline rate?	WHY: The vessel must fit the parcel, ports, draft and timing; headline freight is not the only constraint.
+7	numeric	You sold CIF on 30,000 t with freight budget $32/t. Market freight rises by $12/t before fixing. P&L impact?	WHY: The extra freight cost is 30,000 × $12 = $360,000 loss.
+8	choice	Deadfreight is typically associated with…	WHY: If the charterer supplies less cargo than contracted, the owner may claim freight on the unused capacity.
+9	choice	The freight decision belongs at quotation time because…	WHY: Delivered commodity economics and shipping economics are inseparable on a physical trade.
+10	choice	An owner refuses your cargo despite a freight rate above the last done. Why might that be rational?	WHY: Owners compare in dollars per day. A high rate on a slow, badly positioned voyage can still lose to a lower rate on a fast one.
+11	choice	Why does a laycan that is too narrow cost you money even if the ship arrives?	WHY: Flexibility is worth money to the person who has it. Giving it up is a real cost even when nothing goes wrong.
+12	choice	You are quoted the same rate for two routes of equal distance. What still differs?	WHY: Distance is one input. Days are the currency, and port and canal time consume days without earning them.
+13	choice	Why is demurrage often a negotiation rather than an arithmetic result?	WHY: The daily rate is agreed; what is contested is how many hours qualify.
+14	choice	Valid NOR has been tendered, laytime has started, the allowed laytime is exhausted and no charterparty exception applies. Port congestion continues. What normally follows?	WHY: Once valid laytime is exhausted, qualifying time normally runs on demurrage unless the charterparty provides an applicable exception.
+15	choice	Bunker prices rise sharply between your indication and the fixture. What happens?	WHY: A freight indication assumes a fuel price. Once fuel moves, a stale indication is not a price.
+16	choice	Why do desks watch the ballast position of the fleet, not just the freight index?	WHY: Freight is priced by the marginal available ship, and availability is local.
+17	choice	What does a sub-let of a time-chartered vessel expose you to?	WHY: Chartering in and out builds a chain, and you sit in the middle of it holding both obligations.
+18	numeric	Freight is $28/t on 35,000 t. Total freight?	WHY: 35,000 × 28 = $980,000. On a cargo worth tens of millions this is often several percent of the value.
+19	numeric	Hire is $22,000/day for 23 days, plus $209,000 of port costs. Total cost before bunkers?	WHY: 23 × $22,000 + $209,000 = $715,000. Bunkers come on top, and they are usually the largest and most volatile piece.
+20	numeric	Gross freight revenue $800,000, bunkers $300,000, port/other voyage costs $240,000, total voyage 45 days. Approximate TCE?	WHY: ($800,000 − $300,000 − $240,000) ÷ 45 = $5,778/day.
+21	numeric	A time-chartered vessel waits 2 days before the agreed loading window. Hire is $22,000/day. Direct waiting-hire cost?	WHY: 2 × $22,000 = $44,000.
+22	numeric	A laycan window spans 6 days. Your vessel ETA uncertainty is ±2 days. Ignoring other delays, how many days of nominal window remain beyond the two-sided ETA uncertainty?	WHY: 6 − 2 × 2 = 4 days.
+23	choice	What must be checked before treating a Notice of Readiness as valid?	WHY: Laytime consequences depend on a valid NOR under the actual charterparty wording.
+24	numeric	Statement of Facts shows 84 elapsed hours. 12 hours are excluded and allowed laytime is 96 hours. Demurrage is $26,000/day. Demurrage amount?	WHY: (84 − 12 − 96) ÷ 24 × $26,000 = $0.
+25	choice	Under a typical time charter, which cost is normally for the charterer rather than the owner?	WHY: Time charterers normally control commercial employment and pay voyage-related bunkers, while owners retain technical operation and crew.
+26	numeric	A vessel ballasts 6 days, consuming 30 t/day of fuel at $750/t. Ballast bunker cost?	WHY: 6 × 30 × $750 = $135,000.
+27	numeric	Route requires 16 laden days, 6 ballast days and 8 port days. Total voyage duration?	WHY: 16 + 6 + 8 = 30 days.
+28	choice	A charterer exposed to rising freight may use an FFA primarily to…	WHY: Freight derivatives target market-rate exposure; they do not remove operational or basis risk between the actual voyage and the index.
+29	choice	In tanker freight, Worldscale 100 means…	WHY: Worldscale points are percentage points of the route-specific published flat rate.
+30	numeric	Worldscale flat rate is $18/t and the fixture is WS100 on 120,000 t. Approximate freight?	WHY: $18/t × 100% × 120,000 t = $2,160,000.
+
+## a4 Trade Finance & Credit pool=31
+0	numeric	You fund $4,000,000 of cargo for 60 days at 8% a year, on a 360-day basis. What is the interest cost?	WHY: $4,000,000 × 8% × 60/360 ≈ $53,333.
+1	choice	A documentary letter of credit primarily helps the seller by…	WHY: A compliant LC can materially improve payment security, but only if documents meet its conditions.
+2	numeric	Counterparty limit $8,000,000, current exposure $2,000,000. Remaining headroom?	WHY: $8,000,000 − $2,000,000 = $6,000,000. Headroom is what you can still trade with them before the limit stops you.
+3	choice	Selling 60 days open account instead of cash against documents should normally…	WHY: Longer unsecured terms use capital and increase default exposure.
+4	numeric	Eligible inventory is $6,000,000 and borrowing-base advance rate is 75%. Maximum borrowing against it?	WHY: $6,000,000 × 75% = $4,500,000.
+5	choice	A credit limit is best thought of as…	WHY: Limits cap acceptable exposure. Using them consumes scarce capacity that should earn enough return.
+6	numeric	A sale earns $25/t but adds 90 days of financing on $760/t at 7% p.a. Incremental finance cost per tonne?	WHY: 760 × 7% × 90/360 ≈ $13.3/t.
+7	choice	Which event can create a margin call even when your physical trade is economically hedged?	WHY: Hedges can create liquidity needs before offsetting physical cash arrives. Economic hedge does not mean zero funding risk.
+8	choice	Documents under an LC are discrepant. The key risk is…	WHY: Documentary compliance is central to LC payment.
+9	choice	Best credit-adjusted trade is usually…	WHY: Commercial return must be assessed after credit and capital costs, not before them.
+10	choice	A bank lends against your inventory at an 80% advance rate. What happens if the price falls 30%?	WHY: Asset-based lending is procyclical: the collateral and the credit available fall together, which is why a price crash becomes a funding crisis.
+11	choice	Why does a seller ask for a letter of credit to be confirmed?	WHY: An LC is only as good as the bank behind it. Confirmation moves that risk to a bank the seller is willing to face.
+12	choice	What is the practical difference between a documentary LC and a standby LC?	WHY: One is how you expect to be paid; the other is what you fall back on when you are not.
+13	choice	Your documents are refused for a discrepancy. What are your realistic options?	WHY: Banks are entitled to refuse on strict compliance. Most discrepancies are resolved commercially, which hands leverage to the buyer.
+14	choice	Why does a desk measure days sales outstanding?	WHY: Every extra day of receivable is financed. On thin margins, collection speed can matter as much as price.
+15	choice	A supplier offers you a discount if you prepay before delivery. What have you become economically?	WHY: Prepayment moves cash before performance. Until cargo is delivered or collateral is realised, you carry supplier credit/performance exposure.
+16	choice	What does assignment of receivables give a lender?	WHY: Structured trade finance works by attaching the lender to specific cash flows rather than to your balance sheet alone.
+17	choice	Credit insurance covers your buyer. Why is it not the same as being paid?	WHY: Insurance changes who you are exposed to and when you get paid, not whether the exposure exists.
+18	choice	Why do desks net exposures with a counterparty across contracts?	WHY: Without enforceable netting, you are exposed gross even when the economics offset.
+19	numeric	Financing $670/t of cargo for 45 days at 8% a year on a 360-day basis. Finance cost per tonne?	WHY: 670 × 8% × 45/360 = $6.7/t. Compare this with the margin before agreeing longer payment terms.
+20	numeric	Confirmed LC amount $8,000,000, confirmation fee 80 bps p.a. for 120 days on a 360-day basis. Approximate fee?	WHY: $8,000,000 × 80/10,000 × 120/360 = $21,333.
+21	numeric	A bank discounts a $5,000,000 deferred-payment LC at 5% p.a. for 120 days on a 360-day basis. Approximate discount cost?	WHY: $5,000,000 × 5% × 120/360 = $83,333.
+22	numeric	You sold 15,000 t open account. The mark-to-market moves $20/t in your favour before payment, increasing replacement exposure to the buyer. Additional exposure?	WHY: 15,000 × $20 = $300,000.
+23	choice	Why are payment terms part of the commodity price?	WHY: A $/t margin is not comparable until you account for how long cash and credit are tied up.
+24	numeric	Inventory days 30, receivable days 40, supplier payable days 50. Approximate cash conversion cycle?	WHY: 30 + 40 − 50 = 20 days.
+25	choice	Why does a borrowing base apply advance rates or haircuts to collateral?	WHY: The lender advances less than face value because collateral can fall in value or cost money to realise.
+26	numeric	Eligible collateral $12,000,000, advance rate 75%, existing borrowing $10,000,000. Additional borrowing availability?	WHY: $12,000,000 × 75% − $10,000,000 = $0.
+27	choice	Expected credit loss is useful commercially because…	WHY: A simplified expected-loss charge helps compare two trades with different counterparty quality.
+28	choice	A high-margin deal that consumes nearly all remaining counterparty limit should be judged on…	WHY: Credit limit is scarce balance-sheet capacity and should earn an adequate return.
+29	numeric	Exposure $4,000,000, one-year default probability 2%, loss-given-default 60%. Simplified expected loss?	WHY: $4,000,000 × 2% × 60% = $48,000.
+30	numeric	Gross margin $30/t, finance $6/t, expected credit cost $8/t and capital charge $4/t. Credit-adjusted margin?	WHY: 30 − 6 − 8 − 4 = $12/t.
+
+## a5 Risk Management pool=30
+0	numeric	Long physical 80,000 t and short futures 50,000 t. Net flat-price exposure?	WHY: 80,000 − 50,000 = 30,000 t net long.
+1	choice	A one-day 99% VaR of $3m means…	WHY: VaR is a percentile threshold under modelling assumptions, not a maximum-loss bound.
+2	choice	Why run stress tests if you already have VaR?	WHY: Stress tests explore tail moves, broken correlations and specific operational/market shocks.
+3	choice	You hedge a physical grade with a related but different futures contract. The residual is mainly…	WHY: An imperfect proxy hedge leaves risk that physical and futures values diverge.
+4	numeric	Available liquidity $14,000,000. Margin call $7,000,000 and other near-term cash needs $10,000,000. Liquidity headroom?	WHY: $14,000,000 − $7,000,000 − $10,000,000 = $-3,000,000.
+5	choice	A profitable book can still fail because of…	WHY: Timing matters. Margin calls and supplier payments can arrive before customer receipts.
+6	choice	Ten exposures with different customer names but the same terminal create…	WHY: Shared chokepoints create correlated losses despite different legal counterparties.
+7	numeric	Desk net-long limit 60,000 t; current net-long 80,000 t. Minimum reduction needed?	WHY: 80,000 − 60,000 = 20,000 t.
+8	choice	When a hard risk limit is breached, the correct first principle is…	WHY: Limits only work when breaches trigger transparent governance and action.
+9	choice	A good hedge should be assessed on…	WHY: Hedge P&L in isolation is misleading; the combined physical-plus-hedge position is what matters.
+10	choice	Your VaR is comfortably inside the limit and the desk still loses more than VaR in a day. What went wrong?	WHY: A 95% VaR is expected to be exceeded about one day in twenty. Being surprised by that means it was being read as a ceiling.
+11	choice	Why can a desk be within every price limit and still fail?	WHY: The risks that end desks are usually cash and counterparties, and neither appears in a price limit.
+12	choice	What is the purpose of an independent risk function?	WHY: The control only works because the person applying it does not benefit from the position.
+13	choice	A correlation that has held for five years breaks in a week. Why is that predictable?	WHY: Statistical relationships are calm-market artefacts. Stress tests exist because of this.
+14	choice	What does a stop-loss discipline actually protect against?	WHY: It is a control on behaviour more than on the market. Its value is that it is decided before the loss.
+15	choice	Why report position and exposure separately?	WHY: A large position can carry small exposure if it is hedged, and a small one can carry large exposure if it is not.
+16	choice	A single grade, single port, single buyer trade is 40% of the book. Which limit catches this?	WHY: Concentration hides inside an acceptable total. It needs its own constraint.
+17	choice	What is model risk on a commodity desk?	WHY: A model is a set of assumptions with numbers attached. When the assumptions fail, the numbers stay confident.
+18	choice	Why does an operational error belong in the risk report?	WHY: On physical desks, execution failures are a routine and material source of loss.
+19	numeric	You are long 30,000 t at $7750/t. Estimated one-day price volatility is 2%. Using a 95% factor of 1.645, what is the one-day parametric VaR?	WHY: 30,000 × $7750 × 2% × 1.645 ≈ $7,649,250. VaR is a model estimate, not a maximum-loss bound.
+20	choice	Why should a risk report show the worst historical drawdown alongside VaR?	WHY: History is a poor forecast but an honest reminder. It anchors the conversation in events rather than in parameters.
+21	numeric	Your net long limit is 60,000 t. You are long 90,000 t physical and short 90,000 t futures. By how many tonnes are you over the limit? Use a negative number if you are inside it.	WHY: Net is 90,000 − 90,000 = 0 t, against a 60,000 t limit: -60,000 t. Limits are checked on the net, not the gross.
+22	choice	Why can gross position and net flat-price exposure tell different stories?	WHY: A desk can be flat to price and still have large settlement, basis, financing and execution obligations.
+23	numeric	Long physical 60,000 t. Short proxy hedge 50,000 t with hedge delta 1. Approximate residual equivalent exposure?	WHY: 60,000 − 50,000 × 1 = 10,000 t.
+24	numeric	Stress scenario: a 30,000 t net-long position faces a $60/t price fall. Flat-price stress loss?	WHY: 30,000 × $60 = $1,800,000 loss.
+25	numeric	Stress losses: price $3,000,000, freight $2,000,000, counterparty $6,000,000. Combined scenario loss?	WHY: $3,000,000 + $2,000,000 + $6,000,000 = $11,000,000 loss.
+26	numeric	A 30,000 t cross-hedged position suffers a $10/t adverse basis move while flat price is hedged. Residual basis P&L?	WHY: 30,000 × $10 = $300,000 loss.
+27	numeric	Physical leg gains $6,000,000 while hedge loses $6,000,000. Combined hedge result?	WHY: $6,000,000 − $6,000,000 = $0.
+28	choice	Why can margin calls create a crisis on a profitable hedged trade?	WHY: Liquidity timing, not only final economics, determines whether a desk survives the path to settlement.
+29	numeric	Available cash $15,000,000; margin calls $8,000,000, supplier payments $10,000,000, customer delay reserve $4,000,000. Liquidity headroom?	WHY: $15,000,000 − $8,000,000 − $10,000,000 − $4,000,000 = $-7,000,000.
+
+## a6 Derivatives & Options pool=33
+0	choice	Long physical inventory exposed to a price fall is commonly hedged by…	WHY: Short futures offset the downside of long physical flat-price exposure.
+1	numeric	You are short futures on 20,000 t and futures rise $10/t. Futures P&L?	WHY: A short loses when price rises: 20,000 × $10 = $200,000 loss.
+2	choice	After a good futures hedge, which risk may remain?	WHY: Futures hedge the benchmark exposure they match; physical differential and timing can still move.
+3	choice	A fixed-price purchase plus a floating-price sale leaves you primarily…	WHY: You have locked the cost but not the revenue benchmark, so falling prices can hurt.
+4	choice	Buying a put option gives you…	WHY: A put creates a floor-like payoff but the option premium is the cost of that asymmetry.
+5	numeric	Put premium is $6/t on 15,000 t. Upfront option premium cost?	WHY: 15,000 × $6 = $90,000.
+6	choice	An option delta of +0.40 means, approximately…	WHY: Delta is a local price sensitivity, not an exact probability or time measure.
+7	choice	Why can hedge ratios be less than 100%?	WHY: The economically appropriate hedge depends on the exposure actually being offset.
+8	choice	A swap is useful when you want to…	WHY: Commodity swaps commonly transform price index exposure without moving physical goods.
+9	choice	Best hedge design starts from…	WHY: You hedge the risk created by the physical contract—not an abstract market view.
+10	choice	Why do commodity desks often use Asian (average price) options rather than plain vanilla?	WHY: A hedge should match how the cargo is priced. Hedging an averaged exposure with a single-date option leaves a timing mismatch.
+11	choice	You buy a put to protect a long inventory. What is the worst case?	WHY: A bought option has known, limited cost. That is what you pay for compared with a futures hedge.
+12	choice	What is a zero-cost collar?	WHY: It is not free: you paid with the upside you gave away, which is a real cost if the market rallies.
+13	choice	Why does a swap suit a refiner with steady monthly volumes?	WHY: Swaps settle against an average and are usually bilateral, which fits a regular physical programme.
+14	choice	Implied volatility rises sharply while the price is unchanged. What has happened?	WHY: Volatility is a traded quantity of its own. Hedging costs can rise without the underlying moving at all.
+15	choice	What does delta tell a hedger?	WHY: Delta is how much of a futures position the option is equivalent to right now, and it changes as the market moves.
+16	choice	Why is selling options to earn premium dangerous for a physical desk?	WHY: Writing options converts a trading business into an insurance business, usually without the capital to match.
+17	choice	What is a basis swap used for?	WHY: It targets exactly the risk a plain futures hedge leaves behind.
+18	choice	A spread option pays on the difference between two prices. Where does that fit?	WHY: Refining and arbitrage margins are spreads, so the natural hedge is an instrument on the spread.
+19	numeric	You hold options on 15,000 t with a delta of 0.45. How many tonnes of futures do they currently behave like?	WHY: 15,000 × 0.45 = 6,750 t. Delta changes as the market moves, so the hedge has to be revisited.
+20	numeric	You buy a put at $6/t and sell a call at $6/t on 40,000 t. Net premium paid? Use a negative number if you receive it.	WHY: (6 − 6) × 40,000 = $0. A collar is only "zero cost" when the two premiums happen to match.
+21	numeric	You are short 40 lots of 50 t and the futures price rises $38/t. Variation margin due?	WHY: 40 × 50 × 38 = $76,000, payable in cash now while the physical gain is still unrealised.
+22	choice	Why must hedge sizing start from contract units and lot sizes?	WHY: Execution requires translating physical exposure into actual exchange lots and accepting any rounding residual.
+23	choice	Variation margin belongs in hedge design because…	WHY: Derivative settlement timing can be as important as terminal P&L for a physical merchant.
+24	numeric	Exposure is 25,000 t and the hedge contract is 50 t per lot. Approximate whole lots required?	WHY: 25,000 ÷ 50 ≈ 500 lots.
+25	choice	A cross-hedge should be monitored for…	WHY: A proxy can behave well in normal markets and diverge when the underlying physical market is stressed.
+26	numeric	Your flat price is hedged on 30,000 t, but the physical basis weakens $8/t. Basis P&L?	WHY: 30,000 × $8 = $240,000 loss.
+27	numeric	Physical value changes $10/t and the proxy hedge offsets $4/t on 30,000 t. Residual move?	WHY: (10 − 4) × 30,000 = $180,000.
+28	numeric	You receive floating and pay fixed $80/t in a swap on 80,000 t. Floating settles at $75/t. Swap settlement?	WHY: (75 − 80) × 80,000 = $-400,000.
+29	numeric	Monthly-average swap: receive average, pay fixed $80/t on 80,000 t. Monthly average is $77/t. Settlement?	WHY: (77 − 80) × 80,000 = $-240,000.
+30	numeric	Options cover 20,000 t with delta 0.4. Futures lot size is 100 t. Approximate delta-hedge lots?	WHY: 20,000 × 0.4 ÷ 100 ≈ 80 lots.
+31	numeric	Physical exposure is 30,000 t and chosen hedge ratio is 0.8. Hedge tonnage?	WHY: 30,000 × 0.8 = 24,000 t.
+32	numeric	Purchase and sale pricing windows leave 30,000 t exposed to a calendar spread. The spread moves $8/t against the book. P&L?	WHY: 30,000 × $8 = $240,000 loss.
+
+## a7 Metals Desk pool=31
+0	numeric	Copper LME is $8400/t and physical premium is $175/t. All-in metal price?	WHY: 8400 + 175 = $8575/t.
+1	choice	If LME is unchanged but the regional physical premium rises, the local market has…	WHY: Physical premiums capture local availability, logistics and demand beyond the exchange benchmark.
+2	choice	An exchange warehouse warrant represents…	WHY: Warrants are central to exchange warehouse delivery mechanics.
+3	numeric	A concentrate contract has a treatment charge of $60/dry metric tonne on 8,000 dmt. Gross TC amount?	WHY: 8,000 × $60 = $480,000.
+4	choice	Higher TC/RC, all else equal, is generally more favourable to…	WHY: Treatment/refining charges are deductions paid to the processor for converting concentrate into refined metal.
+5	numeric	Buy LME + $110/t, sell LME + $210/t, freight $30/t. Premium margin?	WHY: 210 − 110 − 30 = $70/t.
+6	choice	A trader long physical copper priced off LME but hedged short LME can still lose if…	WHY: The exchange hedge can offset LME flat price but not the physical premium/basis.
+7	choice	Why do location and warehouse queues matter in metals?	WHY: Physical availability and exit costs can make the same benchmark metal worth different amounts by location.
+8	choice	A quotation period (QP) mismatch between purchase and sale creates…	WHY: The benchmark can average over different windows, creating residual price risk even on matched tonnes.
+9	choice	The metals desk should quote a premium only after considering…	WHY: Physical premium is the residual economics around the exchange benchmark.
+10	choice	What does an LME warrant represent?	WHY: Warrants are how metal ownership transfers without the metal moving, which is what makes LME delivery work.
+11	choice	Warehouse rent and load-out queues lengthen at a major location. What happens to the regional premium?	WHY: Physical premiums price the cost and delay of getting usable metal, not just the exchange price.
+12	choice	Why is an exchange price alone not the price a consumer pays?	WHY: The premium is where the physical desk earns, and it moves for reasons the screen does not show.
+13	choice	What is a tolling arrangement on a metals desk?	WHY: Tolling separates the processing service from the ownership of the material, and the risk stays with you.
+14	choice	Treatment and refining charges rise sharply. Who is under pressure?	WHY: TC/RCs are the smelter’s margin and the miner’s cost. They move with concentrate availability.
+15	choice	Why does metal form matter commercially?	WHY: A cargo that does not fit the buyer’s process is worth less to them regardless of purity.
+16	choice	You hedge a copper cargo on the exchange and still lose money. What is the likely cause?	WHY: The hedge removes the flat price. Premium and QP mismatch are exactly what it leaves you holding.
+17	choice	What risk does financing metal in a warehouse carry beyond price?	WHY: Metal financing scandals have generally been title and documentation failures, not price failures.
+18	choice	Why do consumers sign annual premium contracts rather than buying spot?	WHY: Selling that certainty is a legitimate product, and pricing it wrongly is how a desk gets hurt for a whole year.
+19	numeric	LME is $8,200/t and the premium is $150/t on 2,900 t. Total cargo value?	WHY: (8200 + 150) × 2,900 = $24,215,000. The base-metal benchmark and the physical premium are separate exposures; premium hedgeability depends on the metal, region and available exchange or OTC instruments.
+20	numeric	You store 700 t at $0.45/t/day for 180 days. Total warehouse rent?	WHY: 700 × 0.45 × 180 = $56,700. Rent and load-out delays are what physical premiums are really pricing.
+21	choice	The all-in price of exchange-priced metal is best viewed as…	WHY: Separating benchmark and physical differential is essential for pricing and hedging the two risks correctly.
+22	numeric	Regional premium strengthens $40/t on 1,000 t you are short to a customer. Premium P&L?	WHY: 1,000 × $40 = $40,000 loss.
+23	choice	Can physical premium exposure always be assumed unhedgeable on exchange?	WHY: Base-metal futures do not hedge a premium automatically, but dedicated premium products exist for some markets, so the exposure must be checked rather than assumed.
+24	numeric	Store 1,000 t for 150 days at $0.45/t/day plus $25/t financing/carry. Total carry cost?	WHY: 1,000 × $0.45 × 150 + 1,000 × $25 = $92,500.
+25	numeric	Concentrate is 7,000 dmt at 22% copper with 97% payable metal. Approximate payable copper tonnes?	WHY: 7,000 × 22% × 97% = 1,493.8 t.
+26	numeric	Copper exposure is 1,000 t. Standard LME Copper lot size is 25 t. Approximate whole lots?	WHY: 1,000 ÷ 25 ≈ 40 lots.
+27	numeric	Purchase and sale quotation periods leave 1,000 t exposed. The relevant LME calendar spread moves $40/t against you. P&L?	WHY: 1,000 × $40 = $40,000 loss.
+28	numeric	Buy premium $110/t, sell premium $180/t, freight $45/t, finance $15/t. Net physical premium margin?	WHY: 180 − 110 − 45 − 15 = $10/t.
+29	numeric	A 1,000 t metal cargo is fully flat-price hedged against a $200/t LME move, but the regional premium weakens $80/t. Residual P&L?	WHY: The LME move is hedged; 1,000 × $80 = $80,000 premium loss.
+30	choice	Why should a metals trader distinguish on-warrant from off-warrant inventory?	WHY: Warehouse status affects how quickly metal can satisfy exchange or physical demand and therefore affects local tightness.
+
+## a8 Oil & Products Desk pool=31
+0	numeric	Brent is $72/bbl and a crude trades Brent $-4/bbl. Crude price?	WHY: 72 − 4 = $68/bbl.
+1	numeric	Product value $95/bbl, crude $72/bbl, variable refining cost $6/bbl. Simple gross product-minus-feed margin?	WHY: 95 − 72 − 6 = $17/bbl.
+2	choice	Strong backwardation in crude often signals…	WHY: Backwardation reflects a premium on prompt availability relative to later delivery.
+3	choice	A physical crude differential can move even if Brent is unchanged because…	WHY: Physical grades trade at changing differentials to benchmarks.
+4	numeric	You own 400,000 bbl of a grade whose differential weakens by $2/bbl versus the benchmark. Approximate basis P&L?	WHY: 400,000 × $2 = $800,000 loss.
+5	choice	Why does a pricing-window mismatch matter in oil cargoes?	WHY: Different pricing windows create temporal basis risk.
+6	choice	Blending is economically attractive when…	WHY: Blending monetises quality differences only if the finished product’s value covers all inputs and constraints.
+7	numeric	Ocean freight changes by $2/bbl on a 500,000 bbl cargo. P&L impact?	WHY: Higher freight costs 500,000 × $2 = $1,000,000.
+8	choice	A refinery outage near your destination can affect…	WHY: Operational outages change regional supply-demand quickly.
+9	choice	Oil desk profitability should be decomposed into…	WHY: Physical P&L is multi-factor; decomposition reveals where value was made or lost.
+10	choice	Why are crude grades quoted as a differential to a benchmark?	WHY: The benchmark carries the flat price; the differential carries everything specific about the barrel.
+11	choice	A refinery’s crack spread widens sharply. What is the likely commercial response?	WHY: Refining margins are the signal that moves crude demand and product supply at the same time.
+12	choice	Why does a heavy sour crude usually trade below a light sweet one?	WHY: Crude is priced on what it can be turned into, not on the barrel itself.
+13	choice	You buy a cargo pricing on the month of loading and sell pricing on the month of arrival. What is the exposure?	WHY: This is the classic QP mismatch, and it is why the calendar spread is a position you did not intend to take.
+14	choice	What does contango do to a floating-storage trade in products?	WHY: Storage economics are a comparison of the forward spread with the full cost of carry, freight included.
+15	choice	A products cargo fails the flash point specification on arrival. What is the commercial reality?	WHY: Off-spec product usually finds a home at a price. The argument is about the contract, not the chemistry.
+16	choice	Why do desks watch refinery maintenance schedules?	WHY: Maintenance is one of the few genuinely forecastable shifts in a balance.
+17	choice	Blending two components to meet a specification is attractive when…	WHY: Blending is a margin business with a hard constraint: the result has to actually meet every spec, not just the one you optimised.
+18	choice	What does a "prompt" cargo premium usually indicate?	WHY: Prompt premiums are the clearest physical signal a desk gets, and they are local.
+19	numeric	A differential strengthens by $3/bbl on 400,000 bbl you own. P&L impact?	WHY: 400,000 × 3 = $1,200,000. A futures hedge on the benchmark would not have captured this.
+20	numeric	Crude $70/bbl, gasoline $95/bbl, distillate $118/bbl. Simple 3-2-1 crack per barrel of crude?	WHY: (2 × 95 + 118 − 3 × 70) ÷ 3 = $32.7/bbl.
+21	numeric	Prompt crude is $77/bbl and deferred crude $74/bbl. Prompt minus deferred?	WHY: 77 − 74 = $3/bbl.
+22	numeric	Forward premium $3/bbl; storage $0.8, finance $1, losses $0.2/bbl. Net carry?	WHY: 3 − 0.8 − 1 − 0.2 = $1/bbl.
+23	choice	A cargo priced on one month and sold on another is economically a position in…	WHY: Pricing-window mismatch is a calendar-spread exposure even if the physical volume is matched.
+24	numeric	A 400,000 bbl cargo has purchase and sale pricing windows one month apart. The calendar spread moves $2/bbl against you. P&L?	WHY: 400,000 × $2 = $800,000 loss.
+25	numeric	Purchase QP averages $77/bbl and sale QP averages $76/bbl on 900,000 bbl. Pricing-window contribution?	WHY: (76 − 77) × 900,000 = $-900,000.
+26	numeric	Blend 30 kbbl at 0.2% sulfur with 60 kbbl at 1% sulfur. Approximate blended sulfur?	WHY: (30 × 0.2 + 60 × 1) ÷ (30 + 60) = 0.73%.
+27	numeric	Blend 50 kbbl costing $97/bbl and 40 kbbl costing $79/bbl, then sell blend at $106/bbl. Gross blend contribution before other costs, in $000?	WHY: 106 × 90 − (97 × 50 + 79 × 40) = 1530 thousand dollars.
+28	choice	A useful oil P&L attribution separates…	WHY: Breaking the result into drivers shows whether the desk earned merchant margin or accidentally took market risk.
+29	choice	For a delivered oil arbitrage, the destination benchmark is not enough because…	WHY: The arbitrage survives only if the full delivered economics work.
+30	numeric	Destination value $98/bbl, freight $4, losses $0.6, terminal costs $0.5/bbl. Origin netback?	WHY: 98 − 4 − 0.6 − 0.5 = $92.9/bbl.
+
+## a9 Gas & LNG Desk pool=30
+0	numeric	TTF is €32/MWh and a contract is TTF €-1/MWh. Contract price?	WHY: 32 − 1 = €31/MWh.
+1	numeric	Destination LNG value $14/MMBtu, shipping $2/MMBtu, regas $1.5/MMBtu. Netback before source cost?	WHY: 14 − 2 − 1.5 = $10.5/MMBtu.
+2	choice	Destination optionality in LNG is valuable because…	WHY: The right to redirect lets the trader respond to regional price spreads.
+3	choice	An LNG arbitrage can close even if destination gas price is unchanged when…	WHY: Delivered arbitrage depends on the full logistics chain, not destination price alone.
+4	numeric	A 2,000,000 MMBtu cargo has a destination spread of $2/MMBtu before incremental logistics. Gross spread value?	WHY: 2,000,000 × $2 = $4,000,000.
+5	choice	Gas seasonality makes storage valuable when…	WHY: Storage monetises time spreads only after carry costs.
+6	choice	Boil-off is economically relevant because…	WHY: Voyage losses affect delivered quantity and economics.
+7	choice	Pipeline capacity constraints primarily create…	WHY: When transport is constrained, regional prices can separate sharply.
+8	choice	A hub hedge may not fully hedge an LNG cargo because…	WHY: The hub benchmark is only one component of delivered LNG value.
+9	choice	Before diverting an LNG cargo, the desk should compare…	WHY: Diversion decisions are marginal netback calculations under operational constraints.
+10	choice	Why is LNG shipping capacity a commercial constraint and not just a cost?	WHY: In LNG the ship is often the binding constraint on whether a trade exists.
+11	choice	What is boil-off on an LNG voyage?	WHY: It is a predictable loss of volume that has to be in the contract and in the economics.
+12	choice	Why do destination clauses matter so much in LNG?	WHY: Free destination is one of the most valuable features an LNG contract can have.
+13	choice	A cargo can go to Asia or Europe. What decides it?	WHY: Two indices are not comparable until the whole route is paid for.
+14	choice	Why is gas demand more weather-sensitive than most commodities?	WHY: Weather is a fundamental, not a nuisance, and it is why gas curves move on forecasts.
+15	choice	What does a regasification terminal slot give a trader?	WHY: Infrastructure access is a tradable right and a real barrier to entry.
+16	choice	Gas storage is full in early autumn. What does that usually imply for the winter spread?	WHY: Storage is the physical link between summer and winter prices.
+17	choice	Why can a hub price disconnect from an oil-indexed contract price?	WHY: Contract renegotiations in gas have historically come from exactly this gap.
+18	choice	What is the risk of selling a cargo before securing the ship?	WHY: In LNG the freight leg is not a detail you can assume you will fill later.
+19	numeric	A cargo of 145,000 m³ boils off 0.1% a day for 29 days. How many m³ are lost?	WHY: 145,000 × 0.1% × 29 = 4,205 m³. Boil-off is a predictable loss that belongs in the economics, not a surprise.
+20	numeric	Regasification costs $0.45/MMBtu on a cargo of 3,000,000 MMBtu. Total regas cost?	WHY: 3,000,000 × 0.45 = $1,350,000. Terminal access is a cost and a constraint at the same time.
+21	numeric	Oil-indexed LNG formula is 0.12 × Brent + $0.8/MMBtu. Brent is $69/bbl. Contract price?	WHY: 0.12 × 69 + 0.8 = $9.08/MMBtu.
+22	choice	A regasification slot has option value because…	WHY: Infrastructure access is both a cost and a right to monetise a destination market.
+23	numeric	LNG vessel hire is $100,000/day for 25 days. Cargo energy is 4,000,000 MMBtu. Hire cost per MMBtu before fuel?	WHY: $100,000 × 25 ÷ 4,000,000 = $0.63/MMBtu.
+24	numeric	Asia value $17/MMBtu with $3 logistics. Europe value $21/MMBtu with $3 logistics. Asia netback minus Europe netback?	WHY: (17 − 3) − (21 − 3) = $-4/MMBtu.
+25	choice	Gas storage is not only seasonal inventory; commercially it is also…	WHY: Injection and withdrawal rights create flexibility whose value changes with volatility and the forward curve.
+26	numeric	Winter gas $14/MMBtu, summer $10. Injection $0.7, withdrawal $0.4, finance $0.6/MMBtu. Net seasonal carry?	WHY: 14 − 10 − 0.7 − 0.4 − 0.6 = $2.3/MMBtu.
+27	numeric	Storage working capacity 3,000,000 MMBtu, expected usable cycle 80% and seasonal spread $2/MMBtu before costs. Gross spread value?	WHY: 3,000,000 × 80% × $2 = $4,800,000.
+28	numeric	Destination $17/MMBtu, source $9, shipping $5, regas $0.7, boil-off allowance $0.6/MMBtu. Simplified LNG arbitrage margin?	WHY: 17 − 9 − 5 − 0.7 − 0.6 = $1.7/MMBtu.
+29	numeric	Cargo energy 3,000,000 MMBtu. Total voyage/handling loss is 0.8% and replacement value is $22/MMBtu. Value of lost energy?	WHY: 3,000,000 × 0.8% × $22 = $528,000.
+
+## a10 Power Desk pool=31
+0	numeric	30 MW delivered flat for 24 hours equals how many MWh?	WHY: 30 × 24 = 720 MWh.
+1	choice	A monthly baseload hedge can leave risk for an hourly-shaped retail load because…	WHY: Shape mismatch creates residual exposure even if monthly average volume matches.
+2	numeric	Power €90/MWh, gas €35/MWh(th), heat rate 2 MWh(th)/MWh(e), carbon/other €20/MWh. Simple spark margin?	WHY: 90 − 35×2 − 20 = €0/MWh.
+3	choice	Congestion between two power zones can create…	WHY: Transmission constraints can separate zonal prices.
+4	choice	Balancing risk arises when…	WHY: Power systems must balance in real time; deviations are settled at imbalance prices.
+5	numeric	You are short 9 MW for 4 hours and imbalance power costs €250/MWh. Gross imbalance cost?	WHY: 9 × 4 × €250 = €9,000 cost.
+6	choice	Why is optional generation capacity valuable in power?	WHY: Dispatch optionality monetises volatile hourly spreads.
+7	choice	A renewable portfolio has volume risk because…	WHY: Forecast error creates imbalance and replacement exposure.
+8	choice	A negative power price can occur when…	WHY: Non-storability, constraints and inflexibility can force prices below zero.
+9	choice	For power, “same monthly MWh” does not guarantee an economic hedge because…	WHY: Shape and timing are central to power value.
+10	choice	Why is electricity commercially different from every other commodity here?	WHY: Non-storability is the source of everything unusual in power: extreme spikes, negative prices and the value of flexibility.
+11	choice	Power prices go negative for several hours. What does that mean?	WHY: Start-up costs and subsidy structures can make paying to generate cheaper than stopping.
+12	choice	What is the spark spread?	WHY: It is the generation margin, and like a refining crack it is a spread you can hedge directly.
+13	choice	Why does a peak/off-peak split exist in power contracts?	WHY: Averaging peak and off-peak hides the hours where the money is made and lost.
+14	choice	Transmission between two zones is constrained. What appears?	WHY: Congestion creates locational prices, and trading them requires transmission rights, not just a view.
+15	choice	Why is a renewables forecast a price input rather than a background detail?	WHY: In many markets the residual load after renewables is the single best short-term price predictor.
+16	choice	What does a capacity payment compensate?	WHY: Availability and energy are two products, and confusing them misprices a generation asset.
+17	choice	Why do desks value optionality in a flexible power plant?	WHY: The right to run when it pays and stop when it does not is an option, and it is valued as one.
+18	choice	A carbon price is introduced. What changes commercially?	WHY: Carbon changes the merit order, which is how it changes the price rather than just the cost.
+19	numeric	You hold 40,000 MWh and the spread moves $10/MWh in your favour. P&L impact?	WHY: 40,000 × 10 = $400,000. Power volumes are large and the spread is where the generation margin lives.
+20	numeric	You must deliver 200 MWh of power from a plant with a heat rate of 2 MWh(th) per MWh(e). How much gas, in MWh(th)?	WHY: 200 × 2 = 400 MWh(th). The heat rate is what converts a power sale into a gas purchase.
+21	numeric	A shaped contract delivers 30 MW for 8 peak hours and 40 MW for 12 off-peak hours. Total MWh?	WHY: 30 × 8 + 40 × 12 = 720 MWh.
+22	numeric	Actual load averages 90 MW for 10 hours while your baseload hedge is 90 MW. Residual energy position?	WHY: (90 − 90) × 10 = 0 MWh.
+23	numeric	Peak price €110/MWh on 60 MWh; off-peak €50/MWh on 80 MWh. Load-weighted average price?	WHY: (110 × 60 + 50 × 80) ÷ (140) = €75.7/MWh.
+24	choice	A clean spark spread differs from a simple spark spread because it…	WHY: For thermal generation, carbon can materially change dispatch economics and the merit order.
+25	choice	What can hedge locational power basis more directly than a system-wide futures position?	WHY: System futures hedge flat price; congestion instruments target the price difference between locations.
+26	numeric	You are long Zone A and short Zone B on 40,000 MWh. A-minus-B spread widens €15/MWh in your favour. P&L?	WHY: 40,000 × €15 = €600,000.
+27	numeric	A constrained interconnector carries 75 MW for 12 hours while the zonal price spread is €15/MWh. Gross congestion value?	WHY: 75 × 12 × €15 = €13,500.
+28	numeric	Renewable output is 9 MW below forecast for 4 hours and replacement/imbalance energy costs €350/MWh. Gross shortfall cost?	WHY: 9 × 4 × €350 = €12,600.
+29	numeric	Power €100/MWh, gas €30/MWh(th), heat rate 2.2, emissions 0.36 tCO₂/MWh(e), EUA €100/t and other variable cost €12/MWh. Clean spark margin?	WHY: 100 − 30 × 2.2 − 0.36 × 100 − 12 = €-14/MWh.
+30	numeric	A flexible plant has positive dispatch margin €15/MWh for 100 MW across 12 hours. Gross dispatch contribution?	WHY: 15 × 100 × 12 = €18,000.
+
+## a11 Agriculture Desk pool=30
+0	choice	A bumper crop, all else equal, tends to…	WHY: More supply relative to demand usually loosens the market, though logistics can modify local effects.
+1	numeric	Futures are $240/t and local basis is $-10/t. Physical cash price?	WHY: 240 − 10 = $230/t.
+2	numeric	Deferred premium $12/t, storage $5/t, finance $8/t. Net carry before losses?	WHY: 12 − 5 − 8 = $-1/t.
+3	choice	Why is pre-shipment quality inspection valuable in grains?	WHY: Physical specifications directly affect acceptance and value.
+4	choice	Harvest season can create simultaneous pressure on…	WHY: Large seasonal flows stress the physical chain and can move local basis.
+5	numeric	30,000 t is accepted with a $10/t quality discount. P&L impact?	WHY: 30,000 × $10 = $300,000 loss.
+6	choice	A futures hedge on wheat can leave local elevator basis risk because…	WHY: Local supply, transport and quality can move basis independently.
+7	choice	If a vessel misses a seasonal export window, the desk may face…	WHY: Timing disruptions can hit several parts of the physical P&L at once.
+8	choice	A crop forecast is most useful when paired with…	WHY: Production alone does not determine balance or price.
+9	choice	The best origin for a grain sale is the one with…	WHY: Delivered economics and execution reliability determine the trade.
+10	choice	Why is basis so central on an agricultural desk?	WHY: On grains the basis is often where the trading result actually comes from.
+11	choice	A harvest is larger than expected but the basis strengthens. What could explain it?	WHY: Big crops can still be locally tight if the transport and elevation capacity cannot move them.
+12	choice	Why do quality parameters matter so much in grain contracts?	WHY: Grain is a specification product, and the discount schedule is part of the price.
+13	choice	What is the commercial purpose of a hedge for a grain elevator?	WHY: Elevators are basis traders: they hedge the flat price so they can trade the basis they understand.
+14	choice	Why does weather in one hemisphere move prices in the other?	WHY: Agricultural balances are annual and global, which is why the market trades weather continuously.
+15	choice	An export ban is announced in a major origin. What is the first effect?	WHY: Removing an origin does not remove demand, it redirects it, usually violently.
+16	choice	Why is storage capacity at origin a commercial factor at harvest?	WHY: Harvest pressure is a logistics phenomenon expressed as a price.
+17	choice	What does a "delivered" contract shift compared with a farm-gate purchase?	WHY: Each step you take on brings a cost and a risk you now own.
+18	choice	Why can a perfectly hedged elevator still lose money?	WHY: Hedging the futures leaves the basis, and the basis is the whole business.
+19	numeric	Futures are $255/t, basis is $-10/t, on 40,000 t. Total cash value?	WHY: (255 − 10) × 40,000 = $9,800,000. Hedging the futures leaves exactly the basis part unhedged.
+20	numeric	A 10,000 t grain cargo is 1.5 percentage points above the contractual moisture limit. The agreed discount is $1.2/t for each 0.5 percentage-point excess. Total quality discount?	WHY: 1.5 ÷ 0.5 × $1.2/t × 10,000 t = $36,000. The contract discount schedule, not a crude water-weight shortcut, determines the commercial claim.
+21	numeric	Beginning stocks 25 Mt, production 100, imports 20, domestic use 100, exports 30 Mt. Ending stocks?	WHY: 25 + 100 + 20 − 100 − 30 = 15 Mt.
+22	numeric	Ending stocks are 24 Mt and annual use is 120 Mt. Stocks-to-use ratio?	WHY: 24 ÷ 120 × 100 = 20%.
+23	choice	Why must storage economics include shrink and quality deterioration, not only rent?	WHY: Carry is profitable only after every cost of keeping the physical commodity saleable.
+24	numeric	Storage $4/t, finance $4/t and expected shrink/quality cost $2/t. Minimum deferred premium needed to break even?	WHY: 4 + 4 + 2 = $10/t.
+25	choice	Why are independent certificates of quality/weight important in agricultural trade?	WHY: The contract needs an agreed measurement process because quality and weight directly determine invoice value.
+26	numeric	Ocean freight is $30/t on 30,000 t of grain. Total freight?	WHY: 30,000 × $30 = $900,000.
+27	numeric	A grain vessel incurs 2 days of demurrage at $21,000/day. Cost?	WHY: 2 × $21,000 = $42,000.
+28	numeric	Destination value $270/t; ocean freight $35, inland logistics $22, expected quality discount $8/t. Origin netback?	WHY: 270 − 35 − 22 − 8 = $205/t.
+29	numeric	Sell $300/t, buy $265/t, freight $45, quality allowance $6, finance $8/t. Net agri margin?	WHY: 300 − 265 − 45 − 6 − 8 = $-24/t.
+
+## a12 Origination & Contracts pool=32
+0	choice	Good origination starts by understanding…	WHY: Repeatable supply comes from solving a real supplier problem while protecting your economics.
+1	choice	A long-term offtake can be valuable because it…	WHY: Offtakes exchange commitment for supply access and optionality; both sides create risk.
+2	choice	Changing FOB to CIF in a negotiation primarily changes…	WHY: Incoterms materially alter logistics responsibility and cost allocation.
+3	choice	A buyer-controlled quotation period should be treated as…	WHY: Control over pricing timing has economic value.
+4	choice	Force majeure generally aims to address…	WHY: Force majeure is clause-specific and does not simply excuse an uneconomic trade.
+5	numeric	An offtake supplies 75,000 t/year and expected contribution is $10/t. Annual gross contribution?	WHY: 75,000 × $10 = $750,000.
+6	choice	Why can a “take-or-pay” commitment be risky for the buyer?	WHY: Volume commitments create downside if resale demand or capacity changes.
+7	choice	A commercially strong contract is one that…	WHY: Clarity reduces disputes and makes the intended economics executable.
+8	choice	When a counterparty asks for a clause change, the trader should ask first…	WHY: Contract wording often embeds optionality, timing rights or liability shifts that change value.
+9	choice	The strongest origination relationships are usually built on…	WHY: Physical trading relationships compound when both execution and economics are credible.
+10	choice	What does origination actually add to a trading business?	WHY: Anyone can trade the visible market. Origination creates the flow that others cannot reach.
+11	choice	Why is a long-term offtake contract valuable beyond its margin?	WHY: Structural flow is what turns a trading desk into a business rather than a series of bets.
+12	choice	A prepayment finances a producer against future deliveries. What is the core risk?	WHY: Structured prepayments are credit deals dressed as trades, and they should be underwritten as credit.
+13	choice	Why does a force majeure clause deserve careful reading?	WHY: The events listed, the notice requirements and the consequences vary enormously between contracts.
+14	choice	What does a change-of-law clause protect against?	WHY: In commodities, regulatory change is a routine commercial risk, not an exotic one.
+15	choice	Why does governing law and arbitration seat matter commercially?	WHY: A right you cannot enforce against assets you can reach is not worth what it appears to be.
+16	choice	A counterparty in a sanctioned jurisdiction offers an attractive deal. What is the correct first step?	WHY: Sanctions exposure can end a company, not just a trade, and it cannot be priced away.
+17	choice	What is the practical value of a parent company guarantee?	WHY: Many trading counterparties are small entities. Who stands behind them is the real credit question.
+18	choice	Why do desks avoid conflicting standard terms in a contract chain?	WHY: Back-to-back means the terms match, not just the volumes and dates.
+19	numeric	You prepaid $7,000,000 against 7 equal monthly deliveries. 3 have been delivered. How much is still at risk?	WHY: $7,000,000 × (1 − 3/7) = $4,000,000 still unsecured. A prepayment is credit exposure that unwinds only as cargo arrives.
+20	numeric	A take-or-pay contract sets a minimum of 80,000 t. You lift 65,000 t. At $16/t, what do you owe on the shortfall?	WHY: (80,000 − 65,000) × 16 = $240,000. Take-or-pay turns an optimistic forecast into a real bill.
+21	numeric	An offtake runs 7 years for 30,000 t a year at $9/t. Total contribution over the life of the contract?	WHY: 30,000 × 9 × 7 = $1,890,000. This is why origination is valued differently from a spot trade.
+22	numeric	A supplier offers a 3% discount on $4,000,000 of material if you prepay 9 months early. Ignoring default risk, approximate annualised discount yield?	WHY: 3% × 12/9 ≈ 4% annualised before credit risk.
+23	choice	When moving from FOB to CIF in a negotiation, the commercial question is not only freight cost but also…	WHY: Changing delivery terms reallocates tasks and risks as well as invoice components.
+24	numeric	FOB value $660/t, main freight $35/t and insurance allowance $4/t. Simplified CIF equivalent?	WHY: 660 + 35 + 4 = $699/t.
+25	numeric	A contract change makes you responsible for $30/t main carriage and $10/t extra handling on 30,000 t. Added cost?	WHY: 30,000 × (30 + 10) = $1,200,000.
+26	choice	A buyer-controlled quantity or pricing clause should be treated as…	WHY: Control over future price, timing or quantity has value and should be identified before the commercial price is fixed.
+27	numeric	Buyer may choose the lower of Month 1 at $740/t or Month 2 at $700/t on 30,000 t. In this realised scenario, value transferred to the buyer versus being forced to Month 1?	WHY: 30,000 × ($740 − $700) = $1,200,000.
+28	numeric	Offtake volume is 50,000 t with +10% buyer option. Extra tonnes cost $10/t above contract economics when exercised. Realised option cost?	WHY: 50,000 × 10% × $10 = $50,000.
+29	numeric	Contract provides liquidated damages of $0.3/t/day on 30,000 t. Delivery is 3 days late. Damages?	WHY: 30,000 × 3 × $0.3 = $27,000.
+30	numeric	Verified contractual claim is $2,000,000 but the applicable liability cap is $2,000,000. Amount within the cap?	WHY: min($2,000,000, $2,000,000) = $2,000,000.
+31	numeric	Offtake 80,000 t/year for 7 years at $10/t gross contribution, with $4/t risk reserve. Undiscounted risk-adjusted life contribution?	WHY: 80,000 × (10 − 4) × 7 = $3,360,000.
