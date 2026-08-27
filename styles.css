@@ -833,3 +833,23 @@ body.immersive .game-nav{display:grid}
 .app-legal a{color:var(--gold-hi)}
 .auth-gate-legal{margin:14px 0 0;font-size:12.5px;line-height:1.55;color:var(--muted-2);text-align:center}
 .auth-gate-legal a{color:var(--gold-hi)}
+
+/* ── spendere una vita per vedere la soluzione ────────────────────── */
+.btn.reveal{display:block;width:100%;margin:0 0 10px;padding:13px 18px;border-radius:16px;
+  font-size:15px;font-weight:600;letter-spacing:.02em;text-transform:none;
+  color:var(--gold-hi);background:rgba(4,14,40,.55);
+  border:2px solid rgba(255,212,92,.34);box-shadow:none}
+.btn.reveal:hover:not(:disabled){background:rgba(4,14,40,.8);color:#fff}
+.btn.reveal:active:not(:disabled){transform:translateY(2px)}
+.btn.reveal:disabled{opacity:.42;cursor:not-allowed;color:var(--muted-2);
+  border-color:rgba(255,212,92,.16)}
+.btn.reveal:focus-visible{outline:3px solid var(--gold-hi);outline-offset:3px}
+
+.feedback.shown{border-top-color:var(--gold)}
+.fb-note{margin:8px 0 0;font-size:14px;line-height:1.5;color:var(--gold-hi)}
+
+/* la soluzione mostrata non è interattiva */
+.orderitem.solved{opacity:.95}
+.orderitem.solved b{background:linear-gradient(180deg,#fff0b8,#f5a623);color:#08183f}
+.pairs.solved .pair-btn,.tiles.solved .tile{cursor:default;pointer-events:none}
+.tiles.solved .tile{border-color:rgba(255,212,92,.45)}

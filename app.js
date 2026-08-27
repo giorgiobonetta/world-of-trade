@@ -637,6 +637,7 @@
     btn.className = 'btn primary';
     btn.textContent = 'Check';
     btn.disabled = true;
+    renderRivela();
     renderExercise(run.current.ex);
   }
 
@@ -873,27 +874,111 @@
       if (key) { state.misses[key] = (state.misses[key] || 0) + 1; save(); }
       run.queue.push({ ...run.current, retry: true });   // l'errore torna
       renderHearts();
+      renderRivela();
     }
     markAnswers(ex, ok);
+    renderRivela();
+    mostraFeedback(ex, ok ? 'ok' : 'no');
+    if (!ok) { const h = $('#hearts'); h.classList.remove('lost'); void h.offsetWidth; h.classList.add('lost'); }
+    renderStreak(ok);
+    renderProgress();
+    if (run.hearts <= 0) setTimeout(() => failRun(), 900);
+  }
+
+  /* esito: 'ok' | 'no' | 'rivelato' */
+  function mostraFeedback(ex, esito) {
     const fb = $('#feedback');
-    fb.className = `feedback ${ok ? 'good' : 'bad'}`;
+    const buono = esito === 'ok';
+    fb.className = `feedback ${buono ? 'good' : 'bad'}${esito === 'rivelato' ? ' shown' : ''}`;
     const M = window.MASCOT;
+    const faccia = buono ? 'happy' : esito === 'rivelato' ? 'teach' : 'oops';
+    const testa = buono ? (M ? M.praise() : 'Correct')
+      : esito === 'rivelato' ? 'Here it is.'
+      : (M ? M.miss() : 'Not quite');
     fb.innerHTML = `<div class="fb-inner">
-        <div class="fb-face">${M ? M.svg(ok ? 'happy' : 'oops', 74) : ''}</div>
+        <div class="fb-face">${M ? M.svg(faccia, 74) : ''}</div>
         <div class="fb-copy">
-          <div class="fb-head">${esc(M ? M.name : '')} <em>${esc(M ? (ok ? M.praise() : M.miss()) : (ok ? 'Correct' : 'Not quite'))}</em></div>
+          <div class="fb-head">${esc(M ? M.name : '')} <em>${esc(testa)}</em></div>
           <p>${esc(ex.why || '')}</p>
+          ${esito === 'rivelato' ? '<p class="fb-note">It comes back later in this lesson — you still have to answer it yourself.</p>' : ''}
         </div>
       </div>`;
     fb.hidden = false;
     const btn = $('#checkButton');
     btn.disabled = false;
-    btn.className = `btn ${ok ? 'go' : 'stop'}`;
+    btn.className = `btn ${buono ? 'go' : 'stop'}`;
     btn.textContent = run.hearts <= 0 ? 'Out of lives' : (run.queue.length ? 'Continue' : 'Finish');
-    if (!ok) { const h = $('#hearts'); h.classList.remove('lost'); void h.offsetWidth; h.classList.add('lost'); }
-    renderStreak(ok);
+  }
+
+  /* ── spendere una vita per vedere la soluzione ──────────────────────
+     Regole, e il motivo di ciascuna:
+     · costa una vita, altrimenti non è una scelta;
+     · non è disponibile con una sola vita rimasta: perdere la partita
+       premendo "mostrami la risposta" è un modo confuso di finire;
+     · non è disponibile in un checkpoint, che è una verifica;
+     · non conta come risposta presa al primo colpo — azzera la serie, non dà
+       XP e finisce fra le cose da ripassare;
+     · l'esercizio torna comunque in coda: vedere la soluzione non è averla data. */
+  const puoRivelare = () => !!run && run.state === 'answering'
+    && run.mode !== 'checkpoint' && run.hearts > 1;
+
+  function renderRivela() {
+    const b = $('#revealButton');
+    if (!b) return;
+    const disponibile = puoRivelare();
+    b.hidden = !run || run.mode === 'checkpoint';
+    b.disabled = !disponibile;
+    b.textContent = run && run.hearts <= 1 ? 'Show the answer — needs a spare life'
+                                           : 'Show the answer · costs 1 life';
+  }
+
+  function mostraSoluzione(ex) {
+    const host = $('#exBody') || $('#exerciseArea');
+    if (ex.type === 'choice') {
+      run.picked = ex.answer;
+      $$('.opt').forEach(b => { b.classList.remove('sel'); if (Number(b.dataset.i) === ex.answer) b.classList.add('sel'); });
+    } else if (ex.type === 'numeric') {
+      const i = $('#numInput');
+      if (i) { i.value = String(ex.answer); run.picked = String(ex.answer); }
+    } else if (ex.type === 'order') {
+      run.order = ex.items.map((t, i) => ({ t, i }));
+      // ridisegno la lista già ordinata, senza le frecce: è la soluzione
+      if (host) host.innerHTML = `<div class="orderlist">${run.order.map((it, pos) =>
+        `<div class="orderitem solved"><b>${pos + 1}</b><span>${esc(it.t)}</span></div>`).join('')}</div>`;
+    } else if (ex.type === 'pairs') {
+      run.pairState = { matched: ex.pairs.map((_, i) => i), selLeft: null, wrong: 0 };
+      run.picked = 'ok';
+      if (host) host.innerHTML = `<div class="pairs solved">
+        <div class="col">${ex.pairs.map(p => `<span class="pair-btn matched">${esc(p[0])}</span>`).join('')}</div>
+        <div class="col">${ex.pairs.map(p => `<span class="pair-btn matched">${esc(p[1])}</span>`).join('')}</div>
+      </div>`;
+    } else if (ex.type === 'build') {
+      run.built = ex.sentence.map((t, i) => ({ t, id: i - 1 }));
+      if (host) host.innerHTML = `<div class="tiles solved">${ex.sentence.map(t =>
+        `<span class="tile">${esc(t)}</span>`).join('')}</div>`;
+    }
+  }
+
+  function rivela() {
+    if (!puoRivelare()) return;
+    const ex = run.current.ex;
+    run.hearts--;
+    run.rivelati = (run.rivelati || 0) + 1;
+    run.state = 'feedback';
+    run.answered++;
+    state.streakNow = 0;                       // non l'hai presa, l'hai vista
+    const key = run.current.lessonId != null ? exKey(run.current.lessonId, run.current.i) : null;
+    if (key) { state.misses[key] = (state.misses[key] || 0) + 1; save(); }
+    run.queue.push({ ...run.current, retry: true });
+    mostraSoluzione(ex);
+    if (ex.type === 'choice' || ex.type === 'numeric') markAnswers(ex, true);
+    renderHearts();
+    renderRivela();
+    const h = $('#hearts');
+    if (h) { h.classList.remove('lost'); void h.offsetWidth; h.classList.add('lost'); }
+    mostraFeedback(ex, 'rivelato');
+    renderStreak(false);
     renderProgress();
-    if (run.hearts <= 0) setTimeout(() => failRun(), 900);
   }
 
   function markAnswers(ex, ok) {
@@ -1449,6 +1534,7 @@
 
   /* ── agganci ─────────────────────────────────────────────────────── */
   $('#checkButton').addEventListener('click', onCheck);
+  $('#revealButton')?.addEventListener('click', rivela);
   $('#flashStart')?.addEventListener('click', startFlash);
   $('#frontierStart')?.addEventListener('click', startFrontier);
   $('#dailyStart')?.addEventListener('click', startDaily);
@@ -1490,6 +1576,7 @@
   window.__LEARN__ = { get state(){return state;}, get run(){return run;}, startLesson, onCheck, renderPath,
     startReview, startCheckpoint, reviewItems, checkpointItems, dueCount, exKey, unitDone,
     allLessons, UNITS, CHECK_PASS, REVIEW_SIZE, CHECK_SIZE, HEARTS, CHECK_HEARTS,
+    rivela, puoRivelare, renderRivela,
     replaceState, defaultState, STORAGE_KEY: KEY, SOGLIE, renderStreak, isUnlocked, SANDBOX,
     careerRank, careerLevel, skillScore, startFlash, finishFlash, get flash(){return flash;}, startFrontier, unlockedMasteryWorlds,
     startBoss, startDaily, finishBoss, quitBoss, get boss(){return boss;}, ensureDaily, dailyQuests, claimDailyQuest, localDayKey,
