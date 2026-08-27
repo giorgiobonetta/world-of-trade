@@ -12,7 +12,7 @@ const seed = { done: [], xp: 0, best: {}, badges: {}, misses: {}, doneAt: {},
   L.startLesson('u1l1');
   t('in lezione compare', !S.$('#revealButton').hidden);
   t('ed è attivo con tutte le vite', !S.$('#revealButton').disabled, 'vite ' + L.run.hearts);
-  t('dice quanto costa', /costs 1 life/.test(S.$('#revealButton').textContent),
+  t('dice quanto costa', /costs 1 lifebuoy/.test(S.$('#revealButton').textContent),
     S.$('#revealButton').textContent);
   t('nessun errore runtime', errors.length === 0, errors.slice(0, 2).join('|'));
 }
@@ -25,7 +25,7 @@ const seed = { done: [], xp: 0, best: {}, badges: {}, misses: {}, doneAt: {},
   L.run.hearts = 1;
   L.renderRivela();
   t('con una sola vita è disattivato', S.$('#revealButton').disabled);
-  t('e lo spiega invece di restare muto', /needs a spare life/.test(S.$('#revealButton').textContent),
+  t('e lo spiega invece di restare muto', /needs a spare lifebuoy/.test(S.$('#revealButton').textContent),
     S.$('#revealButton').textContent);
   const prima = L.run.hearts;
   L.rivela();

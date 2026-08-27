@@ -70,7 +70,11 @@ const leggi = f => fs.readFileSync(DIR + '/' + f, 'utf8');
   const cp = L.checkpointItems(L.UNITS[0]);
   t('il checkpoint pesca 8 domande su tutte le lezioni',
     cp.length === 8 && new Set(cp.map(x => x.lessonId)).size === 4);
-  t('il checkpoint ha più vite di una lezione', L.CHECK_HEARTS > L.HEARTS);
+  // i salvagenti ora sono un fondo unico: al checkpoint non si danno vite in più,
+  // gli si chiede un minimo per poter arrivare a un punteggio
+  t('un checkpoint richiede un minimo di salvagenti', L.CHECK_MIN_LIVES >= 3, String(L.CHECK_MIN_LIVES));
+  t('e il minimo è inferiore al massimo, altrimenti sarebbe irraggiungibile',
+    L.CHECK_MIN_LIVES < L.MAX_LIVES, `${L.CHECK_MIN_LIVES} di ${L.MAX_LIVES}`);
 }
 
 /* ── compatibilità dei salvataggi ── */

@@ -857,3 +857,14 @@ body.immersive .game-nav{display:grid}
 .orderitem.solved b{background:linear-gradient(180deg,#fff0b8,#f5a623);color:#08183f}
 .pairs.solved .pair-btn,.tiles.solved .tile{cursor:default;pointer-events:none}
 .tiles.solved .tile{border-color:rgba(255,212,92,.45)}
+
+/* ── contatore dei salvagenti nella barra ─────────────────────────── */
+.stat.lives .stat-buoy{display:block;width:17px;height:17px;border-radius:50%;
+  background:
+    conic-gradient(#ff6b52 0 25%, #fdf6e8 0 50%, #ff6b52 0 75%, #fdf6e8 0);
+  box-shadow:inset 0 0 0 1px rgba(6,18,44,.45);
+  position:relative}
+.stat.lives .stat-buoy::after{content:"";position:absolute;inset:5px;border-radius:50%;
+  background:var(--navy-deep,#050d20);box-shadow:inset 0 0 0 1px rgba(6,18,44,.5)}
+.stat.lives.empty .stat-buoy{filter:grayscale(1);opacity:.45}
+.stat.lives.empty b{color:var(--muted-2)}

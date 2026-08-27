@@ -13,8 +13,17 @@
     try { return new URLSearchParams(location.search).has('sandbox'); } catch (e) { return false; }
   })();
   const KEY = SANDBOX ? 'wot-learn-selftest' : 'wot-learn-v1';
-  const HEARTS = 3;
-  const CHECK_HEARTS = 5;
+  /* ── economia dei salvagenti ──────────────────────────────────────
+     I salvagenti sono una risorsa persistente, non tre vite che ricominciano
+     a ogni lezione: se ne spendi uno lo hai perso davvero. Perché il gioco
+     non possa mai bloccarsi, il Ripasso non ne consuma ed è il posto dove si
+     riguadagnano. Questi quattro numeri sono l'intera economia. */
+  const MAX_LIVES = 5;          // quanti se ne possono tenere
+  const START_LIVES = 5;        // con quanti si comincia
+  const STREAK_PER_LIFE = 10;   // risposte giuste di fila per riguadagnarne uno
+  const CHECK_MIN_LIVES = 3;    // un checkpoint deve poter arrivare a un punteggio
+  const HEARTS = MAX_LIVES;
+  const CHECK_HEARTS = MAX_LIVES;
   const SOGLIE = [5, 10, 15, 20, 30, 50, 75, 100];   // dove la serie si festeggia
   const XP_PER = 10;
 
@@ -77,6 +86,8 @@
     reviews: 0,    // sessioni di ripasso fatte (ruota la selezione)
     streakNow: 0,  // risposte giuste consecutive al primo colpo, attraverso le lezioni
     streakBest: 0, // record personale, quello che si condivide
+    lives: START_LIVES, // fondo di salvagenti: persiste fra le sessioni
+    livesEarned: 0,// quanti ne sono stati riguadagnati con le serie
     skillXp: {},    // pratica oltre al progresso base: skill -> punti
     flash: { best:0, plays:0, correct:0, total:0 },
     frontier: { best:0, plays:0, cleared:0, correct:0, total:0 },
@@ -109,7 +120,10 @@
         dailyHistory: { deals:obj(dailyHistory.deals), perfect:obj(dailyHistory.perfect) },
         competitive: { week:competitive.week || null, startXp:Number(competitive.startXp)||0, tier:competitive.tier || 'bronze', alias:String(competitive.alias||''), house:String(competitive.house||''), seasons:Number(competitive.seasons)||0, history:obj(competitive.history), lastPlacement:Number(competitive.lastPlacement)||null, lastSeason:obj(competitive.lastSeason) },
         reviews: Number(s.reviews) || 0, updatedAt: Number(s.updatedAt) || 0,
-        streakNow: Number(s.streakNow) || 0, streakBest: Number(s.streakBest) || 0 };
+        streakNow: Number(s.streakNow) || 0, streakBest: Number(s.streakBest) || 0,
+        // un salvataggio precedente non ha il fondo: si parte pieni
+        lives: s.lives === undefined ? START_LIVES : Math.max(0, Math.min(MAX_LIVES, Number(s.lives) || 0)),
+        livesEarned: Number(s.livesEarned) || 0 };
     } catch (e) { return defaultState(); }
   }
   function save() {
@@ -449,6 +463,7 @@
     _lastXp = state.xp || 0;
   }
   function renderPath() {
+    renderStatLives();
     renderTopStats();
     const next = nextLessonId();
     renderCareerHero();
@@ -532,7 +547,7 @@
         <div class="nodes">${nodes}</div>
         ${ready ? `<button class="checkpoint" data-check="${esc(u.id)}">
           ${badge ? 'Retake the checkpoint' : 'Take the checkpoint'}
-          <small>${CHECK_SIZE} questions across the unit · ${CHECK_HEARTS} lives · ${CHECK_PASS}% to pass</small>
+          <small>${CHECK_SIZE} questions across the unit · needs ${CHECK_MIN_LIVES} lifebuoys · ${CHECK_PASS}% to pass</small>
         </button>` : ''}
       </section>`;
     }).join('');
@@ -557,6 +572,11 @@
   // un unico motore per lezione, ripasso e checkpoint
   function startRun(cfg) {
     if (!cfg.items || !cfg.items.length) return;
+    // il ripasso è sempre aperto: è la via per riguadagnare salvagenti
+    if (cfg.mode !== 'review' && livesNow() <= 0) { avvisoSenzaVite(); return; }
+    /* Un checkpoint con una sola vita morirebbe prima di produrre un punteggio,
+       e un punteggio è tutto il suo senso: serve un minimo per cominciarlo. */
+    if (cfg.mode === 'checkpoint' && livesNow() < CHECK_MIN_LIVES) { avvisoCheckpoint(); return; }
     run = {
       mode: cfg.mode,                 // 'lesson' | 'review' | 'checkpoint'
       lesson: cfg.lesson || null,
@@ -567,8 +587,11 @@
       answered: 0,
       correct: 0,
       firstTry: 0,
-      hearts: cfg.hearts || HEARTS,
-      maxHearts: cfg.hearts || HEARTS,
+      // le vite non sono del run: sono il fondo dell'utente. Il ripasso è
+      // l'unica modalità che non ne consuma, così non ci si blocca mai.
+      gratis: cfg.mode === 'review',
+      hearts: cfg.mode === 'review' ? MAX_LIVES : livesNow(),
+      maxHearts: MAX_LIVES,
       current: null,
       state: 'answering',
     };
@@ -652,7 +675,7 @@
       chip.classList.toggle('record', n > 0 && n === state.streakBest);
       if (appenaGiusta) { chip.classList.remove('pop'); void chip.offsetWidth; chip.classList.add('pop'); }
     }
-    if (appenaGiusta && SOGLIE.includes(n)) festeggia(n);
+    if (appenaGiusta && SOGLIE.includes(n) && n % STREAK_PER_LIFE !== 0) festeggia(n);
   }
 
   function festeggia(n) {
@@ -689,6 +712,67 @@
       <circle cx="12" cy="12" r="5.3" fill="none" stroke="rgba(6,18,44,.5)" stroke-width="1"/>
       <circle cx="12" cy="12" r="11.5" fill="none" stroke="rgba(6,18,44,.45)" stroke-width="1"/>
     </svg>`;
+
+  const livesNow = () => Math.max(0, Math.min(MAX_LIVES, Number(state.lives) ?? START_LIVES));
+
+  /* Toglie un salvagente dal fondo e allinea il run. Il ripasso non paga. */
+  function spendiVita() {
+    if (run && run.gratis) { run.hearts = Math.max(0, run.hearts - 1); return; }
+    state.lives = Math.max(0, livesNow() - 1);
+    if (run) run.hearts = state.lives;
+    save();
+    renderStatLives();
+  }
+
+  /* Una serie abbastanza lunga ne restituisce uno, fino al massimo. */
+  function forseGuadagnaVita() {
+    const n = state.streakNow || 0;
+    if (!n || n % STREAK_PER_LIFE !== 0) return false;
+    if (livesNow() >= MAX_LIVES) return false;
+    state.lives = livesNow() + 1;
+    state.livesEarned = (state.livesEarned || 0) + 1;
+    if (run && !run.gratis) run.hearts = state.lives;
+    save();
+    renderStatLives();
+    annunciaVita(n);
+    return true;
+  }
+
+  function annunciaVita(n) {
+    const t = $('#streakToast');
+    if (!t) return;
+    t.innerHTML = `<span class="st-face">${SALVAGENTE}</span>
+      <span class="st-copy"><strong>Lifebuoy earned</strong>
+        <small>${n} in a row · ${livesNow()} of ${MAX_LIVES}</small></span>`;
+    t.hidden = false;
+    t.classList.remove('show'); void t.offsetWidth; t.classList.add('show');
+    clearTimeout(annunciaVita._t);
+    annunciaVita._t = setTimeout(() => { t.hidden = true; }, 2800);
+    confetti(30);
+  }
+
+  function avvisoCheckpoint() {
+    const el = $('#lockedHint');
+    if (!el) return;
+    el.hidden = false;
+    el.textContent = `A checkpoint needs at least ${CHECK_MIN_LIVES} lifebuoys — with fewer it would end before giving you a score. You have ${livesNow()}.`;
+    try { el.scrollIntoView({ block: 'center', behavior: motionOK() ? 'smooth' : 'auto' }); } catch (e) {}
+  }
+
+  function avvisoSenzaVite() {
+    const el = $('#lockedHint');
+    if (!el) return;
+    el.hidden = false;
+    el.textContent = `No lifebuoys left. Practice never costs one — ${STREAK_PER_LIFE} correct answers in a row earns one back.`;
+    try { el.scrollIntoView({ block: 'center', behavior: motionOK() ? 'smooth' : 'auto' }); } catch (e) {}
+  }
+
+  function renderStatLives() {
+    const b = $('#statLives');
+    if (b) b.textContent = livesNow();
+    const host = $('#statLivesHost');
+    if (host) host.classList.toggle('empty', livesNow() === 0);
+  }
 
   function renderHearts() {
     const max = run.maxHearts || HEARTS;
@@ -861,9 +945,11 @@
     const key = run.current.lessonId != null ? exKey(run.current.lessonId, run.current.i) : null;
     // la serie conta solo le risposte prese al primo colpo: un ritentativo
     // non la fa crescere, altrimenti basterebbe insistere
+    let vitaGuadagnata = false;
     if (ok && !run.current.retry) {
       state.streakNow = (state.streakNow || 0) + 1;
       if (state.streakNow > (state.streakBest || 0)) state.streakBest = state.streakNow;
+      vitaGuadagnata = forseGuadagnaVita();
     } else if (!ok) {
       state.streakNow = 0;
     }
@@ -881,7 +967,7 @@
         save();
       }
     } else {
-      run.hearts--;
+      spendiVita();
       if (key) { state.misses[key] = (state.misses[key] || 0) + 1; save(); }
       run.queue.push({ ...run.current, retry: true });   // l'errore torna
       renderHearts();
@@ -893,7 +979,7 @@
     if (!ok) { const h = $('#hearts'); h.classList.remove('lost'); void h.offsetWidth; h.classList.add('lost'); }
     renderStreak(ok);
     renderProgress();
-    if (run.hearts <= 0) setTimeout(() => failRun(), 900);
+    if (run.hearts <= 0 && !run.gratis) setTimeout(() => failRun(), 900);
   }
 
   /* esito: 'ok' | 'no' | 'rivelato' */
@@ -918,7 +1004,7 @@
     const btn = $('#checkButton');
     btn.disabled = false;
     btn.className = `btn ${buono ? 'go' : 'stop'}`;
-    btn.textContent = run.hearts <= 0 ? 'Out of lives' : (run.queue.length ? 'Continue' : 'Finish');
+    btn.textContent = (run.hearts <= 0 && !run.gratis) ? 'Out of lifebuoys' : (run.queue.length ? 'Continue' : 'Finish');
   }
 
   /* ── spendere una vita per vedere la soluzione ──────────────────────
@@ -973,7 +1059,7 @@
   function rivela() {
     if (!puoRivelare()) return;
     const ex = run.current.ex;
-    run.hearts--;
+    spendiVita();
     run.rivelati = (run.rivelati || 0) + 1;
     run.state = 'feedback';
     run.answered++;
@@ -1587,7 +1673,8 @@
   window.__LEARN__ = { get state(){return state;}, get run(){return run;}, startLesson, onCheck, renderPath,
     startReview, startCheckpoint, reviewItems, checkpointItems, dueCount, exKey, unitDone,
     allLessons, UNITS, CHECK_PASS, REVIEW_SIZE, CHECK_SIZE, HEARTS, CHECK_HEARTS,
-    rivela, puoRivelare, renderRivela,
+    rivela, puoRivelare, renderRivela, livesNow, spendiVita, forseGuadagnaVita,
+    MAX_LIVES, STREAK_PER_LIFE, CHECK_MIN_LIVES,
     replaceState, defaultState, STORAGE_KEY: KEY, SOGLIE, renderStreak, isUnlocked, SANDBOX,
     careerRank, careerLevel, skillScore, startFlash, finishFlash, get flash(){return flash;}, startFrontier, unlockedMasteryWorlds,
     startBoss, startDaily, finishBoss, quitBoss, get boss(){return boss;}, ensureDaily, dailyQuests, claimDailyQuest, localDayKey,
