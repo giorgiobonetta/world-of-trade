@@ -93,9 +93,9 @@
       lessons:['Working capital','Letters of credit','Counterparty limits','Payment timing','Borrowing base logic','Credit-adjusted trading'],
       goals:['Calculate funding cost.','Understand documentary payment security.','Use limits as scarce capacity.','Price payment terms.','Think in collateral and advance rates.','Compare margin after credit cost.'],
       concepts:[
-        R => { const value=r(R,2,10)*1000000, days=r(R,30,120,15), rate=one(R,[5,6,7,8]); const interest=round(value*(rate/100)*(days/360)); return numeric(`Fund ${(value/1e6)}m for ${days} days at ${rate}% p.a. on a 360-day basis. Interest?`,interest,'$',`${money(value)} × ${rate}% × ${days}/360 ≈ ${money(interest)}.`,2); },
+        R => { const value=r(R,2,10)*1000000, days=r(R,30,120,15), rate=one(R,[5,6,7,8]); const interest=round(value*(rate/100)*(days/360)); return numeric(`You fund ${money(value)} of cargo for ${days} days at ${rate}% a year, on a 360-day basis. What is the interest cost?`,interest,'$',`${money(value)} × ${rate}% × ${days}/360 ≈ ${money(interest)}.`,2); },
         R => choice('A documentary letter of credit primarily helps the seller by…',['Substituting bank documentary payment risk for pure buyer open-account risk','Fixing commodity price','Guaranteeing cargo quality','Fixing freight'],0,'A compliant LC can materially improve payment security, but only if documents meet its conditions.'),
-        R => { const limit=r(R,5,15)*1000000, used=r(R,2,10)*1000000; const avail=Math.max(0,limit-used); return numeric(`Counterparty limit ${money(limit)}, current exposure ${money(used)}. Remaining headroom?`,avail,'$',`${money(limit)} − ${money(used)} = ${money(avail)}.`); },
+        R => { const limit=r(R,6,15)*1000000, used=r(R,1,5)*1000000; const avail=limit-used; return numeric(`Counterparty limit ${money(limit)}, current exposure ${money(used)}. Remaining headroom?`,avail,'$',`${money(limit)} − ${money(used)} = ${money(avail)}. Headroom is what you can still trade with them before the limit stops you.`); },
         R => choice('Selling 60 days open account instead of cash against documents should normally…',['Have a price/credit cost because you finance and expose yourself longer','Be economically identical','Reduce exposure to zero','Eliminate working capital'],0,'Longer unsecured terms use capital and increase default exposure.'),
         R => { const inv=r(R,4,12)*1000000, advance=one(R,[70,75,80,85,90]); const loan=inv*advance/100; return numeric(`Eligible inventory is ${money(inv)} and borrowing-base advance rate is ${advance}%. Maximum borrowing against it?`,loan,'$',`${money(inv)} × ${advance}% = ${money(loan)}.`); },
         R => choice('A credit limit is best thought of as…',['Scarce risk capacity, not a sales target','Guaranteed profit','A recommendation to use all exposure','A futures position'],0,'Limits cap acceptable exposure. Using them consumes scarce capacity that should earn enough return.'),
@@ -253,6 +253,520 @@
 
   // Five concept slots per lesson, curated so generated questions stay on the lesson's
   // actual learning objective instead of sampling the whole desk indiscriminately.
+  /* Concetti aggiuntivi, tenuti fuori dagli array originali di `worlds` così
+     il contenuto già scritto resta intatto e revisionabile a parte.
+     Servono per riempire 30 slot per desk senza ripetere una domanda a scelta:
+     con 10 concetti su 30 slot ogni domanda a scelta ricompariva identica
+     fino a sei volte, una per lezione. */
+  const EXTRA = {};
+  /* @EXTRA-INIZIO */
+  EXTRA.a1 = [
+    R => choice('Days of cover fall from 45 to 22 while the balance stays in deficit. What does that tell you?',
+      ['The market has less buffer left, so price becomes more sensitive to any disruption','That prices must fall','That freight will drop','That the deficit has been resolved'],0,
+      'Cover measures how long the market can absorb a shock. Low cover plus a deficit is the setup for a violent move on small news.'),
+    R => choice('A balance shows a surplus but prices keep rising. What is the most likely explanation?',
+      ['The surplus is in the wrong place or the wrong grade to reach the buyers who need it','The balance is always wrong','Prices ignore fundamentals','Freight has no effect'],0,
+      'A global balance hides location and quality. Material stranded behind a bottleneck does not relieve a tight consuming region.'),
+    R => choice('Why is a netback more useful than a headline benchmark when choosing where to sell?',
+      ['It nets freight, handling and quality back to your loading point, so two destinations become comparable','It is easier to remember','It removes credit risk','It fixes the freight market'],0,
+      'Two destinations can show the same benchmark and pay you very differently once the route is paid for.'),
+    R => choice('Processing margins collapse to near zero across an industry. What usually follows?',
+      ['Run cuts, which reduce demand for feedstock and supply of product','An immediate price cap','Higher processing rates','No change in flows'],0,
+      'Negative margins are self-correcting: plants cut runs, and the feedstock and product balances both shift.'),
+    R => choice('You have a strong bearish view but the curve is in steep backwardation. What does the curve tell you?',
+      ['The physical market is tight now, whatever happens later','That your view is correct','That storage is profitable','Nothing about the present'],0,
+      'Backwardation is the market paying for immediacy. It can coexist with a weak forward view, and it makes being short the front expensive.'),
+    R => choice('Which evidence would most change a supply–demand view?',
+      ['A confirmed change in operating capacity or an unexpected inventory draw','A single day of price movement','A headline without numbers','Another analyst agreeing'],0,
+      'Views should move on quantities, not on price action that may simply be positioning.'),
+    R => choice('Why do desks track floating storage separately from onshore stocks?',
+      ['Cargoes at sea are already committed to a route and reach the market on a different timetable','It looks better in a report','It is the same as onshore stock','Ships cannot store cargo'],0,
+      'Where inventory sits changes when and where it can be delivered, which is what the physical market prices.'),
+    R => choice('A producing region loses export capacity for two months. What is the first-order effect?',
+      ['A regional surplus at origin and a deficit at destination, widening the spread between them','A uniform global price fall','No change, since total supply is unchanged','Freight becomes irrelevant'],0,
+      'Supply that cannot move is not supply. Logistics failures show up as spreads before they show up in the balance.'),
+    R => choice('What is the honest limit of a supply–demand balance?',
+      ['It is an estimate built on reported data with revisions and gaps, not a measurement','It is exact once published','It predicts price levels directly','It replaces judgement'],0,
+      'Balances are directional tools. Treating them as precise is how people become confidently wrong.'),
+    R => { const cap=r(R,80,140), util=one(R,[72,78,85,91]); const out=round(cap*util/100,1);
+      return numeric(`Capacity is ${cap} Mt a year and utilisation is ${util}%. Approximate output?`,out,'Mt',
+        `${cap} × ${util}% = ${out} Mt. Utilisation is where a supply forecast usually goes wrong.`,.06); },
+    R => { const base=r(R,60,120), growth=one(R,[2,3,4,5]); const next=round(base*(1+growth/100),1);
+      return numeric(`Demand is ${base} Mt and grows ${growth}% next year. Demand next year?`,next,'Mt',
+        `${base} × (1 + ${growth}%) = ${next} Mt. A few points of demand growth on a large base can absorb an entire new plant.`,.06); },
+  ];
+
+  EXTRA.a2 = [
+    R => choice('A buyer asks for a ±10% quantity option at their choice. What have you given away?',
+      ['A free option: they will take more when the market suits them and less when it does not','Nothing, since the price is fixed','A credit improvement','A freight saving'],0,
+      'Operational tolerances are options. If you do not price them, the counterparty exercises them against you.'),
+    R => choice('Your purchase prices on the month of loading and your sale on the month of discharge. What have you created?',
+      ['A timing exposure between two different quotation periods','A perfect back-to-back','A freight hedge','A credit enhancement'],0,
+      'Matching volumes is not matching risk. Different pricing windows leave you long or short the spread between them.'),
+    R => choice('Which deal would a disciplined desk prefer?',
+      ['Smaller margin with a known counterparty and clean logistics','Largest headline margin regardless of terms','The one with the biggest volume','The one that closes fastest'],0,
+      'Margin that cannot be collected or executed is not margin. Volume is a vanity metric on a physical desk.'),
+    R => choice('You can nominate one of three discharge ports. What is that worth?',
+      ['It is optionality you can value and monetise by choosing the best netback at the time','Nothing until discharge','Only a freight saving','A quality upgrade'],0,
+      'Destination flexibility is one of the most valuable and most under-priced features in a physical contract.'),
+    R => choice('Why do desks look at the book rather than each trade alone?',
+      ['Positions offset, and the real exposure is the net across deals','To simplify reporting','Because single trades never matter','To avoid hedging'],0,
+      'Two trades that look risky alone can be flat together, and two that look safe can compound.'),
+    R => choice('A counterparty offers a price well above the market for prompt delivery. What should you check first?',
+      ['Why they need it, and whether they can pay and perform','Nothing, take it','Only the freight','Only the currency'],0,
+      'An unusually good price usually carries an unusually good reason. Often it is distress, and distress carries credit risk.'),
+    R => choice('What does "washout" mean in a physical contract?',
+      ['Cancelling the physical delivery and settling the price difference in cash','Cleaning the cargo tanks','Refusing to pay','Switching the vessel'],0,
+      'A washout closes a contract financially when delivery no longer makes sense for either side.'),
+    R => choice('Your margin depends on a quality premium the buyer disputes on arrival. What was the mistake?',
+      ['Not agreeing the specification, sampling method and binding certificate before shipment','Shipping too early','Using an incoterm','Hedging the flat price'],0,
+      'Quality disputes are decided by the words agreed beforehand, not by who is more certain afterwards.'),
+    R => choice('Why is a signed recap not the same as a concluded contract?',
+      ['Open items and conflicting standard terms can still change the economics materially','It always is the same','Recaps are not binding at all','Contracts are optional'],0,
+      'Most commercial arguments live in the gap between the recap and the full contract.'),
+    R => { const t=r(R,20,60,5)*1000, sp=r(R,8,30); const tot=t*sp;
+      return numeric(`You improve the netback by $${sp}/t on ${t.toLocaleString('en-US')} t. Total contribution?`,tot,'$',
+        `${t.toLocaleString('en-US')} × ${sp} = ${money(tot)}. Small per-tonne gains matter because tonnage is large.`); },
+  ];
+
+  EXTRA.a3 = [
+    R => choice('An owner refuses your cargo despite a freight rate above the last done. Why might that be rational?',
+      ['Their time charter equivalent is lower than an alternative voyage they can take instead','Owners refuse cargoes at random','They dislike the commodity','Freight rates do not matter to owners'],0,
+      'Owners compare in dollars per day. A high rate on a slow, badly positioned voyage can still lose to a lower rate on a fast one.'),
+    R => choice('Why does a laycan that is too narrow cost you money even if the ship arrives?',
+      ['Owners price the risk of missing the window into the rate, and you lose bargaining power','Narrow laycans are always free','It only affects the seller','It removes demurrage'],0,
+      'Flexibility is worth money to the person who has it. Giving it up is a real cost even when nothing goes wrong.'),
+    R => choice('You are quoted the same rate for two routes of equal distance. What still differs?',
+      ['Port time, canal dues, bunker prices at the load port and where the ship ends up','Nothing, distance decides','Only the flag','Only the cargo'],0,
+      'Distance is one input. Days are the currency, and port and canal time consume days without earning them.'),
+    R => choice('Why is demurrage often a negotiation rather than an arithmetic result?',
+      ['Whether the NOR was valid and which delays counted are matters of interpretation','Because the rate is unclear','Because nobody records time','Because owners always waive it'],0,
+      'The daily rate is agreed; what is contested is how many hours qualify.'),
+    R => choice('A vessel is delayed by port congestion under a voyage charter. Who bears it?',
+      ['The charterer, once laytime is exhausted, as demurrage','The owner, always','The port','Nobody'],0,
+      'That is the point of laytime: it allocates a fixed allowance, and congestion beyond it has a price.'),
+    R => choice('Bunker prices rise sharply between your indication and the fixture. What happens?',
+      ['The owner rebuilds the quote, because bunkers are a voyage cost they cannot recover later','The old quote stands','Only the charterer is affected','Nothing changes'],0,
+      'A freight indication assumes a fuel price. Once fuel moves, a stale indication is not a price.'),
+    R => choice('Why do desks watch the ballast position of the fleet, not just the freight index?',
+      ['The index is an average; what you pay depends on which ships can actually reach you','Indices are wrong','Ballast legs are free','Positions are secret'],0,
+      'Freight is priced by the marginal available ship, and availability is local.'),
+    R => choice('What does a sub-let of a time-chartered vessel expose you to?',
+      ['You remain liable to the head owner while depending on the performance of your sub-charterer','Nothing at all','Only a freight gain','A credit improvement'],0,
+      'Chartering in and out builds a chain, and you sit in the middle of it holding both obligations.'),
+    R => { const t=r(R,25,70,5)*1000, rate=r(R,18,48); const f=t*rate;
+      return numeric(`Freight is $${rate}/t on ${t.toLocaleString('en-US')} t. Total freight?`,f,'$',
+        `${t.toLocaleString('en-US')} × ${rate} = ${money(f)}. On a cargo worth tens of millions this is often several percent of the value.`); },
+    R => { const days=r(R,18,42), hire=r(R,12,40)*1000, port=r(R,60,220)*1000; const tot=days*hire+port;
+      return numeric(`Hire is ${money(hire)}/day for ${days} days, plus ${money(port)} of port costs. Total cost before bunkers?`,tot,'$',
+        `${days} × ${money(hire)} + ${money(port)} = ${money(tot)}. Bunkers come on top, and they are usually the largest and most volatile piece.`); },
+  ];
+  EXTRA.a4 = [
+    R => choice('A bank lends against your inventory at an 80% advance rate. What happens if the price falls 30%?',
+      ['The borrowing base shrinks and you may have to repay or post more collateral, exactly when cash is tight','Nothing, the facility is fixed','The advance rate rises','Interest stops accruing'],0,
+      'Asset-based lending is procyclical: the collateral and the credit available fall together, which is why a price crash becomes a funding crisis.'),
+    R => choice('Why does a seller ask for a letter of credit to be confirmed?',
+      ['It adds a second bank’s undertaking, covering the risk of the issuing bank or its country','It speeds up shipment','It removes quality disputes','It reduces the freight'],0,
+      'An LC is only as good as the bank behind it. Confirmation moves that risk to a bank the seller is willing to face.'),
+    R => choice('What is the practical difference between a documentary LC and a standby LC?',
+      ['A documentary LC is the intended payment route; a standby is a guarantee drawn only if the buyer defaults','They are identical','A standby is cheaper always','Only the currency differs'],0,
+      'One is how you expect to be paid; the other is what you fall back on when you are not.'),
+    R => choice('Your documents are refused for a discrepancy. What are your realistic options?',
+      ['Correct and re-present if time allows, ask the buyer to waive, or fall back on open account risk','Sue the bank immediately','Ignore it, payment is automatic','Cancel the shipment'],0,
+      'Banks are entitled to refuse on strict compliance. Most discrepancies are resolved commercially, which hands leverage to the buyer.'),
+    R => choice('Why does a desk measure days sales outstanding?',
+      ['It shows how long cash stays with customers, which sets how much funding the volume needs','It measures profit','It is a tax figure','It replaces credit limits'],0,
+      'Every extra day of receivable is financed. On thin margins, collection speed can matter as much as price.'),
+    R => choice('A buyer offers a discount for prepayment. What have you become?',
+      ['An unsecured lender to that buyer, on top of being their supplier','Only a supplier','Fully secured','Hedged'],0,
+      'Prepayment converts trading exposure into credit exposure, and it should be priced and limited like lending.'),
+    R => choice('What does assignment of receivables give a lender?',
+      ['A direct claim on the money your buyer owes you, improving their security','Ownership of the cargo','A quality guarantee','A freight discount'],0,
+      'Structured trade finance works by attaching the lender to specific cash flows rather than to your balance sheet alone.'),
+    R => choice('Credit insurance covers your buyer. Why is it not the same as being paid?',
+      ['Cover has exclusions, deductibles, waiting periods and its own claim risk','It is exactly the same','It pays before default','It removes all documentation'],0,
+      'Insurance changes who you are exposed to and when you get paid, not whether the exposure exists.'),
+    R => choice('Why do desks net exposures with a counterparty across contracts?',
+      ['A single netting agreement lets offsetting positions reduce the amount actually at risk','To simplify invoices','Because regulators forbid gross','It increases exposure'],0,
+      'Without enforceable netting, you are exposed gross even when the economics offset.'),
+    R => { const price=r(R,600,900,10), days=r(R,30,90,15), rate=one(R,[5,6,7,8]); const cost=round(price*(rate/100)*(days/360),2);
+      return numeric(`Financing ${money(price)}/t of cargo for ${days} days at ${rate}% a year on a 360-day basis. Finance cost per tonne?`,cost,'$/t',
+        `${price} × ${rate}% × ${days}/360 = $${cost}/t. Compare this with the margin before agreeing longer payment terms.`,.02); },
+  ];
+
+  EXTRA.a5 = [
+    R => choice('Your VaR is comfortably inside the limit and the desk still loses more than VaR in a day. What went wrong?',
+      ['Nothing necessarily: VaR is a threshold that is expected to be breached occasionally, not a maximum','The model is broken','The limit was wrong','The loss must be an error'],0,
+      'A 95% VaR is expected to be exceeded about one day in twenty. Being surprised by that means it was being read as a ceiling.'),
+    R => choice('Why can a desk be within every price limit and still fail?',
+      ['Limits on price risk say nothing about funding, concentration or the ability to perform','Because limits are decorative','Because prices always move','It cannot fail'],0,
+      'The risks that end desks are usually cash and counterparties, and neither appears in a price limit.'),
+    R => choice('What is the purpose of an independent risk function?',
+      ['To measure and constrain exposure without the incentive of the person taking it','To approve trades faster','To forecast prices','To find counterparties'],0,
+      'The control only works because the person applying it does not benefit from the position.'),
+    R => choice('A correlation that has held for five years breaks in a week. Why is that predictable?',
+      ['Correlations tend to break exactly when markets are stressed, which is when the hedge was needed','It is never predictable','Correlations are constant','It only affects equities'],0,
+      'Statistical relationships are calm-market artefacts. Stress tests exist because of this.'),
+    R => choice('What does a stop-loss discipline actually protect against?',
+      ['The tendency to hold a losing position hoping to be proved right','Market volatility itself','Credit default','Freight risk'],0,
+      'It is a control on behaviour more than on the market. Its value is that it is decided before the loss.'),
+    R => choice('Why report position and exposure separately?',
+      ['Position is what you hold; exposure is what your P&L does when something moves','They are the same','Exposure is an accounting term','Position includes cash'],0,
+      'A large position can carry small exposure if it is hedged, and a small one can carry large exposure if it is not.'),
+    R => choice('A single grade, single port, single buyer trade is 40% of the book. Which limit catches this?',
+      ['A concentration limit, since price limits would show the total as acceptable','A VaR limit','A stop-loss','No limit needed'],0,
+      'Concentration hides inside an acceptable total. It needs its own constraint.'),
+    R => choice('What is model risk on a commodity desk?',
+      ['The risk that the assumptions inside your valuation or hedge model do not hold in the market you are in','The risk of a computer failure','The risk of a wrong price feed only','A regulatory category with no effect'],0,
+      'A model is a set of assumptions with numbers attached. When the assumptions fail, the numbers stay confident.'),
+    R => choice('Why does an operational error belong in the risk report?',
+      ['A missed nomination or a wrong document can cost more than a price move','It does not belong there','Only price risk counts','Operations cannot lose money'],0,
+      'On physical desks, execution failures are a routine and material source of loss.'),
+    R => { const pos=r(R,20,80,5)*1000, vol=r(R,4,18); const z=1.645; const v=round(pos*vol*z);
+      return numeric(`You are long ${pos.toLocaleString('en-US')} t and daily volatility is $${vol}/t. Using a 95% factor of 1.645, what is the one-day VaR?`,v,'$',
+        `${pos.toLocaleString('en-US')} × ${vol} × 1.645 = ${money(v)}. The whole number rests on that volatility estimate.`,Math.max(1,Math.round(pos*vol*z*0.001))); },
+  ];
+
+  EXTRA.a6 = [
+    R => choice('Why do commodity desks often use Asian (average price) options rather than plain vanilla?',
+      ['Physical contracts usually price off an average over a quotation period, so the hedge should too','They are cheaper only','They never expire','They remove credit risk'],0,
+      'A hedge should match how the cargo is priced. Hedging an averaged exposure with a single-date option leaves a timing mismatch.'),
+    R => choice('You buy a put to protect a long inventory. What is the worst case?',
+      ['You lose the premium, and keep the upside on the physical','Unlimited loss','You must deliver the cargo','The premium is refunded'],0,
+      'A bought option has known, limited cost. That is what you pay for compared with a futures hedge.'),
+    R => choice('What is a zero-cost collar?',
+      ['Buying protection and selling away some upside so the premiums offset','An option with no risk','A freight contract','A credit instrument'],0,
+      'It is not free: you paid with the upside you gave away, which is a real cost if the market rallies.'),
+    R => choice('Why does a swap suit a refiner with steady monthly volumes?',
+      ['It fixes an average price over a period without daily margining on a futures position','It removes all price risk forever','It guarantees supply','It replaces the physical contract'],0,
+      'Swaps settle against an average and are usually bilateral, which fits a regular physical programme.'),
+    R => choice('Implied volatility rises sharply while the price is unchanged. What has happened?',
+      ['The market is pricing more uncertainty ahead, so options become more expensive','Nothing meaningful','The price must fall','Options become cheaper'],0,
+      'Volatility is a traded quantity of its own. Hedging costs can rise without the underlying moving at all.'),
+    R => choice('What does delta tell a hedger?',
+      ['Roughly how much of the underlying the option currently behaves like','The expiry date','The premium paid','The credit exposure'],0,
+      'Delta is how much of a futures position the option is equivalent to right now, and it changes as the market moves.'),
+    R => choice('Why is selling options to earn premium dangerous for a physical desk?',
+      ['The premium is small and known while the loss is large and uncertain, and margin is called in cash','It is not dangerous','Premium income is guaranteed','Sold options cannot be exercised'],0,
+      'Writing options converts a trading business into an insurance business, usually without the capital to match.'),
+    R => choice('What is a basis swap used for?',
+      ['Hedging the difference between two related prices rather than the outright level','Fixing the freight','Buying physical cargo','Removing credit risk'],0,
+      'It targets exactly the risk a plain futures hedge leaves behind.'),
+    R => choice('A spread option pays on the difference between two prices. Where does that fit?',
+      ['Processing or location economics, where the margin is itself a spread','Only for speculation','Nowhere in physical trading','Only for freight'],0,
+      'Refining and arbitrage margins are spreads, so the natural hedge is an instrument on the spread.'),
+    R => { const t=r(R,10,40,5)*1000, delta=one(R,[0.3,0.45,0.6,0.75]); const eq=Math.round(t*delta);
+      return numeric(`You hold options on ${t.toLocaleString('en-US')} t with a delta of ${delta}. How many tonnes of futures do they currently behave like?`,eq,'t',
+        `${t.toLocaleString('en-US')} × ${delta} = ${eq.toLocaleString('en-US')} t. Delta changes as the market moves, so the hedge has to be revisited.`,1); },
+  ];
+  EXTRA.a7 = [
+    R => choice('What does an LME warrant represent?',
+      ['Title to a specific lot of metal in an approved warehouse','A futures contract','A shipping document','A credit line'],0,
+      'Warrants are how metal ownership transfers without the metal moving, which is what makes LME delivery work.'),
+    R => choice('Warehouse rent and load-out queues lengthen at a major location. What happens to the regional premium?',
+      ['It tends to rise, because getting metal out costs more time and money','It falls to zero','It is unaffected','Only freight changes'],0,
+      'Physical premiums price the cost and delay of getting usable metal, not just the exchange price.'),
+    R => choice('Why is an exchange price alone not the price a consumer pays?',
+      ['They pay the exchange price plus a physical premium for location, form, brand and timing','Consumers pay less','Premiums are illegal','The exchange price includes everything'],0,
+      'The premium is where the physical desk earns, and it moves for reasons the screen does not show.'),
+    R => choice('What is a tolling arrangement on a metals desk?',
+      ['You supply raw material and pay a plant to convert it, keeping ownership of the metal','Buying finished metal outright','A freight contract','A credit facility'],0,
+      'Tolling separates the processing service from the ownership of the material, and the risk stays with you.'),
+    R => choice('Treatment and refining charges rise sharply. Who is under pressure?',
+      ['Mines, since more of the metal value is retained by the smelter','Smelters only','Consumers only','Nobody'],0,
+      'TC/RCs are the smelter’s margin and the miner’s cost. They move with concentrate availability.'),
+    R => choice('Why does metal form matter commercially?',
+      ['Cathode, ingot, billet and scrap are not interchangeable for a given consumer’s process','Form never matters','Only weight matters','It only affects freight'],0,
+      'A cargo that does not fit the buyer’s process is worth less to them regardless of purity.'),
+    R => choice('You hedge a copper cargo on the exchange and still lose money. What is the likely cause?',
+      ['The physical premium or the timing moved against you: the hedge covered the exchange price only','The hedge failed','The exchange defaulted','Copper is unhedgeable'],0,
+      'The hedge removes the flat price. Premium and QP mismatch are exactly what it leaves you holding.'),
+    R => choice('What risk does financing metal in a warehouse carry beyond price?',
+      ['That the warrant, the warehouse or the title itself proves defective','No additional risk','Only rent','Only insurance'],0,
+      'Metal financing scandals have generally been title and documentation failures, not price failures.'),
+    R => choice('Why do consumers sign annual premium contracts rather than buying spot?',
+      ['They need guaranteed availability and a budgetable cost, and will pay for that certainty','Spot is unavailable','Premiums are fixed by law','To speculate'],0,
+      'Selling that certainty is a legitimate product, and pricing it wrongly is how a desk gets hurt for a whole year.'),
+    R => { const lme=r(R,7800,9600,100), prem=r(R,90,260,5), t=r(R,500,3000,100); const val=(lme+prem)*t;
+      return numeric(`LME is ${money(lme)}/t and the premium is $${prem}/t on ${t.toLocaleString('en-US')} t. Total cargo value?`,val,'$',
+        `(${lme} + ${prem}) × ${t.toLocaleString('en-US')} = ${money(val)}. Only the LME part is hedgeable on the exchange.`); },
+  ];
+
+  EXTRA.a8 = [
+    R => choice('Why are crude grades quoted as a differential to a benchmark?',
+      ['Quality and location differ, so the market prices the difference rather than each grade outright','To hide the price','Because benchmarks are wrong','Only for tax'],0,
+      'The benchmark carries the flat price; the differential carries everything specific about the barrel.'),
+    R => choice('A refinery’s crack spread widens sharply. What is the likely commercial response?',
+      ['Higher runs, pulling more crude and pushing more product into the market','Immediate shutdown','No response','Lower product output'],0,
+      'Refining margins are the signal that moves crude demand and product supply at the same time.'),
+    R => choice('Why does a heavy sour crude usually trade below a light sweet one?',
+      ['It yields less high-value product and needs more processing to meet specification','It weighs more','It is older','Freight is higher'],0,
+      'Crude is priced on what it can be turned into, not on the barrel itself.'),
+    R => choice('You buy a cargo pricing on the month of loading and sell pricing on the month of arrival. What is the exposure?',
+      ['The spread between two months, which can move even if the flat price does not','None, it is matched','Only freight','Only credit'],0,
+      'This is the classic QP mismatch, and it is why the calendar spread is a position you did not intend to take.'),
+    R => choice('What does contango do to a floating-storage trade in products?',
+      ['It can pay for the freight, financing and losses if the spread is wider than the carry','It always makes it profitable','It is irrelevant','It reduces freight'],0,
+      'Storage economics are a comparison of the forward spread with the full cost of carry, freight included.'),
+    R => choice('A products cargo fails the flash point specification on arrival. What is the commercial reality?',
+      ['It becomes a discounted or reblended cargo, and who pays depends on which certificate is binding','The buyer must accept it','It is worthless','The ship pays'],0,
+      'Off-spec product usually finds a home at a price. The argument is about the contract, not the chemistry.'),
+    R => choice('Why do desks watch refinery maintenance schedules?',
+      ['Planned outages change crude demand and product supply on known dates','They do not','Only for safety','Only for freight'],0,
+      'Maintenance is one of the few genuinely forecastable shifts in a balance.'),
+    R => choice('Blending two components to meet a specification is attractive when…',
+      ['The blended product is worth more than the weighted cost of the components','It is always attractive','Never','Only in contango'],0,
+      'Blending is a margin business with a hard constraint: the result has to actually meet every spec, not just the one you optimised.'),
+    R => choice('What does a "prompt" cargo premium usually indicate?',
+      ['Immediate physical tightness at that location, whatever the forward curve says','A long-term shortage','A freight problem only','A credit issue'],0,
+      'Prompt premiums are the clearest physical signal a desk gets, and they are local.'),
+    R => { const bbl=r(R,300,900,50)*1000, diff=r(R,1,6); const pnl=bbl*diff;
+      return numeric(`A differential strengthens by $${diff}/bbl on ${bbl.toLocaleString('en-US')} bbl you own. P&L impact?`,pnl,'$',
+        `${bbl.toLocaleString('en-US')} × ${diff} = ${money(pnl)}. A futures hedge on the benchmark would not have captured this.`); },
+  ];
+
+  EXTRA.a9 = [
+    R => choice('Why is LNG shipping capacity a commercial constraint and not just a cost?',
+      ['Vessels are specialised and scarce, so without one the arbitrage cannot be executed at all','It is only a cost','Any ship can carry LNG','Shipping is unlimited'],0,
+      'In LNG the ship is often the binding constraint on whether a trade exists.'),
+    R => choice('What is boil-off on an LNG voyage?',
+      ['Cargo that vaporises in transit, part of which is used as fuel','Cargo theft','A quality claim','A port charge'],0,
+      'It is a predictable loss of volume that has to be in the contract and in the economics.'),
+    R => choice('Why do destination clauses matter so much in LNG?',
+      ['They restrict reselling the cargo to a better market, removing optionality','They fix the price','They cover quality','They are decorative'],0,
+      'Free destination is one of the most valuable features an LNG contract can have.'),
+    R => choice('A cargo can go to Asia or Europe. What decides it?',
+      ['The delivered netback after freight, boil-off and regas costs, not the headline index','The higher index alone','Distance only','The charterer'],0,
+      'Two indices are not comparable until the whole route is paid for.'),
+    R => choice('Why is gas demand more weather-sensitive than most commodities?',
+      ['Heating and cooling load moves with temperature, and storage cannot absorb every extreme','It is not','Only industry uses gas','Because of freight'],0,
+      'Weather is a fundamental, not a nuisance, and it is why gas curves move on forecasts.'),
+    R => choice('What does a regasification terminal slot give a trader?',
+      ['The right to unload at a specific time, without which the cargo cannot reach the market','A price guarantee','A credit line','A quality certificate'],0,
+      'Infrastructure access is a tradable right and a real barrier to entry.'),
+    R => choice('Gas storage is full in early autumn. What does that usually imply for the winter spread?',
+      ['A narrower spread, because the market has already bought the winter it needed','A wider spread','No effect','Higher freight only'],0,
+      'Storage is the physical link between summer and winter prices.'),
+    R => choice('Why can a hub price disconnect from an oil-indexed contract price?',
+      ['They price different things: local gas supply and demand versus a formula linked to oil','They never differ','Hubs are unreliable','Oil indexation is illegal'],0,
+      'Contract renegotiations in gas have historically come from exactly this gap.'),
+    R => choice('What is the risk of selling a cargo before securing the ship?',
+      ['Shipping may be unavailable or far more expensive, turning a margin into a loss','No risk','Only a delay','Only a credit issue'],0,
+      'In LNG the freight leg is not a detail you can assume you will fill later.'),
+    R => { const vol=r(R,140,175,5)*1000, rate=one(R,[0.08,0.10,0.12,0.15]), days=r(R,12,30); const perso=Math.round(vol*rate/100*days);
+      return numeric(`A cargo of ${vol.toLocaleString('en-US')} m³ boils off ${rate}% a day for ${days} days. How many m³ are lost?`,perso,'m³',
+        `${vol.toLocaleString('en-US')} × ${rate}% × ${days} = ${perso.toLocaleString('en-US')} m³. Boil-off is a predictable loss that belongs in the economics, not a surprise.`,3); },
+  ];
+  EXTRA.a10 = [
+    R => choice('Why is electricity commercially different from every other commodity here?',
+      ['It cannot be stored economically at scale, so supply and demand must match in real time','It is cheaper','It has no price risk','It is not traded'],0,
+      'Non-storability is the source of everything unusual in power: extreme spikes, negative prices and the value of flexibility.'),
+    R => choice('Power prices go negative for several hours. What does that mean?',
+      ['Generators are paying to keep running rather than shut down and restart','A pricing error','Free electricity for everyone','Demand is zero'],0,
+      'Start-up costs and subsidy structures can make paying to generate cheaper than stopping.'),
+    R => choice('What is the spark spread?',
+      ['The margin between the power price and the cost of the gas needed to generate it','A transmission fee','A weather index','A credit measure'],0,
+      'It is the generation margin, and like a refining crack it is a spread you can hedge directly.'),
+    R => choice('Why does a peak/off-peak split exist in power contracts?',
+      ['Demand and the marginal generator differ by hour, so the two blocks are genuinely different products','It is administrative','Prices are identical','Only for billing'],0,
+      'Averaging peak and off-peak hides the hours where the money is made and lost.'),
+    R => choice('Transmission between two zones is constrained. What appears?',
+      ['A price difference between the zones that cannot be arbitraged away physically','A single price','Lower demand','Higher storage'],0,
+      'Congestion creates locational prices, and trading them requires transmission rights, not just a view.'),
+    R => choice('Why is a renewables forecast a price input rather than a background detail?',
+      ['Wind and solar output displaces the marginal thermal generator and moves the clearing price directly','It is background only','Renewables are too small','Prices ignore supply'],0,
+      'In many markets the residual load after renewables is the single best short-term price predictor.'),
+    R => choice('What does a capacity payment compensate?',
+      ['Being available when needed, separately from energy actually produced','Fuel costs only','Transmission','Carbon'],0,
+      'Availability and energy are two products, and confusing them misprices a generation asset.'),
+    R => choice('Why do desks value optionality in a flexible power plant?',
+      ['It can run only when the spread is positive, which is worth more than an average margin','Flexibility has no value','Only baseload matters','It reduces risk to zero'],0,
+      'The right to run when it pays and stop when it does not is an option, and it is valued as one.'),
+    R => choice('A carbon price is introduced. What changes commercially?',
+      ['The cost stack reorders, changing which plant sets the price','Nothing','Only accounting','Demand only'],0,
+      'Carbon changes the merit order, which is how it changes the price rather than just the cost.'),
+    R => { const mwh=r(R,20,120,10)*1000, spread=r(R,4,22); const pnl=mwh*spread;
+      return numeric(`You hold ${mwh.toLocaleString('en-US')} MWh and the spread moves $${spread}/MWh in your favour. P&L impact?`,pnl,'$',
+        `${mwh.toLocaleString('en-US')} × ${spread} = ${money(pnl)}. Power volumes are large and the spread is where the generation margin lives.`); },
+  ];
+
+  EXTRA.a11 = [
+    R => choice('Why is basis so central on an agricultural desk?',
+      ['Futures price the benchmark; the local cash market is set by basis, which reflects local supply, logistics and quality','Basis is irrelevant','Futures set the cash price exactly','Basis is a tax'],0,
+      'On grains the basis is often where the trading result actually comes from.'),
+    R => choice('A harvest is larger than expected but the basis strengthens. What could explain it?',
+      ['Local logistics are congested, so getting grain to the buyer is the constraint, not the crop','Basis cannot strengthen','A pricing error','Futures must be wrong'],0,
+      'Big crops can still be locally tight if the transport and elevation capacity cannot move them.'),
+    R => choice('Why do quality parameters matter so much in grain contracts?',
+      ['Moisture, protein and damage change the value and can trigger discounts or rejection','They do not','Only weight matters','Only for animal feed'],0,
+      'Grain is a specification product, and the discount schedule is part of the price.'),
+    R => choice('What is the commercial purpose of a hedge for a grain elevator?',
+      ['To lock the margin between what it pays farmers and what it sells forward, not to predict price','To speculate','To reduce freight','To improve credit'],0,
+      'Elevators are basis traders: they hedge the flat price so they can trade the basis they understand.'),
+    R => choice('Why does weather in one hemisphere move prices in the other?',
+      ['Global supply is met from successive harvests, so a shortfall anywhere shifts the world balance','It does not','Only local weather matters','Prices are regional only'],0,
+      'Agricultural balances are annual and global, which is why the market trades weather continuously.'),
+    R => choice('An export ban is announced in a major origin. What is the first effect?',
+      ['Prices rise elsewhere as buyers compete for the remaining origins','Prices fall','No effect','Only freight changes'],0,
+      'Removing an origin does not remove demand, it redirects it, usually violently.'),
+    R => choice('Why is storage capacity at origin a commercial factor at harvest?',
+      ['If it is full, grain must move or be sold at a discount, weakening the basis','It is not a factor','Storage is unlimited','Only futures matter'],0,
+      'Harvest pressure is a logistics phenomenon expressed as a price.'),
+    R => choice('What does a "delivered" contract shift compared with a farm-gate purchase?',
+      ['Freight, weight loss and timing risk move to the seller','Nothing','Only the currency','Only the quality'],0,
+      'Each step you take on brings a cost and a risk you now own.'),
+    R => choice('Why can a perfectly hedged elevator still lose money?',
+      ['The basis can move against it, and quality or shrink can differ from what was assumed','It cannot lose','Only if futures fail','Only on credit'],0,
+      'Hedging the futures leaves the basis, and the basis is the whole business.'),
+    R => { const fut=r(R,230,340,5), basis=r(R,-25,25,5), t=r(R,5,40,5)*1000; const cash=fut+basis, val=cash*t;
+      return numeric(`Futures are $${fut}/t, basis is ${basis>=0?'+':''}$${basis}/t, on ${t.toLocaleString('en-US')} t. Total cash value?`,val,'$',
+        `(${fut} ${basis>=0?'+':'−'} ${Math.abs(basis)}) × ${t.toLocaleString('en-US')} = ${money(val)}. Hedging the futures leaves exactly the basis part unhedged.`); },
+  ];
+
+  EXTRA.a12 = [
+    R => choice('What does origination actually add to a trading business?',
+      ['Access to supply or demand that is not available on the open market','Faster execution','Lower freight','Better software'],0,
+      'Anyone can trade the visible market. Origination creates the flow that others cannot reach.'),
+    R => choice('Why is a long-term offtake contract valuable beyond its margin?',
+      ['It gives predictable volume that supports financing, freight programmes and customer relationships','Only the margin matters','It removes all risk','It fixes the freight market'],0,
+      'Structural flow is what turns a trading desk into a business rather than a series of bets.'),
+    R => choice('A prepayment finances a producer against future deliveries. What is the core risk?',
+      ['Performance: they may not deliver, and you are an unsecured creditor of a producer','Only price risk','No risk if documented','Freight risk'],0,
+      'Structured prepayments are credit deals dressed as trades, and they should be underwritten as credit.'),
+    R => choice('Why does a force majeure clause deserve careful reading?',
+      ['It decides who bears the cost when neither party is at fault, which is when the money is largest','It is standard and identical everywhere','It never applies','Only lawyers care'],0,
+      'The events listed, the notice requirements and the consequences vary enormously between contracts.'),
+    R => choice('What does a change-of-law clause protect against?',
+      ['A new tax, sanction or export rule making performance impossible or uneconomic','Price movements','Quality disputes','Freight increases'],0,
+      'In commodities, regulatory change is a routine commercial risk, not an exotic one.'),
+    R => choice('Why does governing law and arbitration seat matter commercially?',
+      ['It determines how a dispute is decided, how long it takes and whether an award can be enforced','It is a formality','Only the price matters','It affects nothing'],0,
+      'A right you cannot enforce against assets you can reach is not worth what it appears to be.'),
+    R => choice('A counterparty in a sanctioned jurisdiction offers an attractive deal. What is the correct first step?',
+      ['Compliance screening before any commercial discussion or commitment','Agree the price first','Check freight only','Sign a recap'],0,
+      'Sanctions exposure can end a company, not just a trade, and it cannot be priced away.'),
+    R => choice('What is the practical value of a parent company guarantee?',
+      ['It extends your claim from a thin trading entity to a balance sheet that can actually pay','It is decorative','It guarantees quality','It fixes the price'],0,
+      'Many trading counterparties are small entities. Who stands behind them is the real credit question.'),
+    R => choice('Why do desks avoid conflicting standard terms in a contract chain?',
+      ['A mismatch between your purchase and sale terms leaves a gap you have to absorb','They do not matter','Terms are always identical','Only price matters'],0,
+      'Back-to-back means the terms match, not just the volumes and dates.'),
+    R => { const adv=r(R,4,20)*1000000, del=r(R,4,12), done=r(R,1,3); const resto=round(adv*(1-done/del));
+      return numeric(`You prepaid ${money(adv)} against ${del} equal monthly deliveries. ${done} have been delivered. How much is still at risk?`,resto,'$',
+        `${money(adv)} × (1 − ${done}/${del}) = ${money(resto)} still unsecured. A prepayment is credit exposure that unwinds only as cargo arrives.`,2); },
+  ];
+  EXTRA.a2.push(
+    R => choice('A contract lets the buyer choose the loading window inside a two-month range. Who benefits?',
+      ['The buyer, who will load when the market and their logistics suit them best','The seller','Neither, it is symmetric','The shipowner only'],0,
+      'Every flexibility belongs to someone. If the contract does not say it is yours, assume it is being used against you.'),
+    R => { const buy=r(R,600,880,10), sell=buy+r(R,30,90,5), t=r(R,10,45,5)*1000, costs=r(R,12,38);
+      const net=(sell-buy-costs)*t;
+      return numeric(`Buy $${buy}/t, sell $${sell}/t, all-in costs $${costs}/t, on ${t.toLocaleString('en-US')} t. Total net contribution?`,net,'$',
+        `(${sell} − ${buy} − ${costs}) × ${t.toLocaleString('en-US')} = ${money(net)}. The costs line is where headline spreads go to die.`); }
+  );
+
+  EXTRA.a5.push(
+    R => choice('Why should a risk report show the worst historical drawdown alongside VaR?',
+      ['It shows what has actually happened, not only what a distribution says should happen','VaR is enough','Drawdown is an accounting term','It is a regulatory requirement only'],0,
+      'History is a poor forecast but an honest reminder. It anchors the conversation in events rather than in parameters.'),
+    R => { const lim=r(R,40,120,10)*1000, phys=r(R,50,160,10)*1000, hedge=r(R,10,90,10)*1000;
+      const net=phys-hedge, over=net-lim;
+      return numeric(`Your net long limit is ${lim.toLocaleString('en-US')} t. You are long ${phys.toLocaleString('en-US')} t physical and short ${hedge.toLocaleString('en-US')} t futures. By how many tonnes are you over the limit? Use a negative number if you are inside it.`,over,'t',
+        `Net is ${phys.toLocaleString('en-US')} − ${hedge.toLocaleString('en-US')} = ${net.toLocaleString('en-US')} t, against a ${lim.toLocaleString('en-US')} t limit: ${over.toLocaleString('en-US')} t. Limits are checked on the net, not the gross.`); }
+  );
+
+  EXTRA.a6.push(
+    R => { const put=r(R,4,12), call=r(R,3,11), t=r(R,10,40,5)*1000; const net=(put-call)*t;
+      return numeric(`You buy a put at $${put}/t and sell a call at $${call}/t on ${t.toLocaleString('en-US')} t. Net premium paid? Use a negative number if you receive it.`,net,'$',
+        `(${put} − ${call}) × ${t.toLocaleString('en-US')} = ${money(net)}. A collar is only "zero cost" when the two premiums happen to match.`); },
+    R => { const lots=r(R,20,120,10), size=one(R,[25,50,100]), move=r(R,5,40); const vm=lots*size*move;
+      return numeric(`You are short ${lots} lots of ${size} t and the futures price rises $${move}/t. Variation margin due?`,vm,'$',
+        `${lots} × ${size} × ${move} = ${money(vm)}, payable in cash now while the physical gain is still unrealised.`); }
+  );
+
+  EXTRA.a7.push(
+    R => { const t=r(R,300,2000,100), rent=one(R,[0.35,0.45,0.55,0.70]), days=r(R,30,180,30); const cost=round(t*rent*days);
+      return numeric(`You store ${t.toLocaleString('en-US')} t at $${rent}/t/day for ${days} days. Total warehouse rent?`,cost,'$',
+        `${t.toLocaleString('en-US')} × ${rent} × ${days} = ${money(cost)}. Rent and load-out delays are what physical premiums are really pricing.`,2); }
+  );
+
+  EXTRA.a9.push(
+    R => { const cap=r(R,2,8)*1000000, fee=one(R,[0.30,0.45,0.60,0.85]); const cost=round(cap*fee);
+      return numeric(`Regasification costs $${fee}/MMBtu on a cargo of ${cap.toLocaleString('en-US')} MMBtu. Total regas cost?`,cost,'$',
+        `${cap.toLocaleString('en-US')} × ${fee} = ${money(cost)}. Terminal access is a cost and a constraint at the same time.`,2); }
+  );
+
+  EXTRA.a10.push(
+    R => { const mwh=r(R,100,600,50), hr=one(R,[1.8,2.0,2.2,2.5]); const gas=round(mwh*hr,1);
+      return numeric(`You must deliver ${mwh} MWh of power from a plant with a heat rate of ${hr} MWh(th) per MWh(e). How much gas, in MWh(th)?`,gas,'MWh(th)',
+        `${mwh} × ${hr} = ${gas} MWh(th). The heat rate is what converts a power sale into a gas purchase.`,.2); }
+  );
+
+  EXTRA.a11.push(
+    R => { const t=r(R,5,40,5)*1000, mo=one(R,[1.5,2.0,2.5,3.0]); const perso=round(t*mo/100);
+      return numeric(`You buy ${t.toLocaleString('en-US')} t at ${mo}% above the contract moisture. Approximate tonnes of water you are paying for?`,perso,'t',
+        `${t.toLocaleString('en-US')} × ${mo}% = ${perso.toLocaleString('en-US')} t. Excess moisture is weight you buy and cannot sell.`,2); }
+  );
+
+  EXTRA.a12.push(
+    R => { const min=r(R,60,200,20)*1000, actual=min-r(R,5,40,5)*1000, pen=r(R,4,16); const cost=(min-actual)*pen;
+      return numeric(`A take-or-pay contract sets a minimum of ${min.toLocaleString('en-US')} t. You lift ${actual.toLocaleString('en-US')} t. At $${pen}/t, what do you owe on the shortfall?`,cost,'$',
+        `(${min.toLocaleString('en-US')} − ${actual.toLocaleString('en-US')}) × ${pen} = ${money(cost)}. Take-or-pay turns an optimistic forecast into a real bill.`); },
+    R => { const t=r(R,20,90,10)*1000, m=r(R,5,18), yrs=r(R,3,7); const tot=t*m*yrs;
+      return numeric(`An offtake runs ${yrs} years for ${t.toLocaleString('en-US')} t a year at $${m}/t. Total contribution over the life of the contract?`,tot,'$',
+        `${t.toLocaleString('en-US')} × ${m} × ${yrs} = ${money(tot)}. This is why origination is valued differently from a spot trade.`); }
+  );
+  /* @EXTRA-FINE */
+
+  const poolOf = w => (w.concepts || []).concat(EXTRA[w.id] || []);
+
+  // il tipo di un concetto si scopre generandolo una volta: deterministico
+  const tipoDi = (fn, id, k) => {
+    try { return fn(rng(hash(`probe:${id}:${k}`))).type; } catch (e) { return 'choice'; }
+  };
+
+  /* Distribuzione dei concetti sulle lezioni di un desk.
+     Regola: una domanda a scelta compare UNA volta per desk — è testo fisso,
+     ripeterla è solo riempitivo. Un esercizio numerico può ricomparire, perché
+     rigenera i valori ed è un esercizio diverso, ma non in lezioni adiacenti. */
+  const distribuisci = (world, nLezioni, perLezione) => {
+    const pool = poolOf(world);
+    const R = rng(hash(`layout:${world.id}:v2`));
+    const scelta = [], numerici = [];
+    pool.forEach((fn, k) => (tipoDi(fn, world.id, k) === 'numeric' ? numerici : scelta).push(k));
+    const mescola = a => { const x = a.slice();
+      for (let i = x.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); [x[i], x[j]] = [x[j], x[i]]; }
+      return x; };
+    const restoScelta = mescola(scelta);
+    const giroNum = mescola(numerici);
+
+    const lezioni = Array.from({ length: nLezioni }, () => []);
+    const usi = {};
+    let nq = 0;
+    for (let i = 0; i < nLezioni; i++) {
+      for (let s = 0; s < perLezione; s++) {
+        if (restoScelta.length) { lezioni[i].push(restoScelta.shift()); continue; }
+        // niente più domande a scelta libere: si usa un numerico, evitando
+        // quelli già comparsi nella lezione precedente
+        if (!giroNum.length) { lezioni[i].push(pool.length ? nq % pool.length : 0); nq++; continue; }
+        /* Fra i numerici si prende sempre il meno usato finora, evitando quelli
+           già presenti in questa lezione o nella precedente. Un giro puramente
+           circolare sbilanciava: alcuni arrivavano a quattro usi mentre altri
+           restavano a due. */
+        const prima = i > 0 ? lezioni[i - 1] : [];
+        const ordinati = giroNum.slice().sort((a, b) =>
+          (usi[a] || 0) - (usi[b] || 0) || giroNum.indexOf(a) - giroNum.indexOf(b));
+        let scelto = ordinati.find(c => !prima.includes(c) && !lezioni[i].includes(c));
+        if (scelto === undefined) scelto = ordinati.find(c => !lezioni[i].includes(c));
+        if (scelto === undefined) scelto = ordinati[0];
+        lezioni[i].push(scelto);
+        usi[scelto] = (usi[scelto] || 0) + 1;
+        nq++;
+      }
+    }
+    return lezioni;
+  };
+
   const lessonConceptMap = {
     a1:[[0,1,2,8,9],[2,0,1,4,9],[3,4,8,1,2],[5,6,3,4,8],[7,5,6,8,9],[8,9,0,3,6]],
     a2:[[0,3,6,7,9],[1,7,9,0,8],[1,2,7,9,6],[4,0,3,7,8],[5,8,2,3,9],[8,9,7,4,5]],
@@ -270,20 +784,33 @@
 
   // A deterministic level is assembled from five concepts. Numeric factories produce
   // fresh values per level, while the seed guarantees repeatability for a given ID.
-  const buildLesson = (world, i) => {
+  const layoutCache = {};
+  const buildLesson = (world, i, visti) => {
     const id = `${world.id}l${i+1}`;
     const R = rng(hash(`career:${id}:v1`));
-    const mapped = lessonConceptMap[world.id]?.[i];
-    const picks = mapped
-      ? mapped.map(index => world.concepts[index])
-      : Array.from({length:5},(_,k) => world.concepts[(i*3+k*2) % world.concepts.length]);
+    const pool = poolOf(world);
+    const layout = layoutCache[world.id] || (layoutCache[world.id] = distribuisci(world, world.lessons.length, 5));
+    const indici = layout[i] || [];
+    const picks = indici.map(index => pool[index % pool.length]);
     return {
       id,
       title:world.lessons[i],
       goal:world.goals[i],
       generated:true,
       difficulty:Math.min(10, 3 + Math.floor((worlds.indexOf(world)*6+i)/10)),
-      exercises:picks.map((fn,k) => { const Q=rng(hash(`${id}:q${k}:v1`)); return shuffleChoice(fn(Q), Q); })
+      exercises:picks.map((fn,k) => {
+        /* Un numerico ripetuto va bene solo se i valori sono diversi. Il seme
+           può però estrarre due volte la stessa combinazione: invece di sperare,
+           si ritenta con un seme diverso finché il testo è nuovo per il desk. */
+        let ex = null;
+        for (let tent = 0; tent < 24; tent++) {
+          const Q = rng(hash(`${id}:q${k}:c${indici[k]}:t${tent}:v3`));
+          ex = shuffleChoice(fn(Q), Q);
+          if (!visti || !visti.has(ex.prompt)) break;
+        }
+        if (visti && ex) visti.add(ex.prompt);
+        return ex;
+      })
     };
   };
 
@@ -295,10 +822,13 @@
   };
   const validateLesson = lesson => Array.isArray(lesson.exercises) && lesson.exercises.length >= 5 && lesson.exercises.every(validateExercise);
 
-  const advancedUnits = worlds.map(w => ({
-    id:w.id, title:w.title, subtitle:w.subtitle, colour:'gold', phase:w.phase,
-    lessons:w.lessons.map((_,i) => buildLesson(w,i))
-  }));
+  const advancedUnits = worlds.map(w => {
+    const visti = new Set();   // testi già usati in questo desk
+    return {
+      id:w.id, title:w.title, subtitle:w.subtitle, colour:'gold', phase:w.phase,
+      lessons:w.lessons.map((_,i) => buildLesson(w,i,visti))
+    };
+  });
 
   // Contract for future AI-generated packs. AI output is never trusted merely because
   // it parses: every lesson/exercise must satisfy this same schema before it can enter
@@ -327,7 +857,10 @@
     const out = [];
     for (let i=0;i<count;i++) {
       const w = pool[Math.floor(R()*pool.length)];
-      const concept = w.concepts[Math.floor(R()*w.concepts.length)];
+      // nome diverso: `pool` esiste già in questa funzione e ridichiararlo
+      // lo metterebbe in ombra proprio sulla riga sopra
+      const concetti = poolOf(w);
+      const concept = concetti[Math.floor(R()*concetti.length)];
       const Q = rng(hash(`mastery:${seed}:${i}:${w.id}`));
       const ex = shuffleChoice(concept(Q), Q);
       if (!validateExercise(ex)) throw new Error(`Invalid mastery exercise at ${i}`);
@@ -341,6 +874,7 @@
     version:1,
     worlds,
     advancedUnits,
+    poolOf, EXTRA,
     generatedLevels:advancedUnits.reduce((n,u) => n + u.lessons.length,0),
     generatedExercises:advancedUnits.reduce((n,u) => n + u.lessons.reduce((m,l) => m+l.exercises.length,0),0),
     unitMeta:Object.fromEntries(worlds.map(w => [w.id,{division:w.division,skill:w.skill,chapter:w.phase,phase:w.phase,icon:w.icon,advanced:true}])),
