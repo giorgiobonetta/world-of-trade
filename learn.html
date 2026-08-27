@@ -259,6 +259,7 @@
     <div class="stats header-stats" aria-label="Player rewards and level">
       <div class="stat streak" title="Day streak"><i aria-hidden="true">🔥</i><b id="statStreak">0</b></div>
       <div class="stat level" title="Career level"><i aria-hidden="true">LV</i><b id="statLevel">1</b></div>
+      <div class="stat lives" id="statLivesHost" title="Lifebuoys"><i class="stat-buoy" aria-hidden="true"></i><b id="statLives">5</b></div>
       <div class="stat gold" title="Experience"><i aria-hidden="true">★</i><b id="statXp">0</b></div>
     </div>
   </div>
@@ -268,15 +269,10 @@
 <main id="pathScreen" class="screen active">
   <div class="wrap">
     <div class="intro">
-      <span class="eyebrow">Career Path · Trading House Academy</span>
-      <h1>Build your trading career</h1>
-      <p>Start as an intern, master the core desks, specialise by commodity and work your way toward the top of the trading house.</p>
+      <span class="eyebrow">Career Path</span>
+      <h1>Your next levels</h1>
+      <p>Work down the path one level at a time. Your rank and the full trading house map are in Profile.</p>
     </div>
-    <div id="careerHero"></div>
-    <section class="world-map-shell">
-      <div class="card-title"><div><span class="eyebrow">Trading house map</span><h2>Your desks</h2></div><small id="careerCount">0 levels</small></div>
-      <div id="worldMapHost" class="world-map"></div>
-    </section>
     <div id="pathGreet"></div>
     <p id="offlineFlag" class="offline-flag" role="status" hidden></p>
     <div id="reviewHost"></div>
@@ -360,7 +356,14 @@
 <!-- PROFILE -->
 <main id="profileScreen" class="screen">
   <header class="section-top"><div><span class="eyebrow">Career record</span><h1>Profile</h1></div></header>
-  <div class="wrap tab-wrap"><div id="profileBody"></div></div>
+  <div class="wrap tab-wrap">
+    <div id="careerHero"></div>
+    <section class="world-map-shell">
+      <div class="card-title"><div><span class="eyebrow">Trading house map</span><h2>Your desks</h2></div><small id="careerCount">0 levels</small></div>
+      <div id="worldMapHost" class="world-map"></div>
+    </section>
+    <div id="profileBody"></div>
+  </div>
 </main>
 
 <!-- FLASH TRADING -->
