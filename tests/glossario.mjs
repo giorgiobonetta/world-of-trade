@@ -6,8 +6,12 @@ const t = suite('Glossario');
 {
   const g = {}; const c = {};
   new Function('window', fs.readFileSync(DIR + '/glossary.js', 'utf8'))(g);
+  // il glossario copre anche i desk specialistici: serve il motore dei contenuti
   new Function('window', fs.readFileSync(DIR + '/curriculum.js', 'utf8'))(c);
+  new Function('window', fs.readFileSync(DIR + '/career.js', 'utf8'))(c);
+  new Function('window', fs.readFileSync(DIR + '/content-engine.js', 'utf8'))(c);
   const VOCI = g.GLOSSARY, UNITS = c.CURRICULUM;
+  const FOUNDATION_UNITS = UNITS.filter(u => /^u\d+$/.test(u.id));
   const lezioni = new Map(UNITS.flatMap((u, ui) => u.lessons.map((l, li) =>
     [l.id, { unit: u.id, ui: ui + 1, li: li + 1, titolo: l.title }])));
 
@@ -25,12 +29,14 @@ const t = suite('Glossario');
 
   // ogni unità del corso deve essere rappresentata
   const coperte = new Set(VOCI.map(v => lezioni.get(v.lesson).unit));
-  t('tutte le 8 unità hanno almeno un termine', coperte.size === UNITS.length,
-    `${coperte.size}/${UNITS.length}`);
+  t('tutte le 8 Foundations hanno almeno un termine', FOUNDATION_UNITS.every(u => coperte.has(u.id)),
+    `${[...coperte].filter(id => /^u\d+$/.test(id)).length}/${FOUNDATION_UNITS.length}`);
   const perUnita = {};
   VOCI.forEach(v => { const u = lezioni.get(v.lesson); perUnita['U' + u.ui] = (perUnita['U' + u.ui] || 0) + 1; });
-  t('nessuna unità ha meno di 5 termini', Object.values(perUnita).every(n => n >= 5),
-    JSON.stringify(perUnita));
+  // le 8 unità curate sono coperte a fondo; i desk specialistici hanno
+  // solo i termini propri, che è voluto
+  const curate = Object.entries(perUnita).filter(([k]) => +k.slice(1) <= 8).map(([, n]) => n);
+  t('ogni unità curata ha almeno 5 termini', curate.every(n => n >= 5), JSON.stringify(perUnita));
 
   // i termini che un colloquio chiede per primi devono esserci
   const attesi = ['FOB','CIF','Quotational period (QP)','Basis','Contango','Backwardation',
@@ -48,14 +54,15 @@ const t = suite('Glossario');
   const $ = s => w.document.querySelector(s);
   const $$ = s => [...w.document.querySelectorAll(s)];
   t('la pagina si carica senza errori', errors.length === 0, errors.slice(0, 2).join('|'));
-  t('disegna tutte le voci', $$('.gl-item').length === w.GLOSSARY_PAGE.voci.length,
-    $$('.gl-item').length + ' voci');
-  t('raggruppate per unità nell\'ordine del percorso', $$('.gl-unit').length === 8,
+  t('disegna tutte le voci, nessuna scartata in silenzio',
+    $$('.gl-item').length === w.GLOSSARY_PAGE.voci.length,
+    $$('.gl-item').length + ' disegnate su ' + w.GLOSSARY_PAGE.voci.length);
+  t('raggruppate per unità nell\'ordine del percorso', $$('.gl-unit').length >= 8,
     $$('.gl-unit').length + ' gruppi');
   t('l\'intestazione dice quale unità è',
     /Unit 1/.test($$('.gl-unit h2')[0].textContent) && /Unit 8/.test($$('.gl-unit h2')[7].textContent));
-  t('mostra il conteggio', /70 terms/.test($('#glCount').textContent), $('#glCount').textContent);
-  t('il filtro elenca tutte le unità più "All"', $$('#glUnit option').length === 9,
+  t('mostra il conteggio', new RegExp(w.GLOSSARY_PAGE.voci.length + ' terms').test($('#glCount').textContent), $('#glCount').textContent);
+  t('il filtro elenca ogni unità con termini, più "All"', $$('#glUnit option').length === $$('.gl-unit').length + 1,
     $$('#glUnit option').length + ' opzioni');
   t('ogni voce rimanda alla lezione con un link diretto',
     $$('.gl-link').every(a => /^learn\.html\?lesson=[a-z0-9]+$/.test(a.getAttribute('href'))),
@@ -77,7 +84,7 @@ const t = suite('Glossario');
     $$('.gl-item dt').map(d => d.textContent.trim().split(' Unit')[0]).join(' | '));
   t('cercando si passa a un elenco piatto, non per unità', $$('.gl-unit h2').length === 0);
   t('ogni risultato dice da quale unità viene', $$('.gl-item .gl-u').length === $$('.gl-item').length);
-  t('il conteggio si aggiorna', /of 70 terms/.test($('#glCount').textContent), $('#glCount').textContent);
+  t('il conteggio si aggiorna', /of \d+ terms/.test($('#glCount').textContent), $('#glCount').textContent);
   cerca('cash today');
   t('cerca anche nel testo, non solo nel titolo', $$('.gl-item').length >= 1,
     $$('.gl-item dt').map(d => d.textContent).join(', '));
@@ -88,7 +95,7 @@ const t = suite('Glossario');
     $$('.gl-item').length === 0 && !$('#glEmpty').hidden);
   t('e suggerisce cosa fare', /shorter word/.test($('#glEmpty').textContent));
   cerca('');
-  t('svuotando la ricerca torna tutto', $$('.gl-item').length === 70);
+  t('svuotando la ricerca torna tutto', $$('.gl-item').length === w.GLOSSARY_PAGE.voci.length);
 
   /* filtro per unità */
   $('#glUnit').value = 'u6';

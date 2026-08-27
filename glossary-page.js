@@ -99,6 +99,13 @@
 
   function avvia() {
     if (!VOCI.length) { $('#glCount').textContent = 'Glossary unavailable.'; return; }
+    // una voce che punta a una lezione sconosciuta veniva scartata in silenzio:
+    // dieci termini erano spariti dalla pagina senza alcun segnale
+    const orfane = VOCI.filter(v => !mappa[v.lesson]);
+    if (orfane.length) {
+      try { console.error('Glossario: ' + orfane.length + ' voci senza lezione: ' +
+        orfane.map(v => v.term + '→' + v.lesson).join(', ')); } catch (e) {}
+    }
     riempiFiltro();
     $('#glSearch').addEventListener('input', disegna);
     $('#glUnit').addEventListener('change', disegna);

@@ -83,7 +83,8 @@ che hai creato al punto 2, non la segretezza della chiave.
 
 ## 4 · Incolla le chiavi nel codice
 
-Apri `supabase-config.js` e riempi due campi (tre se vuoi il link di condivisione):
+Nel pacchetto trovi **`supabase-config.example.js`**. Copialo e rinomina la copia in
+**`supabase-config.js`**, poi riempi due campi (tre se vuoi il link di condivisione):
 
 ```js
 window.WOT_CLOUD = {
@@ -98,6 +99,13 @@ window.WOT_CLOUD = {
 
 Riempi **uno** dei due campi della chiave, non serve entrambi. Ricarica solo questo
 file su GitHub e aspetta il redeploy.
+
+> **`supabase-config.js` non fa parte del pacchetto, ed è voluto.** È l'unico file il
+> cui contenuto corretto esiste solo sul tuo repository. Se fosse incluso vuoto, ogni
+> caricamento completo cancellerebbe le tue chiavi — e con l'autenticazione
+> obbligatoria l'app si bloccherebbe del tutto. Se dopo un rilascio compare
+> *"Authentication is not configured"*, la prima cosa da controllare è se quel file
+> è ancora al suo posto e pieno.
 
 Come capire se ha funzionato: apri `/learn`, e sotto il percorso deve comparire
 **"Save your progress to an account"**. Se non compare, apri la console del browser

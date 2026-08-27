@@ -1,4 +1,4 @@
-import { boot, suite, pausa } from './harness.mjs';
+import { boot, suite, pausa, DIR } from './harness.mjs';
 const t = suite('Link diretto alla lezione');
 const seed = done => ({ done, xp: 20 * done.length, best: {}, badges: {}, misses: {},
                         doneAt: {}, streakBest: 0, updatedAt: 1 });
@@ -56,7 +56,7 @@ const seed = done => ({ done, xp: 20 * done.length, best: {}, badges: {}, misses
 for (const q of ['?lesson=', '?lesson=nonesiste', '?lesson=../../etc/passwd', '?lesson=u1l1&lesson=u9l9']) {
   const { w, errors } = await boot({ query: q, seed: seed([]) });
   await pausa(50);
-  t(`"${q}" non rompe la pagina`, errors.length === 0 && w.document.querySelectorAll('.node').length === 31,
+  t(`"${q}" non rompe la pagina`, errors.length === 0 && w.document.querySelectorAll('.node').length === 103,
     errors.slice(0, 1).join(''));
 }
 
@@ -68,7 +68,7 @@ for (const q of ['?lesson=', '?lesson=nonesiste', '?lesson=../../etc/passwd', '?
   const validi = new Set(w.__LEARN__.allLessons.map(l => l.id));
   const rotti = href.filter(h => !validi.has(h.split('=')[1]));
   t('ogni link del glossario punta a una lezione esistente', rotti.length === 0, rotti.join(', '));
-  t('e sono tutti nella forma attesa', href.every(h => /^learn\.html\?lesson=u\d+l\d+$/.test(h)),
-    href.find(h => !/^learn\.html\?lesson=u\d+l\d+$/.test(h)) || '');
+  t('e sono tutti nella forma attesa', href.every(h => /^learn\.html\?lesson=[ua]\d+l\d+$/.test(h)),
+    href.find(h => !/^learn\.html\?lesson=[ua]\d+l\d+$/.test(h)) || '');
 }
 t.fine();

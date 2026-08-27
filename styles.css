@@ -816,3 +816,20 @@ body.immersive .game-nav{display:grid}
 }
 /* Auth form must sit above the mandatory entry gate. */
 .cloud-dialog{z-index:220}
+
+/* ── pagina legale ────────────────────────────────────────────────── */
+.legal{max-width:680px;margin:0 auto;padding:6px 0 30px}
+.legal-lead{padding:16px 18px;border-radius:var(--r-md);font-size:16.5px;line-height:1.6;
+  background:rgba(18,53,111,.55);border:2px solid rgba(255,212,92,.2);color:#eaf1ff}
+.legal h2{font-size:19px;margin:30px 0 10px;color:#fff8e6}
+.legal h2.legal-warn{color:var(--gold)}
+.legal p{margin:0 0 13px;font-size:16px;line-height:1.65;color:#e2edff}
+.legal ul{margin:0 0 13px;padding-left:22px}
+.legal li{margin-bottom:9px;font-size:16px;line-height:1.6;color:#e2edff}
+.legal strong{color:#fff8e6}
+.legal-date{margin-top:26px;font-size:14.5px;color:var(--muted-2)}
+.app-legal{max-width:560px;margin:0 auto;padding:26px 20px 0;text-align:center}
+.app-legal p{margin:0;font-size:13px;line-height:1.6;color:var(--muted-2)}
+.app-legal a{color:var(--gold-hi)}
+.auth-gate-legal{margin:14px 0 0;font-size:12.5px;line-height:1.55;color:var(--muted-2);text-align:center}
+.auth-gate-legal a{color:var(--gold-hi)}
