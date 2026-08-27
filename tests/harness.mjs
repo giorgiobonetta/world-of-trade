@@ -55,8 +55,14 @@ export async function boot({ seed, sessione, cloud = false, sb, hash = '', query
   if (!srcs.length) errors.push('nessuno script dichiarato in ' + pagina);
   for (const f of srcs) {
     if (f === 'pwa.js') continue;                       // testato a parte
-    if (!fs.existsSync(DIR + '/' + f)) { errors.push('script dichiarato ma mancante: ' + f); continue; }
-    let code = fs.readFileSync(DIR + '/' + f, 'utf8');
+    // supabase-config.js vive solo sul repository di chi installa, non nel
+    // pacchetto: in un checkout pulito non c'è, e l'esempio prende il suo posto.
+    let percorso = DIR + '/' + f;
+    if (!fs.existsSync(percorso) && f === 'supabase-config.js'
+        && fs.existsSync(DIR + '/supabase-config.example.js'))
+      percorso = DIR + '/supabase-config.example.js';
+    if (!fs.existsSync(percorso)) { errors.push('script dichiarato ma mancante: ' + f); continue; }
+    let code = fs.readFileSync(percorso, 'utf8');
     if (f === 'supabase-config.js' && cloud)
       code = code.replace("url: ''", "url: 'https://x.supabase.co'")
                  .replace("anonKey: ''", "anonKey: 'CHIAVE_ANON'");

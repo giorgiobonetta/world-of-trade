@@ -11,7 +11,7 @@ for (const [nome, campo, valore] of [
   ['anon legacy (eyJ…)', 'anonKey', jwt('anon')],
   ['publishable nuova (sb_publishable_…)', 'publishableKey', 'sb_publishable_abc123'],
 ]) {
-  const cfg = fs.readFileSync(DIR + '/supabase-config.js', 'utf8')
+  const cfg = fs.readFileSync(DIR + '/supabase-config.example.js', 'utf8')
     .replace("url: ''", "url: 'https://x.supabase.co'")
     .replace(`${campo}: ''`, `${campo}: '${valore}'`);
   const { w, errors } = await bootConCfg(cfg);
@@ -26,7 +26,7 @@ for (const [nome, campo, valore] of [
   ['service_role legacy', 'anonKey', jwt('service_role')],
   ['sb_secret_ nuova', 'publishableKey', 'sb_secret_pericolosa'],
 ]) {
-  const cfg = fs.readFileSync(DIR + '/supabase-config.js', 'utf8')
+  const cfg = fs.readFileSync(DIR + '/supabase-config.example.js', 'utf8')
     .replace("url: ''", "url: 'https://x.supabase.co'")
     .replace(`${campo}: ''`, `${campo}: '${valore}'`);
   const { w } = await bootConCfg(cfg);
@@ -54,7 +54,7 @@ for (const [nome, campo, valore] of [
 
 /* il file spedito non deve contenere chiavi */
 {
-  const cfg = fs.readFileSync(DIR + '/supabase-config.js', 'utf8');
+  const cfg = fs.readFileSync(DIR + '/supabase-config.example.js', 'utf8');
   t('la configurazione è spedita vuota',
     /url: ''/.test(cfg) && /anonKey: ''/.test(cfg) && /publishableKey: ''/.test(cfg));
   t('spiega quale chiave serve, con entrambi i nomi',

@@ -298,7 +298,7 @@
       ? 'Authentication is blocked because supabase-config.js contains a secret key. Replace it with the public publishable/anon key.'
       : SANDBOX
         ? 'Secure access is disabled in sandbox mode.'
-        : 'Authentication is required. Configure Supabase in supabase-config.js before the game can be used.', 'warn');
+        : 'Authentication is not configured. Copy supabase-config.example.js to supabase-config.js and fill in your Supabase URL and publishable key — see SUPABASE-SETUP.md.', 'warn');
     $('#authSignIn')?.setAttribute('disabled','');
     $('#authSignUp')?.setAttribute('disabled','');
   }

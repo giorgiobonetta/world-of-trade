@@ -6,15 +6,20 @@ const leggi = f => fs.readFileSync(DIR + '/' + f, 'utf8');
 /* ── cablaggio: la pagina deve dichiarare tutto ciò che usa ── */
 {
   const html = leggi('learn.html');
-  for (const f of ['mascot.js','curriculum.js','career.js','app.js','pwa.js','cloud.js','share.js','supabase-config.js'])
+  for (const f of ['mascot.js','curriculum.js','content-engine.js','career.js','competitive.js','app.js','pwa.js','cloud.js','share.js','supabase-config.js'])
     t('learn.html carica ' + f, html.includes(`<script src="${f}"></script>`));
   t('mascot.js prima di app.js', html.indexOf('mascot.js') < html.indexOf('app.js'));
+  t('content-engine.js tra curriculum e career', html.indexOf('curriculum.js') < html.indexOf('content-engine.js') && html.indexOf('content-engine.js') < html.indexOf('career.js'));
   t('career.js prima di app.js', html.indexOf('career.js') < html.indexOf('app.js'));
+  t('competitive.js tra career e app', html.indexOf('career.js') < html.indexOf('competitive.js') && html.indexOf('competitive.js') < html.indexOf('app.js'));
+  t('cinque tab principali incluso League', (html.match(/class="nav-item/g)||[]).length === 5 && html.includes('data-screen="leagueScreen"'));
   t('config prima di cloud.js', html.indexOf('supabase-config.js') < html.indexOf('cloud.js'));
   const dichiarati = [...html.matchAll(/<script src="([^"]+)"><\/script>/g)].map(m => m[1]);
-  t('nessuno script dichiarato è mancante su disco',
-    dichiarati.every(f => fs.existsSync(DIR + '/' + f)),
-    dichiarati.filter(f => !fs.existsSync(DIR + '/' + f)).join(','));
+  // supabase-config.js è dichiarato dalla pagina ma non spedito: lo crea chi installa
+  const presente = f => fs.existsSync(DIR + '/' + f) ||
+    (f === 'supabase-config.js' && fs.existsSync(DIR + '/supabase-config.example.js'));
+  t('ogni script dichiarato esiste, o ha il suo esempio',
+    dichiarati.every(presente), dichiarati.filter(f => !presente(f)).join(','));
 }
 
 /* ── curriculum ── */
@@ -22,13 +27,13 @@ const leggi = f => fs.readFileSync(DIR + '/' + f, 'utf8');
   const { w, errors } = await boot();
   const L = w.__LEARN__;
   const es = L.allLessons.reduce((a, l) => a + l.exercises.length, 0);
-  t('8 unità, 31 lezioni, 145 esercizi',
-    L.UNITS.length === 8 && L.allLessons.length === 31 && es === 145,
+  t('20 unità, 103 livelli, 505 esercizi',
+    L.UNITS.length === 20 && L.allLessons.length === 103 && es === 505,
     `${L.UNITS.length}u ${L.allLessons.length}l ${es}e`);
-  t('il percorso disegna un nodo per lezione', w.document.querySelectorAll('.node').length === 31);
+  t('il percorso disegna un nodo per lezione', w.document.querySelectorAll('.node').length === 103);
   t('solo la prima è aperta',
     w.document.querySelectorAll('.node.next').length === 1 &&
-    w.document.querySelectorAll('.node.locked').length === 30);
+    w.document.querySelectorAll('.node.locked').length === 102);
   t('le bloccate non sono cliccabili',
     [...w.document.querySelectorAll('.node.locked')].every(n => n.disabled));
   t('ogni esercizio ha una spiegazione',
@@ -145,7 +150,7 @@ const leggi = f => fs.readFileSync(DIR + '/' + f, 'utf8');
   const shell = [...sw.matchAll(/^\s*'([^']+)',$/gm)].map(x => x[1]).filter(x => x !== './');
   t('ogni file della shell esiste', shell.every(f => fs.existsSync(DIR + '/' + f)),
     shell.filter(f => !fs.existsSync(DIR + '/' + f)).join(','));
-  for (const f of ['learn.html','app.js','curriculum.js','career.js','mascot.js','styles.css','cloud.js','share.js'])
+  for (const f of ['learn.html','app.js','curriculum.js','career.js','competitive.js','mascot.js','styles.css','cloud.js','share.js'])
     t('shell include ' + f, shell.includes(f));
   t('l\'HTML è network-first', sw.indexOf('await fetch(req)') < sw.indexOf('caches.match(req)'));
   t('la cache è versionata e le vecchie si cancellano',
@@ -158,10 +163,12 @@ const leggi = f => fs.readFileSync(DIR + '/' + f, 'utf8');
   const senzaCache = vc.headers.filter(h => h.headers.some(k => /max-age=0/.test(k.value))).map(h => h.source);
   for (const f of ['/sw.js','/supabase-config.js','/cloud.js','/share.js'])
     t('non cachato a lungo: ' + f, senzaCache.includes(f));
-  t('la config è spedita vuota', /url: ''/.test(leggi('supabase-config.js')));
+  t('la config di esempio è spedita vuota', /url: ''/.test(leggi('supabase-config.example.js')));
+  t('e il file reale non è nel pacchetto', !fs.existsSync(DIR + '/supabase-config.js'),
+    'includerlo cancellerebbe le chiavi di chi installa');
   // la PAROLA service_role compare legittimamente nel controllo di sicurezza:
   // qui va cercato materiale di chiave vero, non la menzione
-  const sorgenti = ['cloud.js','supabase-config.js','learn.html','index.html','share.js','pwa.js']
+  const sorgenti = ['cloud.js','supabase-config.example.js','learn.html','index.html','share.js','pwa.js']
     .map(leggi).join('\n');
   t('nessun JWT vero è finito nel codice', !/eyJ[A-Za-z0-9_-]{30,}\.[A-Za-z0-9_-]{20,}/.test(sorgenti));
   t('nessuna chiave sb_secret_ o sb_publishable_ vera',
@@ -169,7 +176,7 @@ const leggi = f => fs.readFileSync(DIR + '/' + f, 'utf8');
   t('ma il codice sa riconoscere una chiave segreta',
     /sb_secret_/.test(leggi('cloud.js')) && /service_role/.test(leggi('cloud.js')));
   t('e la configurazione avverte di non incollarla',
-    /service_role/.test(leggi('supabase-config.js')));
+    /service_role/.test(leggi('supabase-config.example.js')));
 }
 
 /* ── i loghi sono davvero ritagliati ── */

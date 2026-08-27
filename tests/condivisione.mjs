@@ -1,7 +1,8 @@
-import { boot, solver, suite, pausa } from './harness.mjs';
+import { boot, solver, suite, pausa, DIR } from './harness.mjs';
 import fs from 'fs';
 const t = suite('Condivisione LinkedIn');
-const DIR = '/tmp/wot-learn';
+// il percorso arriva dall'harness: un percorso assoluto funzionava
+// solo sulla macchina di chi l'ha scritto
 const seed = n => ({ done: ['u1l1'], xp: 30, best: { u1l1: 100 }, badges: {}, misses: {},
                      doneAt: {}, streakNow: 0, streakBest: n, updatedAt: 1 });
 
@@ -103,7 +104,7 @@ const seed = n => ({ done: ['u1l1'], xp: 30, best: { u1l1: 100 }, badges: {}, mi
   // il numero cresce a ogni rilascio: qui basta che il formato regga
   t('il service worker ha una versione leggibile', /const VERSION = 'v\d+'/.test(sw),
     (sw.match(/VERSION = '(v\d+)'/) || [])[1]);
-  const cfg = fs.readFileSync(DIR + '/supabase-config.js', 'utf8');
+  const cfg = fs.readFileSync(DIR + '/supabase-config.example.js', 'utf8');
   t('siteUrl è configurabile ma opzionale', /siteUrl: ''/.test(cfg));
 }
 t.fine();

@@ -2,7 +2,7 @@
    Regola: l'HTML si prende dalla rete quando c'è (così un aggiornamento
    arriva subito), tutto il resto dalla cache (così l'app parte offline).
    La versione nel nome della cache è ciò che manda via una shell vecchia. */
-const VERSION = 'v19';
+const VERSION = 'v20';
 const CACHE = `wot-learn-${VERSION}`;
 
 const SHELL = [
@@ -17,7 +17,8 @@ const SHELL = [
   'pwa.js',
   'cloud.js',
   'share.js',
-  'supabase-config.js',
+  // supabase-config.js non è nel precache: è l'unico file che vive solo
+  // sul repository e non deve essere servito da una copia in cache
   'curriculum.js',
   'content-engine.js',
   'career.js',

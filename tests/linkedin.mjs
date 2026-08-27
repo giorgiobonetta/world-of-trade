@@ -1,7 +1,8 @@
-import { boot, suite, pausa } from './harness.mjs';
+import { boot, suite, pausa, DIR } from './harness.mjs';
 import fs from 'fs';
 const t = suite('Accesso LinkedIn');
-const DIR = '/tmp/wot-learn';
+// il percorso arriva dall'harness: un percorso assoluto funzionava
+// solo sulla macchina di chi l'ha scritto
 
 /* finto Supabase minimo, con /auth/v1/user */
 function fake() {
