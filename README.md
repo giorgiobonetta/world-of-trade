@@ -63,7 +63,7 @@ Every text/background pair on it clears WCAG AA (lowest measured 4.59:1).
 
 ## What's here
 
-**20 units, 103 Career levels, 505 Career exercises — plus regenerated Trading Floor runs.**
+**27 units, 143 Career levels, 706 Career exercises — plus regenerated Trading Floor runs.**
 
 ### Competitive layer v5
 
@@ -84,7 +84,7 @@ After Merchant Foundations, the Career Path now continues through three layers:
 
 Each specialist world contains 6 levels. The Trading House Map at the top of the Path shows
 which desks are complete, active or locked and jumps directly to an unlocked desk. Career
-ranks were rebalanced for the 103-level path: the original 31 Foundations now correspond
+ranks are calibrated for the 143-level path: the original 31 Foundations now correspond
 to the Junior Trader milestone; Trader, Senior Trader, Desk Head and Head of Trading require
 progress through the specialist desks as well as XP. Partner remains an XP-heavy endgame rank.
 
@@ -98,7 +98,7 @@ rule-based so answers are mechanically verifiable; future AI-generated packs mus
 validation boundary before they can enter the game.
 
 
-The original 31-lesson curriculum remains **Merchant Foundations**, but it is now the first stage of a much larger Trading House Academy. `content-engine.js` adds 12 specialist worlds / 72 levels through deterministic, validated content templates, bringing the Career Path to 103 levels. `career.js` sits above the curriculum and defines eight desk skills, nine career ranks, 24 rule-based Flash Trading generators and the Boss Deal catalogue. Existing lesson ids and
+The original 31-lesson curriculum remains **Merchant Foundations**, but it is now the first stage of a much larger Trading House Academy. `content-engine.js` adds 18 specialist worlds / 108 levels through deterministic, validated content templates, bringing the Career Path to 143 levels. `career.js` sits above the curriculum and defines eight desk skills, nine career ranks, 24 rule-based Flash Trading generators and the Boss Deal catalogue. Existing lesson ids and
 localStorage keys are unchanged, so old progress remains valid.
 
 **Flash Trading** is a repeatable 60-second mode with fresh arithmetic/commercial variants,
@@ -553,3 +553,19 @@ The learning app now treats the original 31 lessons as **Chapter 1 — Merchant 
 - Backward-compatible local saves and cloud merge support for the new `skillXp` and `flash` fields.
 
 `career.js` contains game metadata, rank thresholds, skill definitions and Flash Trading generators. `curriculum.js` remains the curated source of truth for the main learning path. AI-generated content is intentionally not enabled yet: the architecture leaves it as a later layer behind a controlled knowledge base and validation step.
+## v7.1 — Friends & Social
+
+La v7.1 aggiunge un social layer reale senza fingere accesso alle connessioni LinkedIn:
+
+- codice referral personale stabile;
+- invito condivisibile via LinkedIn o link diretto;
+- Trading Circle costruito dagli inviti realmente accettati;
+- Friends League settimanale basata sugli stessi XP della League globale;
+- sfide 1-vs-1 deterministiche: stesso desk, stesso seed, stesse 10 domande;
+- un solo risultato per giocatore e nessun XP carriera dai duelli;
+- milestone social cosmetiche a 1 / 3 / 5 amici;
+- flusso referral conservato anche passando da landing page, registrazione e conferma email.
+
+Per attivarlo, eseguire il blocco SQL **Friends League, referral e sfide 1-vs-1** in
+`SUPABASE-SETUP.md`. Se le tabelle social non sono presenti, il resto del gioco continua
+a funzionare normalmente.

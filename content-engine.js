@@ -1303,6 +1303,25 @@
     return out;
   };
 
+
+  // Deterministic head-to-head set for social challenges. Unlike makeMasterySet,
+  // every exercise comes from the same desk so both players face the exact
+  // same professional domain and seed.
+  const makeDeskSet = (seed = Date.now(), count = 10, worldId = worlds[0]?.id) => {
+    const w = worlds.find(x => x.id === worldId) || worlds[0];
+    if (!w) return [];
+    const concepts = poolOf(w);
+    const out = [];
+    for (let i=0;i<count;i++) {
+      const R = rng(hash(`desk-duel:${seed}:${i}:${w.id}:v1`));
+      const concept = concepts[Math.floor(R()*concepts.length)];
+      const ex = shuffleChoice(concept(R), R);
+      if (!validateExercise(ex)) throw new Error(`Invalid desk challenge exercise at ${i}`);
+      out.push({ ex, i, lessonId:null, skill:w.skill, worldId:w.id, division:w.division });
+    }
+    return out;
+  };
+
   window.CURRICULUM = [...(window.CURRICULUM || []), ...advancedUnits];
   window.WOT_CONTENT = {
     version:1,
@@ -1314,7 +1333,7 @@
     unitMeta:Object.fromEntries(worlds.map(w => [w.id,{division:w.division,skill:w.skill,chapter:w.phase,phase:w.phase,icon:w.icon,advanced:true}])),
     validateExercise,
     validateLesson,
-    buildLesson, makeMasterySet, validateExternalPack,
+    buildLesson, makeMasterySet, makeDeskSet, validateExternalPack,
     worldCatalog:worlds.map(w => ({id:w.id,title:w.title,subtitle:w.subtitle,division:w.division,skill:w.skill,phase:w.phase,icon:w.icon,levels:w.lessons.length})),
   };
 })();

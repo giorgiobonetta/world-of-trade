@@ -261,3 +261,206 @@ La tabella pubblica contiene solamente:
 
 Se non crei questa tabella, il tab League continua a funzionare come **Local preview**
 e il normale salvataggio cloud della carriera resta operativo.
+
+---
+
+## 9 · Friends League, referral e sfide 1-vs-1 (v7.1)
+
+Questa parte è **opzionale** rispetto a login, progress e League globale. Se non la
+configuri, il gioco continua a funzionare; nel pannello Trading Circle apparirà un
+messaggio che indica che il backend social non è ancora attivo.
+
+L'idea è volutamente diversa da una falsa "classifica amici LinkedIn": un amico social
+è un utente World of Trade che ha **accettato un vero link referral**. LinkedIn è uno
+dei canali con cui puoi condividere quel link, ma World of Trade non inventa né importa
+connessioni che LinkedIn non ha autorizzato.
+
+Esegui questo blocco in **Supabase → SQL Editor**:
+
+```sql
+-- Profilo pubblico minimale usato per referral e Friends League.
+create table if not exists public.social_profiles (
+  user_id        uuid primary key references auth.users(id) on delete cascade,
+  alias          text not null check (char_length(alias) between 3 and 24),
+  house          text,
+  referral_code  text not null unique check (char_length(referral_code) between 6 and 24),
+  created_at     timestamptz not null default now(),
+  updated_at     timestamptz not null default now()
+);
+
+alter table public.social_profiles enable row level security;
+
+create policy "social profiles leggibili"
+  on public.social_profiles for select
+  using (true);
+
+create policy "social profile inserisce se stesso"
+  on public.social_profiles for insert
+  with check (auth.uid() = user_id);
+
+create policy "social profile aggiorna se stesso"
+  on public.social_profiles for update
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+-- Un rapporto di amicizia esiste una volta sola, indipendentemente da chi ha invitato chi.
+create table if not exists public.friendships (
+  pair_key    text primary key,
+  user_a      uuid not null references auth.users(id) on delete cascade,
+  user_b      uuid not null references auth.users(id) on delete cascade,
+  invited_by  uuid not null references auth.users(id) on delete cascade,
+  source      text not null default 'referral',
+  created_at  timestamptz not null default now(),
+  check (user_a <> user_b)
+);
+
+alter table public.friendships enable row level security;
+
+-- Gli utenti vedono soltanto i propri rapporti.
+create policy "friends leggono il proprio circle"
+  on public.friendships for select
+  using (auth.uid() = user_a or auth.uid() = user_b);
+
+-- Nessuna policy INSERT diretta: l'amicizia viene creata soltanto dalla funzione
+-- server-side accept_wot_referral(), che verifica un codice referral esistente.
+
+create or replace function public.accept_wot_referral(p_code text)
+returns table(inviter_id uuid, inviter_alias text)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  me uuid := auth.uid();
+  inv uuid;
+  inv_alias text;
+  a uuid;
+  b uuid;
+  key text;
+begin
+  if me is null then
+    return;
+  end if;
+
+  select sp.user_id, sp.alias
+    into inv, inv_alias
+  from public.social_profiles sp
+  where sp.referral_code = p_code
+  limit 1;
+
+  if inv is null or inv = me then
+    return;
+  end if;
+
+  if me::text < inv::text then
+    a := me; b := inv;
+  else
+    a := inv; b := me;
+  end if;
+  key := a::text || ':' || b::text;
+
+  insert into public.friendships(pair_key, user_a, user_b, invited_by, source)
+  values(key, a, b, inv, 'referral')
+  on conflict (pair_key) do nothing;
+
+  return query select inv, inv_alias;
+end;
+$$;
+
+revoke all on function public.accept_wot_referral(text) from public;
+grant execute on function public.accept_wot_referral(text) to authenticated;
+
+create index if not exists friendships_user_a_idx on public.friendships(user_a);
+create index if not exists friendships_user_b_idx on public.friendships(user_b);
+
+-- Metadati della sfida: il seed e il desk determinano le stesse 10 domande per entrambi.
+create table if not exists public.friend_challenges (
+  id             uuid primary key default gen_random_uuid(),
+  challenger_id  uuid not null references auth.users(id) on delete cascade,
+  opponent_id    uuid not null references auth.users(id) on delete cascade,
+  desk           text not null,
+  seed           bigint not null,
+  week           text,
+  created_at     timestamptz not null default now(),
+  expires_at     timestamptz not null default (now() + interval '7 days'),
+  check (challenger_id <> opponent_id)
+);
+
+alter table public.friend_challenges enable row level security;
+
+create policy "duel leggibile dai partecipanti"
+  on public.friend_challenges for select
+  using (auth.uid() = challenger_id or auth.uid() = opponent_id);
+
+create policy "duel creabile solo fra amici"
+  on public.friend_challenges for insert
+  with check (
+    auth.uid() = challenger_id
+    and exists (
+      select 1 from public.friendships f
+      where (f.user_a = challenger_id and f.user_b = opponent_id)
+         or (f.user_a = opponent_id and f.user_b = challenger_id)
+    )
+  );
+
+create index if not exists friend_challenges_challenger_idx
+  on public.friend_challenges(challenger_id, created_at desc);
+create index if not exists friend_challenges_opponent_idx
+  on public.friend_challenges(opponent_id, created_at desc);
+
+-- Il risultato è separato dal challenge: ciascun giocatore può inserire una sola
+-- riga. Non esiste policy UPDATE, quindi il primo risultato è definitivo.
+create table if not exists public.friend_challenge_scores (
+  challenge_id  uuid not null references public.friend_challenges(id) on delete cascade,
+  user_id       uuid not null references auth.users(id) on delete cascade,
+  score         integer not null check (score between 0 and 1000),
+  correct       integer not null check (correct between 0 and 10),
+  total         integer not null default 10 check (total = 10),
+  completed_at  timestamptz not null default now(),
+  primary key (challenge_id, user_id)
+);
+
+alter table public.friend_challenge_scores enable row level security;
+
+create policy "score duel leggibili dai partecipanti"
+  on public.friend_challenge_scores for select
+  using (
+    exists (
+      select 1 from public.friend_challenges c
+      where c.id = challenge_id
+        and (auth.uid() = c.challenger_id or auth.uid() = c.opponent_id)
+    )
+  );
+
+create policy "score duel inseribile solo dal giocatore"
+  on public.friend_challenge_scores for insert
+  with check (
+    auth.uid() = user_id
+    and exists (
+      select 1 from public.friend_challenges c
+      where c.id = challenge_id
+        and (auth.uid() = c.challenger_id or auth.uid() = c.opponent_id)
+        and now() <= c.expires_at
+    )
+  );
+```
+
+### Flusso referral
+
+1. Giorgio condivide il proprio link, ad esempio `?ref=WOT-AB12CD34E`.
+2. Marco apre la landing page: il codice viene conservato localmente.
+3. Marco crea l'account / conferma l'email / accede.
+4. `accept_wot_referral()` risolve il codice sul server e crea il rapporto una sola volta.
+5. Giorgio e Marco compaiono reciprocamente nella **Friends League**.
+
+Il codice referral non usa l'alias, perché l'alias può cambiare e non è garantito che sia
+unico.
+
+### Privacy social
+
+Il social layer pubblica nel profilo minimale soltanto alias, house e codice referral.
+Le amicizie e le sfide sono protette da RLS e sono leggibili solo dai partecipanti.
+La Friends League riusa gli XP settimanali già pubblicati in `league_scores`.
+
+Le sfide 1-vs-1 **non danno XP carriera** nella v7.1: impedisce a due amici di creare
+challenge ripetute per farmare la classifica globale.

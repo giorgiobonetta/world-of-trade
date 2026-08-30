@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>World of Trade — learn physical commodity trading</title>
-<meta name="description" content="Learn physical commodity trading through a 103-level career path, daily deals, simulations and competitive leagues. Create an account or sign in to start your trading career." />
+<meta name="description" content="Learn physical commodity trading through a 143-level career path, daily deals, simulations and competitive leagues. Create an account or sign in to start your trading career." />
 <meta property="og:title" content="World of Trade — learn physical commodity trading" />
 <meta property="og:description" content="Five minutes at a time, from what a cargo is to why a perfect hedge can still bankrupt a desk." />
 <meta property="og:image" content="https://world-of-trade.vercel.app/world-of-trade-premium-icon-512.png" />
@@ -359,9 +359,9 @@ footer{padding:46px 0 64px;text-align:center;color:var(--muted-2);font-size:15px
 <section>
   <div class="wrap">
     <div class="stats-row">
-      <div class="stat"><b data-to="21">21</b><span>Units</span></div>
-      <div class="stat"><b data-to="107">107</b><span>Career levels</span></div>
-      <div class="stat"><b data-to="526">526</b><span>Career exercises</span></div>
+      <div class="stat"><b data-to="27">27</b><span>Units</span></div>
+      <div class="stat"><b data-to="143">143</b><span>Career levels</span></div>
+      <div class="stat"><b data-to="706">706</b><span>Career exercises</span></div>
       <div class="stat"><b>∞</b><span>Trading Floor runs</span></div>
     </div>
   </div>
@@ -615,6 +615,15 @@ header .note{animation:popIn .7s var(--spring) .4s both}
     });
   }, { threshold:.4 });
   nums.forEach(function(e){ no.observe(e); });
+})();
+</script>
+<script>
+(() => {
+  try {
+    const p = new URLSearchParams(location.search);
+    const ref = String(p.get('ref') || '').trim().replace(/[^A-Za-z0-9_-]/g,'').slice(0,24);
+    if (ref) localStorage.setItem('wot_referrer_pending', ref);
+  } catch (e) {}
 })();
 </script>
 </body>

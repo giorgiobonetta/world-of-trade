@@ -172,9 +172,10 @@
   }
 
   function referralUrl() {
-    const alias=(window.__LEARN__?.state?.competitive?.alias||'').trim();
+    // v7.1: when the social layer is available, use its stable personal code
+    // instead of the mutable/non-unique public trader alias.
+    if (window.WOT_SOCIAL?.referralUrl) return window.WOT_SOCIAL.referralUrl();
     const u=new URL(SITE()+'/', location.href);
-    if(alias)u.searchParams.set('ref',alias);
     u.searchParams.set('utm_source','linkedin');u.searchParams.set('utm_medium','invite');u.searchParams.set('utm_campaign','trader_invite');
     return u.toString();
   }

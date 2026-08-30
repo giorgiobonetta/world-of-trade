@@ -40,6 +40,10 @@
   const SESS = 'wot-cloud-session';
   const TABLE = 'progress';
   const LEAGUE_TABLE = 'league_scores';
+  const SOCIAL_PROFILE_TABLE = 'social_profiles';
+  const FRIEND_TABLE = 'friendships';
+  const CHALLENGE_TABLE = 'friend_challenges';
+  const CHALLENGE_SCORE_TABLE = 'friend_challenge_scores';
 
   const $ = s => document.querySelector(s);
   const esc = v => String(v ?? '').replace(/[&<>"']/g,
@@ -187,6 +191,113 @@
         tier:String(entry.tier || 'bronze'), score:Math.max(0,Math.round(Number(entry.score)||0)), updated_at:new Date().toISOString() }],
     }));
     return true;
+  }
+
+
+  /* ── social circle / referrals / head-to-head challenges ─────────── */
+  const cleanUuid = v => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v||'')) ? String(v) : null;
+
+  async function socialProfileByUser(userId) {
+    const uid = cleanUuid(userId); if (!uid) return null;
+    const rows = await call(`/rest/v1/${SOCIAL_PROFILE_TABLE}?select=user_id,alias,house,referral_code,created_at,updated_at&user_id=eq.${uid}&limit=1`, { method:'GET', auth:false });
+    return Array.isArray(rows) && rows[0] ? rows[0] : null;
+  }
+
+  async function socialProfileByCode(code) {
+    const c = String(code||'').trim().replace(/[^A-Za-z0-9_-]/g,'').slice(0,24);
+    if (!c) return null;
+    const rows = await call(`/rest/v1/${SOCIAL_PROFILE_TABLE}?select=user_id,alias,house,referral_code&referral_code=eq.${encodeURIComponent(c)}&limit=1`, { method:'GET', auth:false });
+    return Array.isArray(rows) && rows[0] ? rows[0] : null;
+  }
+
+  async function upsertSocialProfile(profile = {}) {
+    const uid = idUtente(); if (!uid) return null;
+    const alias = String(profile.alias || 'Trader').trim().replace(/\s+/g,' ').slice(0,24) || 'Trader';
+    const code = String(profile.referral_code || '').trim().replace(/[^A-Za-z0-9_-]/g,'').slice(0,24);
+    if (!code) throw new Error('Referral code is missing.');
+    const rows = await withFreshToken(() => call(`/rest/v1/${SOCIAL_PROFILE_TABLE}`, {
+      method:'POST', auth:true, headers:{ Prefer:'resolution=merge-duplicates,return=representation' },
+      body:[{ user_id:uid, alias, house:profile.house || null, referral_code:code, updated_at:new Date().toISOString() }],
+    }));
+    return Array.isArray(rows) && rows[0] ? rows[0] : { user_id:uid, alias, house:profile.house || null, referral_code:code };
+  }
+
+  async function friendRows() {
+    const uid = idUtente(); if (!uid) return [];
+    const path = `/rest/v1/${FRIEND_TABLE}?select=pair_key,user_a,user_b,invited_by,source,created_at&or=(user_a.eq.${uid},user_b.eq.${uid})&order=created_at.desc&limit=500`;
+    const rows = await withFreshToken(() => call(path, { method:'GET', auth:true }));
+    return Array.isArray(rows) ? rows : [];
+  }
+
+  async function socialProfiles(userIds = []) {
+    const ids = [...new Set((userIds||[]).map(cleanUuid).filter(Boolean))].slice(0,500);
+    if (!ids.length) return [];
+    const rows = await call(`/rest/v1/${SOCIAL_PROFILE_TABLE}?select=user_id,alias,house,referral_code&user_id=in.(${ids.join(',')})`, { method:'GET', auth:false });
+    return Array.isArray(rows) ? rows : [];
+  }
+
+  async function acceptReferral(code) {
+    const uid = idUtente(); if (!uid) return { ok:false, reason:'signed-out' };
+    const c = String(code||'').trim().replace(/[^A-Za-z0-9_-]/g,'').slice(0,24);
+    if (!c) return { ok:false, reason:'not-found' };
+    // The database function resolves the code and creates the friendship
+    // server-side. This prevents clients from fabricating arbitrary friends
+    // simply by knowing another public league user_id.
+    const rows = await withFreshToken(() => call('/rest/v1/rpc/accept_wot_referral', {
+      method:'POST', auth:true, body:{ p_code:c }
+    }));
+    const row = Array.isArray(rows) && rows[0] ? rows[0] : null;
+    if (!row?.inviter_id) return { ok:false, reason:row?.reason || 'not-found' };
+    return { ok:true, inviter:{ user_id:row.inviter_id, alias:row.inviter_alias || 'Trader', referral_code:c } };
+  }
+
+  async function friendLeagueRows(week, userIds = []) {
+    if (!week) return [];
+    const ids = [...new Set((userIds||[]).map(cleanUuid).filter(Boolean))].slice(0,500);
+    if (!ids.length) return [];
+    const path = `/rest/v1/${LEAGUE_TABLE}?select=user_id,week,alias,house,tier,score,updated_at&week=eq.${encodeURIComponent(week)}&user_id=in.(${ids.join(',')})&order=score.desc`;
+    const rows = await call(path, { method:'GET', auth:false });
+    return Array.isArray(rows) ? rows : [];
+  }
+
+  async function createFriendChallenge({ opponent_id, desk, seed, week } = {}) {
+    const uid = idUtente(), opp = cleanUuid(opponent_id);
+    if (!uid || !opp || opp === uid) throw new Error('Invalid challenge opponent.');
+    const rows = await withFreshToken(() => call(`/rest/v1/${CHALLENGE_TABLE}`, {
+      method:'POST', auth:true, headers:{ Prefer:'return=representation' },
+      body:[{ challenger_id:uid, opponent_id:opp, desk:String(desk||'').slice(0,60), seed:Math.max(1,Math.floor(Number(seed)||Date.now())), week:String(week||'').slice(0,10) || null }],
+    }));
+    return Array.isArray(rows) && rows[0] ? rows[0] : null;
+  }
+
+  async function friendChallenges() {
+    const uid = idUtente(); if (!uid) return [];
+    const path = `/rest/v1/${CHALLENGE_TABLE}?select=id,challenger_id,opponent_id,desk,seed,week,created_at,expires_at&or=(challenger_id.eq.${uid},opponent_id.eq.${uid})&order=created_at.desc&limit=100`;
+    const rows = await withFreshToken(() => call(path, { method:'GET', auth:true }));
+    return Array.isArray(rows) ? rows : [];
+  }
+
+  async function friendChallengeScores(challengeIds = []) {
+    const ids = [...new Set((challengeIds||[]).map(cleanUuid).filter(Boolean))].slice(0,200);
+    if (!ids.length) return [];
+    const rows = await withFreshToken(() => call(`/rest/v1/${CHALLENGE_SCORE_TABLE}?select=challenge_id,user_id,score,correct,total,completed_at&challenge_id=in.(${ids.join(',')})`, { method:'GET', auth:true }));
+    return Array.isArray(rows) ? rows : [];
+  }
+
+  async function submitFriendChallengeScore(challengeId, result = {}) {
+    const uid = idUtente(), cid = cleanUuid(challengeId); if (!uid || !cid) return false;
+    try {
+      await withFreshToken(() => call(`/rest/v1/${CHALLENGE_SCORE_TABLE}`, {
+        method:'POST', auth:true, headers:{ Prefer:'return=minimal' },
+        body:[{ challenge_id:cid, user_id:uid, score:Math.max(0,Math.round(Number(result.score)||0)), correct:Math.max(0,Math.round(Number(result.correct)||0)), total:Math.max(1,Math.round(Number(result.total)||10)), completed_at:new Date().toISOString() }],
+      }));
+      return true;
+    } catch (e) {
+      // Primary-key conflict means this player already locked a result.
+      // We deliberately do not allow replaying until a better score appears.
+      if (e.status === 409) return true;
+      throw e;
+    }
   }
 
   /* ── fusione ──────────────────────────────────────────────────────── */
@@ -534,7 +645,10 @@
   }
 
   Object.assign(window.WOT_CLOUD_API, {
-    signUp, signIn, pull, push, leagueRows, houseRows, pushLeague, sincronizza, merge, apri, chiudi, disegna, esci,
+    signUp, signIn, pull, push, leagueRows, houseRows, pushLeague,
+    socialProfileByUser, socialProfileByCode, upsertSocialProfile, friendRows, socialProfiles, acceptReferral, friendLeagueRows,
+    createFriendChallenge, friendChallenges, friendChallengeScores, submitFriendChallengeScore,
+    sincronizza, merge, apri, chiudi, disegna, esci,
     vaiA, leggiRitorno, idUtente, chiUtente, aggiornaGate,
   });
   // Object.assign copierebbe il VALORE del getter, non il getter:

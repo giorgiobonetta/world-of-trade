@@ -58,11 +58,11 @@
     { id:'graduate-analyst', name:'Graduate Analyst', xp:120, lessons:6 },
     { id:'analyst', name:'Analyst', xp:300, lessons:15 },
     { id:'junior-trader', name:'Junior Trader', xp:650, lessons:31 },
-    { id:'trader', name:'Trader', xp:1200, lessons:45 },
-    { id:'senior-trader', name:'Senior Trader', xp:2200, lessons:65 },
-    { id:'desk-head', name:'Desk Head', xp:3500, lessons:85 },
-    { id:'head-trading', name:'Head of Trading', xp:5000, lessons:103 },
-    { id:'partner', name:'Partner', xp:8000, lessons:103 },
+    { id:'trader', name:'Trader', xp:1200, lessons:55 },
+    { id:'senior-trader', name:'Senior Trader', xp:2200, lessons:80 },
+    { id:'desk-head', name:'Desk Head', xp:3500, lessons:110 },
+    { id:'head-trading', name:'Head of Trading', xp:5000, lessons:130 },
+    { id:'partner', name:'Partner', xp:8000, lessons:143 },
   ];
 
   // Every template returns a fresh, mechanically verifiable question.

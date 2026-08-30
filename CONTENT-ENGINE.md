@@ -6,10 +6,10 @@ Foundations before `app.js` builds the path.
 
 ## Current output
 
-- 12 specialist worlds
-- 72 generated Career levels
-- 360 generated Career exercises, all distinct
-- Combined app: 20 units / 103 levels / 505 exercises
+- 18 specialist worlds
+- 108 generated Career levels
+- 540 generated Career exercises
+- Combined app: 27 units / 143 levels / 706 exercises
 - Endless Trading Floor Runs: 10 regenerated questions per run
 
 ## Uniqueness is a property of the layout, not of luck

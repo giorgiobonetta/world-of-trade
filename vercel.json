@@ -93,6 +93,15 @@
       ]
     },
     {
+      "source": "/social.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
       "source": "/supabase-config.js",
       "headers": [
         {
