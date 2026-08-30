@@ -1,0 +1,29 @@
+{
+  "name": "world-of-trade-mobile",
+  "private": true,
+  "version": "0.2.0",
+  "description": "World of Trade native mobile shell for iOS and Android \u2014 UI cleanup beta",
+  "scripts": {
+    "cap:sync": "npx cap sync",
+    "android:add": "npx cap add android",
+    "android:open": "npx cap open android",
+    "android:run": "npx cap run android",
+    "ios:add": "npx cap add ios",
+    "ios:open": "npx cap open ios",
+    "ios:run": "npx cap run ios",
+    "assets": "npx capacitor-assets generate"
+  },
+  "dependencies": {
+    "@capacitor/core": "*",
+    "@capacitor/app": "*",
+    "@capacitor/haptics": "*",
+    "@capacitor/status-bar": "*",
+    "@capacitor/splash-screen": "*"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "*",
+    "@capacitor/android": "*",
+    "@capacitor/ios": "*",
+    "@capacitor/assets": "*"
+  }
+}
