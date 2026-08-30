@@ -1,8 +1,8 @@
 /* World of Trade — Learn · condivisione di un risultato su LinkedIn
-   LinkedIn accetta solo l'URL nel link di condivisione: testo, titolo e immagine
-   del post non sono precompilabili (l'API che lo permetteva è dismessa dal 2018).
-   Quindi: genero la card come immagine da allegare, copio il testo negli appunti,
-   e apro il compositore. Le tre cose che l'utente non può fare da solo. */
+   Questa UI usa il normale share composer del browser: porta il link a LinkedIn,
+   mentre testo e immagine vengono preparati localmente per l'utente. LinkedIn
+   offre anche API di posting con OAuth/w_member_social, ma non servono a questo
+   flusso semplice e non vanno confuse con l'accesso ristretto alle connessioni. */
 (() => {
   'use strict';
   const $ = s => document.querySelector(s);

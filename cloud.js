@@ -51,6 +51,7 @@
   const putSession = s => {
     session = s;
     try { s ? localStorage.setItem(SESS, JSON.stringify(s)) : localStorage.removeItem(SESS); } catch (e) {}
+    try { window.dispatchEvent(new CustomEvent('wot:auth', { detail: { signedIn: !!s, session: s || null } })); } catch (e) {}
   };
   session = loadSession();
 

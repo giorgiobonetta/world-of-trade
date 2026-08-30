@@ -250,11 +250,11 @@
            onerror="this.onerror=null;this.src='logo-crest-220.png'" />
     </a>
     <nav id="gameNav" class="game-nav" aria-label="Game sections">
-      <button class="nav-item active" data-screen="pathScreen"><span>⌁</span><b>Path</b></button>
-      <button class="nav-item" data-screen="playScreen"><span>⚡</span><b>Play</b></button>
-      <button class="nav-item" data-screen="practiceScreen"><span>↻</span><b>Practice</b></button>
-      <button class="nav-item" data-screen="leagueScreen"><span>♛</span><b>League</b></button>
-      <button class="nav-item" data-screen="profileScreen"><span>♙</span><b>Profile</b></button>
+      <button class="nav-item active" data-screen="pathScreen"><span class="nav-glyph">⌁</span><b>Path</b><small>Career</small></button>
+      <button class="nav-item" data-screen="playScreen"><span class="nav-glyph">⚡</span><b>Play</b><small>Floor</small></button>
+      <button class="nav-item" data-screen="practiceScreen"><span class="nav-glyph">↻</span><b>Practice</b><small>Train</small></button>
+      <button class="nav-item" data-screen="leagueScreen"><span class="nav-glyph">♛</span><b>League</b><small>Compete</small></button>
+      <button class="nav-item" data-screen="profileScreen"><span class="nav-glyph">♙</span><b>Profile</b><small>Desk ID</small></button>
     </nav>
     <div class="stats header-stats" aria-label="Player rewards and level">
       <div class="stat streak" title="Day streak"><i aria-hidden="true">🔥</i><b id="statStreak">0</b></div>
@@ -463,5 +463,6 @@
 <script src="pwa.js"></script>
 <script src="cloud.js"></script>
 <script src="share.js"></script>
+<script src="experience.js"></script>
 </body>
 </html>

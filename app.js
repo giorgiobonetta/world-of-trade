@@ -447,6 +447,7 @@
     document.body.classList.toggle('immersive', immersive);
     $$('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.screen === id));
     if (!immersive) renderMetaScreens();
+    try { window.dispatchEvent(new CustomEvent('wot:screen', { detail: { id } })); } catch (e) {}
     window.scrollTo(0, 0);
   }
 
@@ -1678,5 +1679,5 @@
     replaceState, defaultState, STORAGE_KEY: KEY, SOGLIE, renderStreak, isUnlocked, SANDBOX,
     careerRank, careerLevel, skillScore, startFlash, finishFlash, get flash(){return flash;}, startFrontier, unlockedMasteryWorlds,
     startBoss, startDaily, finishBoss, quitBoss, get boss(){return boss;}, ensureDaily, dailyQuests, claimDailyQuest, localDayKey,
-    ensureCompetitive, leagueScore, leagueEntry, renderLeagueHub, unlockedAchievements, GAME, COMP };
+    ensureCompetitive, leagueScore, leagueEntry, renderLeagueHub, unlockedAchievements, save, GAME, COMP };
 })();

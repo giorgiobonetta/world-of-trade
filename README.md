@@ -1,3 +1,20 @@
+# World of Trade — Experience v7
+
+This build adds the experience/retention layer on top of the v6 content-overhaul build:
+
+- redesigned top navigation for Path / Play / Practice / League / Profile;
+- first-class mobile layout with safe-area support, touch-sized controls and horizontal game navigation;
+- motion layer with reduced-motion accessibility support;
+- animated Hélène coach with contextual explanation for every main section and a recall button;
+- Opening Bell / Daily Briefing surfaced on Path, reusing the existing Daily Deal + Desk Quest economy;
+- LinkedIn invite card with referral-tagged links and copyable invite text;
+- referral capture scaffold (`wot_referrer_pending`) for the future friends graph/backend;
+- PWA shell bumped to v26 and `experience.js` precached.
+
+**LinkedIn friends leaderboard:** not faked in this build. LinkedIn's Connections API is restricted to approved developers. The recommended production fallback is an in-app Friends League built from accepted World of Trade referrals; if LinkedIn grants `r_1st_connections`, that layer can be reconciled with consenting 1st-degree connections.
+
+---
+
 # World of Trade — Learn
 
 ## v5.1 — Mandatory Access + Top Navigation
