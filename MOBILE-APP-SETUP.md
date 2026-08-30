@@ -1,4 +1,4 @@
-# World of Trade — Mobile App v0.2
+# World of Trade — Mobile App v0.3
 
 This beta build contains a first UI/graphics cleanup for iOS and Android.
 
@@ -94,3 +94,6 @@ Per la release pubblica conviene aggiungere Universal Links / App Links così co
 - store signing/release metadata.
 
 Il core del gioco, Supabase, League, Friends, referral, duelli e progressi sono già riusati dalla web app.
+
+## v0.3 UI polish
+This beta includes the second mobile UI pass: native-feeling bottom sheets, consistent card hierarchy, stronger Career/Play states, improved focus/tap feedback, overlay scroll locking, reduced-motion support, and a fix for Hélène's “Show my next level” action.
