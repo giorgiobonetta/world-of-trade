@@ -56,7 +56,8 @@
           <span class="eyebrow" id="heleneKicker">Trading mentor</span>
           <h2 id="heleneTitle">Hélène</h2>
           <p id="heleneCopy"></p>
-          <button id="heleneAction" class="helene-action" type="button"></button>
+          <button id="heleneAction" class="helene-action" type="button"
+                  aria-label="Coach suggestion"></button>
         </div>
       </aside>
       <button id="heleneCall" class="helene-call" type="button" aria-label="Ask Hélène about this section"><span>H</span><b>Ask Hélène</b></button>
@@ -80,7 +81,10 @@
     $('#heleneKicker').textContent = g.kicker;
     $('#heleneTitle').textContent = g.title;
     $('#heleneCopy').textContent = g.copy;
-    $('#heleneAction').textContent = g.action;
+    const az = $('#heleneAction');
+    az.textContent = g.action;
+    // il testo del pulsante cambia: l'etichetta accessibile deve seguirlo
+    az.setAttribute('aria-label', g.action || 'Coach suggestion');
     host.hidden = false; coachOpen = true;
     if (motionOK()) { host.classList.remove('coach-enter'); void host.offsetWidth; host.classList.add('coach-enter'); }
   }
@@ -89,7 +93,7 @@
   function coachAction() {
     closeCoach();
     if (currentScreen === 'pathScreen') {
-      const node = $('.lesson-node:not(.done):not(.locked), .lesson-card:not(.done):not(.locked)');
+      const node = $('.node.next:not(.locked), .node:not(.done):not(.locked)');
       node?.scrollIntoView({behavior:motionOK()?'smooth':'auto',block:'center'});
     } else if (currentScreen === 'playScreen') {
       $('#dailyQuestShelf')?.scrollIntoView({behavior:motionOK()?'smooth':'auto',block:'start'});

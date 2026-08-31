@@ -16,6 +16,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" />
 <link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="mobile-native.css" />
+<script src="native-runtime.js"></script>
 </head>
 <body class="auth-locked">
 
@@ -237,7 +239,7 @@
       <button id="authSignUp" class="btn auth-secondary" type="button" disabled>Create account</button>
     </div>
     <p id="authGateStatus" class="auth-gate-status" role="status">Checking secure access…</p>
-    <p class="auth-gate-legal">We store your email and your progress, nothing else.
+    <p class="auth-gate-legal">Your account saves progress and the social features you choose to use.
        <a href="privacy.html">Privacy and terms</a></p>
   </div>
 </section>
@@ -250,11 +252,11 @@
            onerror="this.onerror=null;this.src='logo-crest-220.png'" />
     </a>
     <nav id="gameNav" class="game-nav" aria-label="Game sections">
-      <button class="nav-item active" data-screen="pathScreen"><span class="nav-glyph">⌁</span><b>Path</b><small>Career</small></button>
-      <button class="nav-item" data-screen="playScreen"><span class="nav-glyph">⚡</span><b>Play</b><small>Floor</small></button>
-      <button class="nav-item" data-screen="practiceScreen"><span class="nav-glyph">↻</span><b>Practice</b><small>Train</small></button>
-      <button class="nav-item" data-screen="leagueScreen"><span class="nav-glyph">♛</span><b>League</b><small>Compete</small></button>
-      <button class="nav-item" data-screen="profileScreen"><span class="nav-glyph">♙</span><b>Profile</b><small>Desk ID</small></button>
+      <button class="nav-item active" data-screen="pathScreen"><span class="nav-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 18c0-4 3-5 6-6s6-2 6-6"/><circle cx="5" cy="18" r="2"/><circle cx="17" cy="6" r="2"/></svg></span><b>Path</b><small>Career</small></button>
+      <button class="nav-item" data-screen="playScreen"><span class="nav-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M13 2 5.5 13H11l-1 9L18.5 10H13z"/></svg></span><b>Play</b><small>Floor</small></button>
+      <button class="nav-item" data-screen="practiceScreen"><span class="nav-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.2 5.5"/><path d="M20 5v6h-6"/></svg></span><b>Practice</b><small>Train</small></button>
+      <button class="nav-item" data-screen="leagueScreen"><span class="nav-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 4v3a5 5 0 0 0 10 0V4"/><path d="M5 4h14M9 14h6M8 20h8M12 14v6"/></svg></span><b>League</b><small>Compete</small></button>
+      <button class="nav-item" data-screen="profileScreen"><span class="nav-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"/><path d="M5.5 20c.8-4 3.1-6 6.5-6s5.7 2 6.5 6"/></svg></span><b>Profile</b><small>Desk ID</small></button>
     </nav>
     <div class="stats header-stats" aria-label="Player rewards and level">
       <div class="stat streak" title="Day streak"><i aria-hidden="true">🔥</i><b id="statStreak">0</b></div>
@@ -465,5 +467,6 @@
 <script src="social.js"></script>
 <script src="share.js"></script>
 <script src="experience.js"></script>
+<script src="ui-polish.js"></script>
 </body>
 </html>

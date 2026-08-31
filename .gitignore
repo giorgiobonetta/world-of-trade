@@ -1,0 +1,7 @@
+# Le TUE chiavi Supabase: non devono finire su GitHub.
+supabase-config.js
+
+node_modules/
+.DS_Store
+Thumbs.db
+*.log

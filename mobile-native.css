@@ -1,0 +1,51 @@
+/* Native-app-only refinements. Web/PWA styling stays in styles.css. */
+html.wot-native, html.wot-native body{
+  min-height:100%;
+  overscroll-behavior:none;
+  -webkit-tap-highlight-color:transparent;
+  -webkit-touch-callout:none;
+}
+html.wot-native body{
+  padding-left:env(safe-area-inset-left);
+  padding-right:env(safe-area-inset-right);
+  /* fixed backgrounds can flicker/jank inside Android/iOS WebViews */
+  background-attachment:scroll;
+}
+/* styles.css owns the TOP safe area; do not apply it a second time here. */
+html.wot-native .app-header-inner{
+  max-width:none;
+}
+html.wot-native button,
+html.wot-native .nav-btn,
+html.wot-native [role="button"]{
+  touch-action:manipulation;
+}
+html.wot-native input,
+html.wot-native textarea,
+html.wot-native select{
+  font-size:max(16px,1em); /* prevents iOS focus zoom */
+  -webkit-user-select:text;
+  user-select:text;
+}
+html.wot-native .helene-call{
+  bottom:max(14px,calc(env(safe-area-inset-bottom) + 8px));
+}
+html.wot-native .lesson-foot{
+  padding-bottom:max(10px,env(safe-area-inset-bottom));
+}
+html.wot-native .install-btn,
+html.wot-native #installHost{
+  display:none!important;
+}
+/* Avoid text selection flashes on game chrome while preserving inputs. */
+html.wot-native .game-nav,
+html.wot-native .app-header,
+html.wot-native .section-number,
+html.wot-native .mode-card,
+html.wot-native .node{
+  -webkit-user-select:none;
+  user-select:none;
+}
+@media (display-mode: standalone){
+  html.wot-native body{background-color:#071232}
+}

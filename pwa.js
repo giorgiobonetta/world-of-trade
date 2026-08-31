@@ -5,7 +5,7 @@
   const $ = s => document.querySelector(s);
 
   // ── service worker ────────────────────────────────────────────────
-  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  if (!window.WOT_NATIVE && 'serviceWorker' in navigator && location.protocol.startsWith('http')) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('sw.js').then(reg => {
         // se arriva una versione nuova mentre la pagina è aperta, la applico
@@ -29,7 +29,7 @@
 
   // ── pulsante di installazione ─────────────────────────────────────
   let prompt = null;
-  window.addEventListener('beforeinstallprompt', e => {
+  if (!window.WOT_NATIVE) window.addEventListener('beforeinstallprompt', e => {
     e.preventDefault();
     prompt = e;
     const host = $('#installHost');

@@ -164,32 +164,66 @@
 
 
   /* ── classifica settimanale (tabella opzionale) ─────────────────── */
+  const normalizeLeagueRow = r => ({
+    ...r,
+    tier: String(r?.tier ?? r?.division ?? 'bronze').toLowerCase(),
+    score: Math.max(0, Number(r?.score ?? r?.weekly_xp) || 0),
+  });
+
   async function leagueRows(week, tier) {
     if (!week) return [];
-    let path = `/rest/v1/${LEAGUE_TABLE}?select=user_id,week,alias,house,tier,score,updated_at&week=eq.${encodeURIComponent(week)}`;
-    if (tier) path += `&tier=eq.${encodeURIComponent(tier)}`;
-    path += '&order=score.desc&limit=500';
-    const rows = await call(path, { method:'GET', auth:false });
-    return Array.isArray(rows) ? rows : [];
+    // Current database schema uses division + weekly_xp. Keep a fallback for
+    // early beta projects that still have tier + score.
+    try {
+      let path = `/rest/v1/${LEAGUE_TABLE}?select=user_id,week,alias,house,division,weekly_xp,updated_at&week=eq.${encodeURIComponent(week)}`;
+      if (tier) path += `&division=eq.${encodeURIComponent(tier)}`;
+      path += '&order=weekly_xp.desc&limit=500';
+      const rows = await withFreshToken(() => call(path, { method:'GET', auth:true }));
+      return Array.isArray(rows) ? rows.map(normalizeLeagueRow) : [];
+    } catch (e) {
+      let path = `/rest/v1/${LEAGUE_TABLE}?select=user_id,week,alias,house,tier,score,updated_at&week=eq.${encodeURIComponent(week)}`;
+      if (tier) path += `&tier=eq.${encodeURIComponent(tier)}`;
+      path += '&order=score.desc&limit=500';
+      const rows = await withFreshToken(() => call(path, { method:'GET', auth:true }));
+      return Array.isArray(rows) ? rows.map(normalizeLeagueRow) : [];
+    }
   }
 
   async function houseRows(week) {
     if (!week) return [];
-    const path = `/rest/v1/${LEAGUE_TABLE}?select=user_id,week,alias,house,tier,score&week=eq.${encodeURIComponent(week)}&order=score.desc&limit=1000`;
-    const rows = await call(path, { method:'GET', auth:false });
-    return Array.isArray(rows) ? rows : [];
+    try {
+      const path = `/rest/v1/${LEAGUE_TABLE}?select=user_id,week,alias,house,division,weekly_xp&week=eq.${encodeURIComponent(week)}&order=weekly_xp.desc&limit=1000`;
+      const rows = await withFreshToken(() => call(path, { method:'GET', auth:true }));
+      return Array.isArray(rows) ? rows.map(normalizeLeagueRow) : [];
+    } catch (e) {
+      const path = `/rest/v1/${LEAGUE_TABLE}?select=user_id,week,alias,house,tier,score&week=eq.${encodeURIComponent(week)}&order=score.desc&limit=1000`;
+      const rows = await withFreshToken(() => call(path, { method:'GET', auth:true }));
+      return Array.isArray(rows) ? rows.map(normalizeLeagueRow) : [];
+    }
   }
 
   async function pushLeague(entry) {
     const uid = idUtente();
     if (!uid || !entry?.week) return false;
     const alias = String(entry.alias || 'Trader').trim().replace(/\s+/g,' ').slice(0,24) || 'Trader';
-    await withFreshToken(() => call(`/rest/v1/${LEAGUE_TABLE}`, {
-      method:'POST', auth:true,
-      headers:{ Prefer:'resolution=merge-duplicates,return=minimal' },
-      body:[{ user_id:uid, week:String(entry.week), alias, house:entry.house || null,
-        tier:String(entry.tier || 'bronze'), score:Math.max(0,Math.round(Number(entry.score)||0)), updated_at:new Date().toISOString() }],
-    }));
+    const division = String(entry.tier || entry.division || 'bronze').toLowerCase();
+    const weeklyXp = Math.max(0,Math.round(Number(entry.score ?? entry.weekly_xp)||0));
+    try {
+      await withFreshToken(() => call(`/rest/v1/${LEAGUE_TABLE}`, {
+        method:'POST', auth:true,
+        headers:{ Prefer:'resolution=merge-duplicates,return=minimal' },
+        body:[{ user_id:uid, week:String(entry.week), alias, house:entry.house || null,
+          division, weekly_xp:weeklyXp, updated_at:new Date().toISOString() }],
+      }));
+    } catch (e) {
+      // Compatibility with early beta schema.
+      await withFreshToken(() => call(`/rest/v1/${LEAGUE_TABLE}`, {
+        method:'POST', auth:true,
+        headers:{ Prefer:'resolution=merge-duplicates,return=minimal' },
+        body:[{ user_id:uid, week:String(entry.week), alias, house:entry.house || null,
+          tier:division, score:weeklyXp, updated_at:new Date().toISOString() }],
+      }));
+    }
     return true;
   }
 
@@ -199,14 +233,14 @@
 
   async function socialProfileByUser(userId) {
     const uid = cleanUuid(userId); if (!uid) return null;
-    const rows = await call(`/rest/v1/${SOCIAL_PROFILE_TABLE}?select=user_id,alias,house,referral_code,created_at,updated_at&user_id=eq.${uid}&limit=1`, { method:'GET', auth:false });
+    const rows = await call(`/rest/v1/${SOCIAL_PROFILE_TABLE}?select=user_id,alias,house,referral_code,created_at,updated_at&user_id=eq.${uid}&limit=1`, { method:'GET', auth:true });
     return Array.isArray(rows) && rows[0] ? rows[0] : null;
   }
 
   async function socialProfileByCode(code) {
     const c = String(code||'').trim().replace(/[^A-Za-z0-9_-]/g,'').slice(0,24);
     if (!c) return null;
-    const rows = await call(`/rest/v1/${SOCIAL_PROFILE_TABLE}?select=user_id,alias,house,referral_code&referral_code=eq.${encodeURIComponent(c)}&limit=1`, { method:'GET', auth:false });
+    const rows = await call(`/rest/v1/${SOCIAL_PROFILE_TABLE}?select=user_id,alias,house,referral_code&referral_code=eq.${encodeURIComponent(c)}&limit=1`, { method:'GET', auth:true });
     return Array.isArray(rows) && rows[0] ? rows[0] : null;
   }
 
@@ -232,7 +266,7 @@
   async function socialProfiles(userIds = []) {
     const ids = [...new Set((userIds||[]).map(cleanUuid).filter(Boolean))].slice(0,500);
     if (!ids.length) return [];
-    const rows = await call(`/rest/v1/${SOCIAL_PROFILE_TABLE}?select=user_id,alias,house,referral_code&user_id=in.(${ids.join(',')})`, { method:'GET', auth:false });
+    const rows = await call(`/rest/v1/${SOCIAL_PROFILE_TABLE}?select=user_id,alias,house,referral_code&user_id=in.(${ids.join(',')})`, { method:'GET', auth:true });
     return Array.isArray(rows) ? rows : [];
   }
 
@@ -255,9 +289,15 @@
     if (!week) return [];
     const ids = [...new Set((userIds||[]).map(cleanUuid).filter(Boolean))].slice(0,500);
     if (!ids.length) return [];
-    const path = `/rest/v1/${LEAGUE_TABLE}?select=user_id,week,alias,house,tier,score,updated_at&week=eq.${encodeURIComponent(week)}&user_id=in.(${ids.join(',')})&order=score.desc`;
-    const rows = await call(path, { method:'GET', auth:false });
-    return Array.isArray(rows) ? rows : [];
+    try {
+      const path = `/rest/v1/${LEAGUE_TABLE}?select=user_id,week,alias,house,division,weekly_xp,updated_at&week=eq.${encodeURIComponent(week)}&user_id=in.(${ids.join(',')})&order=weekly_xp.desc`;
+      const rows = await withFreshToken(() => call(path, { method:'GET', auth:true }));
+      return Array.isArray(rows) ? rows.map(normalizeLeagueRow) : [];
+    } catch (e) {
+      const path = `/rest/v1/${LEAGUE_TABLE}?select=user_id,week,alias,house,tier,score,updated_at&week=eq.${encodeURIComponent(week)}&user_id=in.(${ids.join(',')})&order=score.desc`;
+      const rows = await withFreshToken(() => call(path, { method:'GET', auth:true }));
+      return Array.isArray(rows) ? rows.map(normalizeLeagueRow) : [];
+    }
   }
 
   async function createFriendChallenge({ opponent_id, desk, seed, week } = {}) {

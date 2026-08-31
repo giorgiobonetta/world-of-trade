@@ -1013,3 +1013,352 @@ body.friend-frame-unlocked #careerHero>*,body.friend-frame-unlocked .career-hero
 @media(max-width:470px){.weekly-rival{grid-template-columns:42px 1fr}.weekly-rival-mark{width:40px;height:40px}.weekly-rival>button{grid-column:1/3;min-height:40px}.social-nav-badge{right:3px;top:2px}}
 .weekly-rival>button[disabled]{opacity:.42;cursor:default}
 .social-toast{position:fixed;right:18px;bottom:18px;z-index:210;width:min(390px,calc(100vw - 28px));display:grid;grid-template-columns:70px 1fr;gap:10px;align-items:center;padding:11px 14px 11px 8px;border-radius:20px;background:linear-gradient(145deg,#17447f,#081a3a);border:1px solid rgba(79,224,138,.25);box-shadow:0 18px 55px rgba(0,0,0,.45);opacity:0;transform:translateY(18px) scale(.97);transition:.32s cubic-bezier(.2,.9,.2,1);pointer-events:none}.social-toast.show{opacity:1;transform:none}.social-toast svg{display:block;filter:drop-shadow(0 5px 8px rgba(0,0,0,.25))}.social-toast small,.social-toast b,.social-toast p{display:block}.social-toast small{color:#73dca7;font-size:7px;font-weight:900;letter-spacing:.08em}.social-toast b{margin-top:2px;font-size:12px}.social-toast p{margin:3px 0 0;color:#9db4d2;font-size:9px;line-height:1.35}@media(max-width:470px){.social-toast{right:8px;bottom:8px;width:calc(100vw - 16px)}}@media(prefers-reduced-motion:reduce){.social-toast{transition:none}}
+
+/* ══════════════════════════════════════════════════════════════════════
+   MOBILE UI CLEANUP v0.2 — safe areas, readable nav, overlays, dialogs
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* One source of truth for the top safe area. The previous mobile rule
+   accidentally added safe-area-inset-top to the BOTTOM of the header. */
+.app-header{
+  padding-top:env(safe-area-inset-top);
+}
+
+@media (max-width:820px){
+  .app-header-inner{
+    padding:7px 10px 6px!important;
+  }
+
+  /* All five primary destinations must always be visible. No hidden Profile
+     tab and no horizontal nav hunt on a phone. */
+  .game-nav{
+    display:grid!important;
+    grid-template-columns:repeat(5,minmax(0,1fr))!important;
+    overflow:visible!important;
+    scroll-snap-type:none!important;
+    margin:0!important;
+    gap:4px!important;
+    padding:5px!important;
+  }
+  .nav-item{
+    min-width:0!important;
+    width:100%!important;
+    min-height:45px!important;
+    grid-template-columns:26px minmax(0,1fr)!important;
+    column-gap:5px!important;
+    padding:4px 5px!important;
+    scroll-snap-align:none!important;
+  }
+  .nav-item .nav-glyph{width:26px;height:26px;border-radius:9px}
+  .nav-item b{font-size:10px!important;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+  .nav-item small{font-size:6.8px;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+  .nav-item::after{left:8px;right:8px;bottom:-5px}
+
+  /* Prevent the fixed coach from sitting under the iOS home indicator or on
+     top of its own Ask Hélène button. */
+  .helene-call{
+    bottom:max(12px,calc(env(safe-area-inset-bottom) + 8px))!important;
+  }
+  .helene-coach{
+    bottom:max(72px,calc(env(safe-area-inset-bottom) + 70px))!important;
+    max-height:min(72dvh,560px);
+    overflow:auto;
+  }
+
+  /* Sheets/dialogs remain usable when the mobile keyboard reduces the visual
+     viewport. */
+  .auth-gate,
+  .daily-briefing-layer,
+  .cloud-dialog,
+  .social-dialog{
+    min-height:100dvh;
+    padding-top:max(16px,env(safe-area-inset-top));
+    padding-right:max(12px,env(safe-area-inset-right));
+    padding-bottom:max(16px,env(safe-area-inset-bottom));
+    padding-left:max(12px,env(safe-area-inset-left));
+  }
+  .auth-gate{align-items:safe center}
+  .auth-gate-card{max-height:calc(100dvh - 32px);overflow:auto;overscroll-behavior:contain}
+  .cloud-panel,.social-modal,.daily-briefing{max-height:calc(100dvh - 32px);overflow:auto;overscroll-behavior:contain}
+
+  /* Readability: several social labels were below practical mobile sizes. */
+  .friends-head{font-size:8.5px}
+  .friends-row{font-size:11px;min-height:48px}
+  .friends-row>span small{font-size:8px}
+  .friends-row>button{font-size:9px;min-height:34px}
+  .social-subhead b{font-size:14px}
+  .social-subhead small{font-size:10.5px}
+  .social-subhead>span{font-size:9px}
+  .referral-card>p{font-size:11px}
+  .referral-actions a,.referral-actions button{font-size:9.5px}
+  .challenge-copy b{font-size:11.5px}
+  .challenge-copy small{font-size:9px}
+  .challenge-card>button,.challenge-card>em{font-size:9px}
+  .weekly-rival p{font-size:10px}
+  .weekly-rival>button{font-size:9px}
+
+  /* Give interactive controls a reliable touch target. */
+  .mini-action,.boss-start,.daily-pulse-actions button,.invite-actions a,.invite-actions button{
+    min-height:44px;
+  }
+}
+
+@media (max-width:470px){
+  .app-header-inner{gap:6px 7px;padding-left:8px!important;padding-right:8px!important}
+  .app-header .brand{height:29px}
+  .header-stats{gap:4px}
+  .app-header .stat{min-height:31px;padding:4px 6px!important;font-size:11.5px!important}
+  .app-header .stat i{font-size:10px!important}
+
+  .game-nav{gap:3px!important;padding:4px!important;border-radius:16px}
+  .nav-item{grid-template-columns:1fr!important;grid-template-rows:24px 16px!important;justify-items:center!important;gap:0!important;padding:3px 2px!important;border-radius:10px!important}
+  .nav-item .nav-glyph{grid-column:1;grid-row:1;width:24px;height:24px;margin:auto;font-size:12px!important}
+  .nav-item b{grid-column:1;grid-row:2;align-self:center!important;font-size:9px!important;text-align:center}
+  .nav-item small{display:none!important}
+  .nav-item::after{left:5px;right:5px;bottom:-4px}
+
+  .section-top{padding-top:20px}
+  .section-top h1{font-size:29px}
+
+  .helene-coach{
+    right:8px!important;
+    width:calc(100vw - 16px)!important;
+    grid-template-columns:72px minmax(0,1fr)!important;
+    gap:8px!important;
+    padding:11px 10px 11px 6px!important;
+    border-radius:20px!important;
+  }
+  .helene-avatar svg{width:72px!important;height:72px!important}
+  .helene-dialogue h2{font-size:16px;margin-bottom:5px}
+  .helene-dialogue p{font-size:11.5px;line-height:1.42}
+  .helene-action{min-height:39px}
+
+  .daily-pulse-actions{grid-template-columns:1fr!important}
+  .daily-pulse-actions button{width:100%}
+
+  /* Toasts used to cover Ask Hélène in the bottom-right corner. */
+  .social-toast{
+    left:8px!important;
+    right:auto!important;
+    bottom:max(68px,calc(env(safe-area-inset-bottom) + 66px))!important;
+    width:calc(100vw - 16px)!important;
+  }
+
+  .lesson-top{padding-left:10px;padding-right:10px;gap:8px}
+  .lesson-top .icon-btn{padding:6px;font-size:23px}
+  .progress{height:16px}
+  .lesson-wrap{padding-left:14px;padding-right:14px;padding-bottom:190px}
+  .opt{padding:15px 16px;font-size:16px;border-radius:17px}
+  .q-prompt{font-size:21px;line-height:1.32}
+  .lesson-foot .foot-inner{padding-left:14px;padding-right:14px}
+}
+
+@media (max-width:360px){
+  .app-header .stat.level{display:none}
+  .nav-item b{font-size:8.5px!important}
+  .header-stats{max-width:205px}
+  .daily-pulse{padding:14px}
+}
+
+/* Stable vector nav icons across iOS/Android system fonts. */
+.nav-item .nav-glyph svg{width:17px;height:17px;display:block;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.nav-item:nth-child(2) .nav-glyph svg{fill:currentColor;stroke:none}
+@media(max-width:470px){.nav-item .nav-glyph svg{width:15px;height:15px}}
+
+/* ══════════════════════════════════════════════════════════════════════
+   MOBILE PRODUCT POLISH v0.3 — hierarchy, interaction, sheets, states
+   This layer intentionally overrides legacy visual rules without changing
+   progression/content logic.
+   ══════════════════════════════════════════════════════════════════════ */
+
+:root{
+  --section-accent:var(--gold);
+  --surface-1:rgba(11,35,78,.82);
+  --surface-2:rgba(5,20,52,.88);
+  --surface-border:rgba(173,205,255,.13);
+  --surface-highlight:rgba(255,255,255,.055);
+}
+body[data-section="path"]{--section-accent:#ffd45c}
+body[data-section="play"]{--section-accent:#68dff2}
+body[data-section="practice"]{--section-accent:#72e7a8}
+body[data-section="league"]{--section-accent:#b69cff}
+body[data-section="profile"]{--section-accent:#ffc86b}
+
+/* Header feels like one native game HUD rather than three unrelated blocks. */
+.app-header{
+  border-bottom:1px solid color-mix(in srgb,var(--section-accent) 34%,transparent)!important;
+  transition:box-shadow .22s ease,border-color .22s ease,background .22s ease;
+}
+.app-header.scrolled{box-shadow:0 12px 34px rgba(0,0,0,.46)!important;background:linear-gradient(180deg,rgba(7,29,70,.985),rgba(4,16,43,.97))!important}
+.header-stats .stat{
+  border:1px solid rgba(255,255,255,.10)!important;
+  background:linear-gradient(180deg,rgba(34,72,139,.7),rgba(12,37,83,.78))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 4px 12px rgba(0,0,0,.16)!important;
+}
+.header-stats .stat.gold{border-color:rgba(255,212,92,.20)!important}
+.header-stats .stat.streak{border-color:rgba(255,143,84,.20)!important}
+
+/* Primary navigation: crisp active state, stable tap feedback and no visual jump. */
+.game-nav{box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 6px 20px rgba(0,0,0,.12)!important}
+.nav-item{transition:background .18s ease,border-color .18s ease,transform .12s ease,color .18s ease!important}
+.nav-item:active{transform:scale(.965)!important}
+.nav-item[aria-current="page"]{color:#fff!important}
+.nav-item:focus-visible,.btn:focus-visible,.mini-action:focus-visible,.node:focus-visible,.icon-btn:focus-visible{
+  outline:3px solid color-mix(in srgb,var(--section-accent) 88%,white)!important;
+  outline-offset:3px!important;
+}
+
+/* Section headers have a consistent visual anchor across all destinations. */
+.section-top{
+  max-width:1120px!important;
+  margin:0 auto!important;
+  padding:30px 20px 9px!important;
+  align-items:center!important;
+}
+.section-top::after{
+  content:"";height:1px;flex:1;min-width:34px;margin-left:8px;
+  background:linear-gradient(90deg,color-mix(in srgb,var(--section-accent) 50%,transparent),transparent);
+}
+.section-number{
+  border-color:color-mix(in srgb,var(--section-accent) 28%,transparent)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05)!important;
+}
+.section-number b{color:var(--section-accent)!important}
+
+/* Unified card material. */
+.mode-hero,.mode-card,.practice-card,.profile-rank,.skill-card,.flash-record,
+.league-panel,.world-map-shell,.daily-quests,.career-hero,.greet,.daily-pulse{
+  border-color:var(--surface-border)!important;
+  box-shadow:inset 0 1px 0 var(--surface-highlight),0 14px 34px rgba(0,0,0,.20)!important;
+}
+.mode-hero,.practice-card,.profile-rank,.skill-card,.flash-record,
+.league-panel,.world-map-shell,.daily-quests,.daily-pulse{
+  background:linear-gradient(160deg,var(--surface-1),var(--surface-2))!important;
+}
+
+/* Play cards now read as distinct game modes at a glance. */
+.mode-card{
+  position:relative;overflow:hidden;min-height:190px;padding:20px 19px 18px!important;
+  background:linear-gradient(155deg,rgba(18,53,111,.78),rgba(6,24,59,.88))!important;
+  transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease!important;
+}
+.mode-card::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--mode-accent,#ffd45c);opacity:.85}
+.mode-card::after{position:absolute;right:13px;top:5px;font-weight:900;font-size:62px;line-height:1;color:var(--mode-accent,#ffd45c);opacity:.055;pointer-events:none}
+.mode-card.daily-teaser{--mode-accent:#ffd45c}.mode-card.daily-teaser::after{content:"D"}
+.mode-card.boss-teaser{--mode-accent:#ff8d9e}.mode-card.boss-teaser::after{content:"B"}
+.mode-card.frontier-teaser{--mode-accent:#6de4f3}.mode-card.frontier-teaser::after{content:"∞";font-size:72px;top:0}
+.mode-card:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--mode-accent,#ffd45c) 35%,transparent)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 17px 35px rgba(0,0,0,.28)!important}
+.mode-card:active{transform:translateY(1px) scale(.992)}
+.mode-card>span{color:var(--mode-accent,#ffd45c)!important}
+.mini-action{position:relative;z-index:1;border:1px solid rgba(255,255,255,.10)!important;background:rgba(255,255,255,.055)!important;transition:.16s ease!important}
+.mini-action:hover{background:rgba(255,255,255,.10)!important;border-color:rgba(255,255,255,.20)!important}
+.mini-action:active{transform:scale(.98)}
+
+/* Career Path: clearer progress states and less "stack of generic cards" feel. */
+.unit-head{border-width:1px!important;background:linear-gradient(145deg,rgba(25,67,139,.94),rgba(8,29,67,.94))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 12px 28px rgba(0,0,0,.20)!important}
+.unit-head::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,var(--gold-hi),var(--gold-mid))}
+.node{
+  border-width:1px!important;background:linear-gradient(155deg,rgba(24,64,130,.94),rgba(9,31,72,.96))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 10px 22px rgba(0,0,0,.19)!important;
+  transition:transform .16s ease,border-color .18s ease,box-shadow .18s ease,opacity .18s ease!important;
+}
+.node.done{border-color:rgba(79,224,138,.23)!important;background:linear-gradient(155deg,rgba(21,83,77,.76),rgba(8,38,62,.94))!important}
+.node.next{border-color:rgba(255,212,92,.60)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 13px 28px rgba(0,0,0,.25),0 0 0 1px rgba(255,212,92,.08)!important}
+.node.locked{opacity:.48!important;filter:saturate(.48) brightness(.84)!important}
+.node:hover:not(.locked){transform:translateY(-2px)!important}
+.node:active:not(.locked){transform:scale(.992)!important}
+.node .medal{box-shadow:inset 0 2px 0 rgba(255,255,255,.35),0 5px 12px rgba(0,0,0,.25)!important}
+.connector{width:3px!important;height:22px!important;background:linear-gradient(180deg,rgba(255,212,92,.38),rgba(100,153,237,.16))!important}
+.phase-divider i{background:linear-gradient(90deg,rgba(255,212,92,.28),transparent)!important}
+
+/* Practice is deliberately quieter than Play, but clearly actionable. */
+.practice-card{position:relative;overflow:hidden}
+.practice-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,#a8f7c8,#4fe08a)}
+.practice-orb{box-shadow:inset 0 1px 0 rgba(255,255,255,.32),0 8px 20px rgba(0,0,0,.22)!important}
+
+/* League/profile tables and cards remain readable with long aliases. */
+.league-row,.house-rank-row,.friends-row{transition:background .16s ease,transform .12s ease}
+.league-row:hover,.house-rank-row:hover,.friends-row:hover{background-color:rgba(255,255,255,.035)}
+.league-row.me{box-shadow:inset 3px 0 0 var(--gold)!important}
+.skill-row{padding:9px 0}
+.skill-track{height:8px!important}
+.profile-numbers>div{border:1px solid rgba(255,255,255,.07);background:rgba(2,11,31,.24);border-radius:14px;padding:10px 7px}
+
+/* Buttons feel consistent across webview and browser. */
+.btn,.mini-action,.boss-start,.helene-action,.referral-actions button,.referral-actions a{
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+}
+.btn{transition:transform .12s ease,filter .16s ease,box-shadow .16s ease!important}
+.btn:active:not(:disabled){transform:translateY(2px) scale(.99)!important;filter:brightness(.96)}
+button:disabled,[aria-disabled="true"]{cursor:not-allowed}
+
+/* Background cannot scroll underneath an open modal/sheet. */
+body.overlay-open{overflow:hidden!important}
+
+/* Loading / empty statuses use the same visual language. */
+.ui-status{
+  display:flex;align-items:center;gap:10px;min-height:52px;padding:12px 14px;border-radius:15px;
+  color:#a9c0df;background:rgba(5,18,46,.48);border:1px dashed rgba(173,205,255,.15);font-size:12px;
+}
+.ui-status::before{content:"";width:8px;height:8px;flex:0 0 auto;border-radius:50%;background:var(--section-accent);box-shadow:0 0 0 5px color-mix(in srgb,var(--section-accent) 10%,transparent)}
+
+/* Subtle reveal animation; disabled for reduced-motion users. */
+.ui-reveal{opacity:0;transform:translateY(10px);transition:opacity .34s ease,transform .34s cubic-bezier(.2,.8,.2,1)}
+.ui-reveal.is-visible{opacity:1;transform:none}
+
+/* Mobile overlays become native-feeling bottom sheets. */
+@media(max-width:650px){
+  .section-top{padding:20px 14px 7px!important;gap:10px!important}.section-top::after{display:none}
+  .section-number{transform:scale(.92);transform-origin:left center}
+  .tab-wrap,.wrap{padding-left:14px;padding-right:14px}
+
+  .mode-grid{grid-template-columns:1fr!important;gap:11px!important}
+  .mode-card{min-height:0;padding:17px 16px!important}
+  .mode-card::after{font-size:54px;right:10px}
+  .mode-card.frontier-teaser::after{font-size:62px}
+
+  .unit{margin-top:24px}.unit-head{margin-bottom:18px;padding:17px 17px 16px!important;border-radius:20px!important}
+  .node{max-width:none!important;grid-template-columns:58px minmax(0,1fr)!important;gap:12px!important;padding:13px 14px!important;border-radius:18px!important}
+  .node .medal{width:52px!important;height:52px!important;font-size:21px!important}
+  .node strong{font-size:16px!important}.node small{font-size:12.5px!important}
+  .connector{height:18px!important}
+
+  .cloud-dialog,.social-dialog,.daily-briefing-layer{place-items:end center!important;padding:0!important;background:rgba(1,7,20,.72)!important}
+  .cloud-panel,.social-modal,.daily-briefing{
+    width:100%!important;max-width:none!important;max-height:min(88dvh,760px)!important;margin:0!important;
+    border-radius:25px 25px 0 0!important;border-left:0!important;border-right:0!important;border-bottom:0!important;
+    padding-left:max(18px,env(safe-area-inset-left))!important;padding-right:max(18px,env(safe-area-inset-right))!important;
+    padding-bottom:max(20px,calc(env(safe-area-inset-bottom) + 14px))!important;
+    animation:sheetUp .28s cubic-bezier(.2,.8,.2,1);
+  }
+  @keyframes sheetUp{from{transform:translateY(24px);opacity:.7}to{transform:none;opacity:1}}
+
+  .helene-coach{
+    border-radius:22px 22px 0 0!important;right:0!important;left:0!important;bottom:0!important;width:100%!important;
+    padding:13px max(13px,env(safe-area-inset-right)) max(15px,calc(env(safe-area-inset-bottom) + 10px)) max(8px,env(safe-area-inset-left))!important;
+    grid-template-columns:74px minmax(0,1fr)!important;box-shadow:0 -16px 45px rgba(0,0,0,.48)!important;
+  }
+  .helene-call{bottom:max(12px,calc(env(safe-area-inset-bottom) + 8px))!important}
+  .social-toast{bottom:max(76px,calc(env(safe-area-inset-bottom) + 74px))!important}
+}
+
+@media(max-width:390px){
+  .section-top h1{font-size:27px!important}.section-number{display:none!important}
+  .mode-hero,.practice-card,.profile-rank,.skill-card,.flash-record,.league-panel,.world-map-shell,.daily-quests,.daily-pulse{border-radius:20px!important;padding-left:15px!important;padding-right:15px!important}
+  .profile-numbers{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:6px!important}
+  .profile-numbers>div{padding:8px 4px}.profile-numbers b{font-size:17px!important}.profile-numbers span{font-size:8px!important}
+}
+
+@media(orientation:landscape) and (max-height:520px){
+  .app-header-inner{padding-top:4px!important;padding-bottom:4px!important}
+  .game-nav{padding:3px!important}.nav-item{min-height:38px!important}.nav-item .nav-glyph{width:24px;height:24px}
+  .section-top{padding-top:14px!important}.helene-coach{max-height:82dvh!important;overflow:auto}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .ui-reveal{opacity:1!important;transform:none!important;transition:none!important}
+  .cloud-panel,.social-modal,.daily-briefing{animation:none!important}
+  .app-header,.nav-item,.mode-card,.node,.btn{transition:none!important}
+}
+/* Do not leave the floating coach launcher over an open sheet/coach. */
+body.overlay-open .helene-call{opacity:0;pointer-events:none;transform:translateY(6px)}
