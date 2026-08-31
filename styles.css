@@ -1362,3 +1362,78 @@ body.overlay-open{overflow:hidden!important}
 }
 /* Do not leave the floating coach launcher over an open sheet/coach. */
 body.overlay-open .helene-call{opacity:0;pointer-events:none;transform:translateY(6px)}
+
+/* Tempo al prossimo salvagente. Sta accanto al contatore e sparisce
+   quando il fondo è pieno, così non aggiunge rumore a chi non ne ha bisogno. */
+.stat-timer{
+  margin-left:5px; font-size:11px; font-variant-numeric:tabular-nums;
+  opacity:.72; letter-spacing:.01em;
+}
+.stat.lives.empty .stat-timer{ opacity:1; font-weight:600 }
+@media (max-width:420px){ .stat-timer{ font-size:10px; margin-left:3px } }
+
+/* Apertura di unità: accessibile ma non è il passo del percorso. Deve
+   invitare senza competere con il nodo dorato, altrimenti chi sta seguendo
+   il cammino non capisce più dove deve andare. */
+.node.taster{ border-color:rgba(126,168,255,.5) }
+.node.taster .medal{
+  background:linear-gradient(180deg,#5f86d8,#3a5da8); color:#eaf1ff; animation:none;
+}
+.node .tag.taste{
+  background:linear-gradient(180deg,#7ea8ff,#4a72d0); color:#08142e;
+  box-shadow:0 3px 0 rgba(20,44,96,.7); animation:none;
+}
+@media (prefers-reduced-motion:reduce){ .node .tag{ animation:none } }
+
+/* Le tre righe che dicono durata, formato e costo di ciascuna modalità.
+   Servono a scegliere senza dover provare, quindi restano compatte. */
+.tab-lede{
+  margin:0 0 20px; max-width:64ch; color:var(--muted);
+  font-size:15px; line-height:1.55;
+}
+.mode-facts{
+  list-style:none; margin:12px 0 0; padding:0;
+  display:flex; flex-wrap:wrap; gap:6px 8px;
+}
+.mode-facts li{
+  font-size:12px; line-height:1.3; color:var(--muted);
+  border:1px solid rgba(255,255,255,.14); border-radius:999px;
+  padding:4px 10px; background:rgba(255,255,255,.04);
+}
+.mode-hero .mode-facts{ margin-bottom:16px }
+@media (max-width:520px){ .mode-facts li{ font-size:11px; padding:3px 8px } }
+
+/* Introduzione al primo avvio. Riusa il pannello delle altre finestre, ma
+   più largo: qui si legge, non si compila un modulo. */
+.intro-panel{ width:min(460px,100%); text-align:left; padding-top:22px }
+.intro-art{ display:flex; justify-content:center; margin:2px 0 10px }
+.intro-step{
+  margin:0 0 4px; font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--muted-2); font-weight:700;
+}
+.intro-panel h2{ padding-right:64px; line-height:1.2 }
+#introCopy{ margin:8px 0 14px; color:var(--muted); line-height:1.6; font-size:15px }
+.intro-list{ list-style:none; margin:0 0 18px; padding:0; display:grid; gap:8px }
+.intro-list li{
+  position:relative; padding:9px 12px 9px 34px; font-size:14px; line-height:1.4;
+  border-radius:12px; background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.1);
+}
+.intro-list li::before{
+  content:'›'; position:absolute; left:14px; top:8px;
+  color:var(--gold-hi); font-weight:700; font-size:16px;
+}
+.intro-dots{ display:flex; gap:7px; justify-content:center; margin:0 0 16px }
+.intro-dots i{
+  width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,.26);
+  transition:background .2s ease, transform .2s ease;
+}
+.intro-dots i.on{ background:var(--gold-hi); transform:scale(1.25) }
+.intro-skip{
+  position:absolute; top:14px; right:16px; padding:7px 13px; border-radius:999px;
+  background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.16);
+  color:#e8eefc; font:inherit; font-size:13px; cursor:pointer;
+}
+.intro-skip:hover{ background:rgba(255,255,255,.14) }
+.intro-skip:focus-visible{ outline:3px solid var(--gold-hi); outline-offset:2px }
+@media (prefers-reduced-motion:reduce){ .intro-dots i{ transition:none } }

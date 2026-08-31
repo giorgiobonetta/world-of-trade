@@ -2,12 +2,13 @@
    Regola: l'HTML si prende dalla rete quando c'è (così un aggiornamento
    arriva subito), tutto il resto dalla cache (così l'app parte offline).
    La versione nel nome della cache è ciò che manda via una shell vecchia. */
-const VERSION = 'v31';
+const VERSION = 'v32';
 const CACHE = `wot-learn-${VERSION}`;
 
 const SHELL = [
   './',
   'index.html',
+  'intro.js',
   'learn.html',
   'glossary.html',
   'privacy.html',

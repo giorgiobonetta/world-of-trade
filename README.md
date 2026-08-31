@@ -29,8 +29,9 @@ index.html             splash used by the native shell (redirects to learn.html)
 curriculum.js          14 hand-written units, 316 exercises
 content-engine.js      deterministic generator for the remaining units
 glossary.js            122 terms
+intro.js               the three-screen first-run introduction
 sw.js                  service worker (offline support)
-tests/                 28 verification suites
+tests/                 30 verification suites
 capacitor.config.ts    native shell configuration
 MOBILE-APP-SETUP.md    building the iOS/Android apps
 ```

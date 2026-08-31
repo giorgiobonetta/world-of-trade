@@ -21,6 +21,7 @@
   const MAX_LIVES = 5;          // quanti se ne possono tenere
   const START_LIVES = 5;        // con quanti si comincia
   const STREAK_PER_LIFE = 10;   // risposte giuste di fila per riguadagnarne uno
+  const LIFE_REGEN_MS = 20 * 60 * 1000;  // uno ogni venti minuti, anche a app chiusa
   const CHECK_MIN_LIVES = 3;    // un checkpoint deve poter arrivare a un punteggio
   const HEARTS = MAX_LIVES;
   const CHECK_HEARTS = MAX_LIVES;
@@ -88,6 +89,7 @@
     streakBest: 0, // record personale, quello che si condivide
     lives: START_LIVES, // fondo di salvagenti: persiste fra le sessioni
     livesEarned: 0,// quanti ne sono stati riguadagnati con le serie
+    livesAt: 0,    // da quando matura il prossimo salvagente: 0 = fondo pieno
     skillXp: {},    // pratica oltre al progresso base: skill -> punti
     flash: { best:0, plays:0, correct:0, total:0 },
     frontier: { best:0, plays:0, cleared:0, correct:0, total:0 },
@@ -123,7 +125,8 @@
         streakNow: Number(s.streakNow) || 0, streakBest: Number(s.streakBest) || 0,
         // un salvataggio precedente non ha il fondo: si parte pieni
         lives: s.lives === undefined ? START_LIVES : Math.max(0, Math.min(MAX_LIVES, Number(s.lives) || 0)),
-        livesEarned: Number(s.livesEarned) || 0 };
+        livesEarned: Number(s.livesEarned) || 0,
+        livesAt: Number(s.livesAt) || 0 };
     } catch (e) { return defaultState(); }
   }
   function save() {
@@ -516,19 +519,22 @@
       const nodes = u.lessons.map((l, li) => {
         const done = isDone(l.id);
         const isNext = l.id === next;
-        const locked = !done && !isNext;
-        const cls = done ? 'done' : isNext ? 'next' : 'locked';
+        // apertura di unità: accessibile, ma non è il passo del percorso
+        const assaggio = !done && !isNext && li === 0;
+        const locked = !done && !isNext && !assaggio;
+        const cls = done ? 'done' : isNext ? 'next' : assaggio ? 'taster' : 'locked';
         const medal = done ? '✓' : locked ? '🔒' : String(li + 1);
         const acc = state.best[l.id];
         const weak = l.exercises.reduce((n, _, i) => n + (state.misses[exKey(l.id, i)] > 0 ? 1 : 0), 0);
         return `${li ? '<div class="connector"></div>' : ''}
           <button class="node ${cls}${done && weak ? ' weak' : ''}" data-lesson="${esc(l.id)}" ${locked ? 'disabled aria-disabled="true"' : ''}>
-            ${isNext ? '<span class="tag">Start</span>' : ''}
+            ${isNext ? '<span class="tag">Start</span>' : assaggio ? '<span class="tag taste">Open</span>' : ''}
             <span class="medal" aria-hidden="true">${medal}</span>
             <span><strong>${esc(l.title)}</strong>
               <small>${done
                 ? (weak ? `${weak} to review` : `Completed · ${acc != null ? acc + '% accuracy' : 'done'}`)
-                : locked ? 'Locked' : `${l.exercises.length} questions`}</small></span>
+                : locked ? 'Locked' : assaggio ? `Try this unit · ${l.exercises.length} questions`
+                : `${l.exercises.length} questions`}</small></span>
           </button>`;
       }).join('');
       const badge = state.badges[u.id];
@@ -603,7 +609,13 @@
     nextExercise();
   }
 
-  const isUnlocked = id => isDone(id) || id === nextLessonId();
+  /* La lezione d'apertura di ogni unità è sempre accessibile: chi vuole
+     vedere il desk metalli o l'unità sul carbonio ci arriva subito, mentre
+     il resto di quell'unità resta in ordine. Senza questo, per guardare
+     l'ultima unità bisognava attraversare tutte le precedenti. */
+  const primeLezioni = () => UNITS.map(u => u.lessons[0] && u.lessons[0].id).filter(Boolean);
+  const isApertura = id => primeLezioni().includes(id);
+  const isUnlocked = id => isDone(id) || id === nextLessonId() || isApertura(id);
 
   function startLesson(lessonId) {
     const lesson = allLessons.find(l => l.id === lessonId);
@@ -714,15 +726,44 @@
       <circle cx="12" cy="12" r="11.5" fill="none" stroke="rgba(6,18,44,.45)" stroke-width="1"/>
     </svg>`;
 
-  const livesNow = () => Math.max(0, Math.min(MAX_LIVES, Number(state.lives) ?? START_LIVES));
+  const limitaVite = n => Math.max(0, Math.min(MAX_LIVES, Number(n) || 0));
+
+  /* Matura un salvagente ogni LIFE_REGEN_MS, anche mentre l'app è chiusa.
+     Il resto del tempo non si butta: l'orologio avanza di un blocco alla
+     volta, così chi rientra dopo 35 minuti trova un salvagente e 15 minuti
+     già maturati verso il successivo. Un orologio spostato indietro non
+     regala nulla, perché in quel caso si riparte da adesso. */
+  function maturaVite(ora = Date.now()) {
+    const attuali = limitaVite(state.lives ?? START_LIVES);
+    if (attuali >= MAX_LIVES) { state.livesAt = 0; state.lives = MAX_LIVES; return MAX_LIVES; }
+    if (!state.livesAt || state.livesAt > ora) { state.livesAt = ora; return attuali; }
+    const maturati = Math.floor((ora - state.livesAt) / LIFE_REGEN_MS);
+    if (maturati <= 0) return attuali;
+    const dopo = limitaVite(attuali + maturati);
+    state.lives = dopo;
+    state.livesAt = dopo >= MAX_LIVES ? 0 : state.livesAt + maturati * LIFE_REGEN_MS;
+    return dopo;
+  }
+
+  const livesNow = () => maturaVite();
+
+  /* Millisecondi al prossimo salvagente, o 0 se il fondo è pieno. */
+  function attesaVita(ora = Date.now()) {
+    if (livesNow() >= MAX_LIVES || !state.livesAt) return 0;
+    return Math.max(0, state.livesAt + LIFE_REGEN_MS - ora);
+  }
 
   /* Toglie un salvagente dal fondo e allinea il run. Il ripasso non paga. */
   function spendiVita() {
     if (run && run.gratis) { run.hearts = Math.max(0, run.hearts - 1); return; }
-    state.lives = Math.max(0, livesNow() - 1);
+    const prima = livesNow();
+    state.lives = Math.max(0, prima - 1);
+    // il conto alla rovescia parte quando si scende dal massimo, non prima
+    if (prima >= MAX_LIVES) state.livesAt = Date.now();
     if (run) run.hearts = state.lives;
     save();
     renderStatLives();
+    avviaOrologioVite();
   }
 
   /* Una serie abbastanza lunga ne restituisce uno, fino al massimo. */
@@ -731,10 +772,12 @@
     if (!n || n % STREAK_PER_LIFE !== 0) return false;
     if (livesNow() >= MAX_LIVES) return false;
     state.lives = livesNow() + 1;
+    if (state.lives >= MAX_LIVES) state.livesAt = 0;
     state.livesEarned = (state.livesEarned || 0) + 1;
     if (run && !run.gratis) run.hearts = state.lives;
     save();
     renderStatLives();
+    avviaOrologioVite();
     annunciaVita(n);
     return true;
   }
@@ -764,15 +807,58 @@
     const el = $('#lockedHint');
     if (!el) return;
     el.hidden = false;
-    el.textContent = `No lifebuoys left. Practice never costs one — ${STREAK_PER_LIFE} correct answers in a row earns one back.`;
+    const fra = attesaVita();
+    el.textContent = `No lifebuoys left. One comes back in ${testoAttesa(fra || LIFE_REGEN_MS)}`
+      + ` — or right away with ${STREAK_PER_LIFE} correct answers in a row. Practice never costs one.`;
     try { el.scrollIntoView({ block: 'center', behavior: motionOK() ? 'smooth' : 'auto' }); } catch (e) {}
   }
 
   function renderStatLives() {
+    const n = livesNow();
     const b = $('#statLives');
-    if (b) b.textContent = livesNow();
+    if (b) b.textContent = n;
     const host = $('#statLivesHost');
-    if (host) host.classList.toggle('empty', livesNow() === 0);
+    if (host) {
+      host.classList.toggle('empty', n === 0);
+      host.title = n >= MAX_LIVES ? 'Lifebuoys — full'
+        : `Lifebuoys — next one in ${testoAttesa(attesaVita())}`;
+    }
+    const timer = $('#statLivesTimer');
+    if (timer) {
+      const ms = attesaVita();
+      timer.hidden = !ms;
+      if (ms) timer.textContent = testoAttesa(ms);
+    }
+  }
+
+  /* "14m" o "45s": sotto il minuto i secondi rassicurano, sopra distraggono. */
+  function testoAttesa(ms) {
+    if (ms <= 0) return '0s';
+    const sec = Math.ceil(ms / 1000);
+    return sec >= 60 ? Math.ceil(sec / 60) + 'm' : sec + 's';
+  }
+
+  /* Il fondo matura anche mentre la pagina è aperta e ferma, quindi il
+     contatore va ridisegnato da solo. Ogni dieci secondi basta: il testo
+     mostra i minuti, e sotto il minuto i secondi restano leggibili. */
+  let _orologioVite = null;
+  function fermaOrologioVite() {
+    if (_orologioVite) { clearTimeout(_orologioVite); _orologioVite = null; }
+  }
+  function avviaOrologioVite() {
+    fermaOrologioVite();
+    const ms = attesaVita();
+    if (!ms) return;                     // fondo pieno: niente da contare
+    // si riprogramma da solo invece di girare a vuoto: sopra il minuto basta
+    // ridisegnare ogni trenta secondi, sotto il minuto si contano i secondi
+    const passo = ms > 60000 ? Math.min(30000, ms - 60000) : Math.min(1000, ms);
+    _orologioVite = setTimeout(() => {
+      _orologioVite = null;
+      const prima = limitaVite(state.lives);
+      if (livesNow() !== prima) { save(); renderPath(); }
+      renderStatLives();
+      avviaOrologioVite();
+    }, Math.max(250, passo));
   }
 
   function renderHearts() {
@@ -1653,6 +1739,16 @@
   });
 
   renderPath();
+  avviaOrologioVite();
+
+  // se la scheda è rimasta in secondo piano per ore, al rientro il fondo
+  // va ricalcolato subito: l'intervallo può essere stato messo in pausa
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible') return;
+    const prima = limitaVite(state.lives);
+    if (livesNow() !== prima) { save(); renderPath(); }
+    renderStatLives();
+  });
 
   // arrivo dal glossario: ?lesson=u4l3 apre quella lezione se è sbloccata,
   // altrimenti evidenzia il nodo sul percorso senza forzare niente
@@ -1675,8 +1771,9 @@
     startReview, startCheckpoint, reviewItems, checkpointItems, dueCount, exKey, unitDone,
     allLessons, UNITS, CHECK_PASS, REVIEW_SIZE, CHECK_SIZE, HEARTS, CHECK_HEARTS,
     rivela, puoRivelare, renderRivela, livesNow, spendiVita, forseGuadagnaVita,
-    MAX_LIVES, STREAK_PER_LIFE, CHECK_MIN_LIVES,
-    replaceState, defaultState, STORAGE_KEY: KEY, SOGLIE, renderStreak, isUnlocked, SANDBOX,
+    maturaVite, attesaVita, testoAttesa, renderStatLives, avviaOrologioVite, fermaOrologioVite,
+    MAX_LIVES, STREAK_PER_LIFE, CHECK_MIN_LIVES, LIFE_REGEN_MS,
+    replaceState, defaultState, STORAGE_KEY: KEY, SOGLIE, renderStreak, isUnlocked, isApertura, SANDBOX,
     careerRank, careerLevel, skillScore, startFlash, finishFlash, get flash(){return flash;}, startFrontier, unlockedMasteryWorlds,
     startBoss, startDaily, finishBoss, quitBoss, get boss(){return boss;}, ensureDaily, dailyQuests, claimDailyQuest, localDayKey,
     ensureCompetitive, leagueScore, leagueEntry, renderLeagueHub, unlockedAchievements, save, GAME, COMP };

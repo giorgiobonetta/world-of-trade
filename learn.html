@@ -261,7 +261,7 @@
     <div class="stats header-stats" aria-label="Player rewards and level">
       <div class="stat streak" title="Day streak"><i aria-hidden="true">🔥</i><b id="statStreak">0</b></div>
       <div class="stat level" title="Career level"><i aria-hidden="true">LV</i><b id="statLevel">1</b></div>
-      <div class="stat lives" id="statLivesHost" title="Lifebuoys"><i class="stat-buoy" aria-hidden="true"></i><b id="statLives">5</b></div>
+      <div class="stat lives" id="statLivesHost" title="Lifebuoys"><i class="stat-buoy" aria-hidden="true"></i><b id="statLives">5</b><small id="statLivesTimer" class="stat-timer" hidden></small></div>
       <div class="stat gold" title="Experience"><i aria-hidden="true">★</i><b id="statXp">0</b></div>
     </div>
   </div>
@@ -295,7 +295,7 @@
        market data and do not model any real market.
        <a href="privacy.html">Privacy and terms</a></p>
   </footer>
-  <p class="reset-row"><button id="resetButton" class="link-btn">Reset all progress</button></p>
+  <p class="reset-row"><button id="introReplay" class="link-btn">How this works</button> · <button id="resetButton" class="link-btn">Reset all progress</button></p>
   </div>
 </main>
 
@@ -303,17 +303,19 @@
 <main id="playScreen" class="screen">
   <header class="section-top"><div><span class="eyebrow">Trading Floor</span><h1>Play</h1></div></header>
   <div class="wrap tab-wrap">
+    <p class="tab-lede">Four ways to train outside the career path. Flash is the quick one, Boss Deals the deep one; the Deal of the Day is the same for everyone, and the Trading Floor Run mixes desks you have already opened.</p>
     <section class="mode-hero">
       <span class="mode-kicker">⚡ Infinite practice</span>
       <h2>Flash Trading</h2>
       <p>60 seconds. Fresh commercial and risk questions every run. Build a combo, beat your high score and earn XP.</p>
+      <ul class="mode-facts"><li>60 seconds</li><li>One question at a time</li><li>Never costs a lifebuoy</li></ul>
       <div class="mode-stats"><span>Best <b id="flashBest">0</b></span><span>Runs <b id="flashRuns">0</b></span></div>
       <button id="flashStart" class="btn primary wide">Start 60-second run</button>
     </section>
     <div class="mode-grid">
-      <article class="mode-card daily-teaser" id="dailyCard"><span>DAILY</span><h3>Deal of the Day</h3><p id="dailyCardCopy">One complete trade scenario, refreshed every day.</p><button id="dailyStart" class="mini-action">Open today’s deal</button></article>
-      <article class="mode-card boss-teaser"><span>BOSS</span><h3>Boss Deals</h3><p>Multi-step cases where your decisions change the economics of the trade.</p><button id="bossBrowse" class="mini-action">Open dealing room</button></article>
-      <article class="mode-card frontier-teaser"><span>ENDLESS</span><h3>Trading Floor Run</h3><p id="frontierCopy">10 fresh questions across unlocked desks. No final level: every run is regenerated.</p><div class="frontier-meta"><small>Best <b id="frontierBest">0%</b></small><small>Runs <b id="frontierRuns">0</b></small></div><button id="frontierStart" class="mini-action">Start desk run</button></article>
+      <article class="mode-card daily-teaser" id="dailyCard"><span>DAILY</span><h3>Deal of the Day</h3><p id="dailyCardCopy">One complete trade scenario, refreshed every day.</p><ul class="mode-facts"><li>4 decisions · a few minutes</li><li>Same deal for everybody today</li></ul><button id="dailyStart" class="mini-action">Open today’s deal</button></article>
+      <article class="mode-card boss-teaser"><span>BOSS</span><h3>Boss Deals</h3><p>Multi-step cases where your decisions change the economics of the trade.</p><ul class="mode-facts"><li>The longest format</li><li>One named scenario at a time</li><li>The hardest of the four</li></ul><button id="bossBrowse" class="mini-action">Open dealing room</button></article>
+      <article class="mode-card frontier-teaser"><span>ENDLESS</span><h3>Trading Floor Run</h3><p id="frontierCopy">10 fresh questions across unlocked desks. No final level: every run is regenerated.</p><ul class="mode-facts"><li>10 questions, mixed desks</li><li>Tests what you already know</li><li>Costs lifebuoys, like a lesson</li></ul><div class="frontier-meta"><small>Best <b id="frontierBest">0%</b></small><small>Runs <b id="frontierRuns">0</b></small></div><button id="frontierStart" class="mini-action">Start desk run</button></article>
     </div>
     <section class="daily-quests" id="dailyQuestShelf">
       <div class="card-title"><div><span class="eyebrow">Daily objectives</span><h2>Desk Quests</h2></div><small id="dailyQuestRecord">0 / 3 claimed</small></div>
@@ -438,6 +440,23 @@
 </main>
 
 
+<!-- INTRO AL PRIMO AVVIO -->
+<div id="introDialog" class="cloud-dialog intro-dialog" role="dialog" aria-modal="true"
+     aria-labelledby="introTitle" hidden>
+  <div class="cloud-panel intro-panel">
+    <button id="introSkip" class="intro-skip" type="button">Skip</button>
+    <div id="introArt" class="intro-art" aria-hidden="true"></div>
+    <p class="intro-step"><span id="introStepNow">1</span> of 3</p>
+    <h2 id="introTitle">What this is</h2>
+    <p id="introCopy"></p>
+    <ul id="introList" class="intro-list"></ul>
+    <div class="intro-dots" aria-hidden="true">
+      <i data-dot="0" class="on"></i><i data-dot="1"></i><i data-dot="2"></i>
+    </div>
+    <button id="introNext" class="btn primary wide" type="button">Next</button>
+  </div>
+</div>
+
 <div id="shareDialog" class="cloud-dialog" role="dialog" aria-modal="true"
      aria-labelledby="shareTitle" hidden>
   <div class="cloud-panel share-panel">
@@ -467,6 +486,7 @@
 <script src="social.js"></script>
 <script src="share.js"></script>
 <script src="experience.js"></script>
+<script src="intro.js"></script>
 <script src="ui-polish.js"></script>
 </body>
 </html>
