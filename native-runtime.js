@@ -9,7 +9,18 @@
   // text inputs usable and accessibility settings respected.
   document.addEventListener('gesturestart', e => e.preventDefault?.(), { passive: false });
 
+  // Prefer portrait in installed/PWA contexts when the browser permits an
+  // orientation lock. The CSS guard remains the fallback on normal mobile web.
+  const requestPortrait = async () => {
+    try {
+      if (screen?.orientation?.lock) await screen.orientation.lock('portrait');
+    } catch (_) { /* Orientation lock is permission/context dependent. */ }
+  };
+
   window.addEventListener('DOMContentLoaded', () => {
+    if (window.matchMedia?.('(display-mode: standalone)').matches || window.Capacitor?.isNativePlatform?.()) {
+      requestPortrait();
+    }
     // The crest is a home control in the native app, not a page reload.
     document.querySelector('.brand-link')?.addEventListener('click', e => {
       e.preventDefault();

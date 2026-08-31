@@ -579,3 +579,12 @@ a funzionare normalmente.
 - subtle reveal transitions with reduced-motion support
 - improved small-screen and landscape layouts
 - fixed Hélène “Show my next level” CTA for the current `.node` Career markup
+
+## v0.4.0 — Portrait-first mobile
+- Rebuilt the phone header as a two-row portrait HUD: brand/rewards above, five game sections below.
+- All Path / Play / Practice / League / Profile tabs remain visible without horizontal scrolling.
+- Preserved all four reward counters on small phones with a compact HUD.
+- Converted the Trading House map to a vertical one-column layout on phones.
+- Added a landscape guard asking phone users to rotate back to portrait.
+- Added best-effort portrait orientation locking for installed/PWA/native contexts.
+- Tightened widths and safe-area handling to prevent horizontal overflow on 320–430 px screens.
