@@ -40,6 +40,8 @@
     carbon:    { name:'Carbon & Sustainability', short:'Carbon', icon:'◈', description:'Price the emissions and traceability rules that now sit inside the landed cost.' },
     insurance: { name:'Insurance & Casualty', short:'Insurance', icon:'☂', description:'Place the right cover, and know what it pays when a cargo is lost or damaged.' },
     legal:     { name:'Contracts & Disputes', short:'Contracts', icon:'§', description:'Agree the terms that decide who pays when a trade fails, and enforce them.' },
+    structure: { name:'Structure & Tax', short:'Structure', icon:'⌸', description:'Know why the margin is booked where it is, and what that obliges you to document.' },
+    structured:{ name:'Structured Deals & Assets', short:'Structured', icon:'⛁', description:'Lend against a physical flow, and judge the operator behind it.' },
   };
 
   const foundationUnitMeta = {
@@ -55,6 +57,8 @@
     u10:{ division:'Carbon & Sustainability', skill:'carbon', chapter:'Merchant Foundations' },
     u11:{ division:'Insurance & Casualty', skill:'insurance', chapter:'Merchant Foundations' },
     u12:{ division:'Contracts & Disputes', skill:'legal', chapter:'Merchant Foundations' },
+    u13:{ division:'Structure & Tax', skill:'structure', chapter:'Merchant Foundations' },
+    u14:{ division:'Structured Deals', skill:'structured', chapter:'Merchant Foundations' },
   };
 
   const unitMeta = { ...foundationUnitMeta, ...(window.WOT_CONTENT?.unitMeta || {}) };
@@ -68,7 +72,7 @@
     { id:'senior-trader', name:'Senior Trader', xp:2200, lessons:80 },
     { id:'desk-head', name:'Desk Head', xp:3500, lessons:110 },
     { id:'head-trading', name:'Head of Trading', xp:5000, lessons:130 },
-    { id:'partner', name:'Partner', xp:8000, lessons:161 },
+    { id:'partner', name:'Partner', xp:8000, lessons:173 },
   ];
 
   // Every template returns a fresh, mechanically verifiable question.

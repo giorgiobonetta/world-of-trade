@@ -27,7 +27,7 @@
   const achievements = [
     { id:'first-ticket', icon:'01', title:'First Ticket', copy:'Complete your first Career level.', test:c => c.done >= 1 },
     { id:'foundation', icon:'MF', title:'Merchant Foundations', copy:'Complete all 31 foundation levels.', test:c => c.done >= 31 },
-    { id:'academy', icon:'161', title:'Trading House Graduate', copy:'Complete all 161 Career levels.', test:c => c.done >= 161 },
+    { id:'academy', icon:'173', title:'Trading House Graduate', copy:'Complete all 173 Career levels.', test:c => c.done >= 173 },
     { id:'flash-100', icon:'⚡', title:'Fast Hands', copy:'Score 100 in Flash Trading.', test:c => c.flashBest >= 100 },
     { id:'flash-500', icon:'⚡', title:'Lightning Book', copy:'Score 500 in Flash Trading.', test:c => c.flashBest >= 500 },
     { id:'floor-clear', icon:'∞', title:'On the Floor', copy:'Clear your first Trading Floor Run.', test:c => c.frontierCleared >= 1 },

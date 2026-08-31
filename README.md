@@ -4,8 +4,8 @@ An interactive course in **physical commodity trading**, built as a short-lesson
 Duolingo mould: bite-sized levels, immediate feedback, a written explanation behind every
 answer.
 
-- **30 units · 161 levels · 796 exercises**
-- **109-term glossary** covering incoterms, quotational periods, basis, carry, chartering, insurance,
+- **32 units · 173 levels · 856 exercises**
+- **122-term glossary** covering incoterms, quotational periods, basis, carry, chartering, insurance,
   documentary credits, hedging and compliance
 - Runs as a website, installs as a PWA, and ships as a native iOS/Android shell via Capacitor
 - No framework, no build step — plain HTML, CSS and JavaScript
@@ -26,9 +26,9 @@ Then open `http://localhost:8000/landing.html`. It deploys to Vercel as-is — n
 landing.html           public landing page
 learn.html             the game shell
 index.html             splash used by the native shell (redirects to learn.html)
-curriculum.js          12 hand-written units, 256 exercises
+curriculum.js          14 hand-written units, 316 exercises
 content-engine.js      deterministic generator for the remaining units
-glossary.js            109 terms
+glossary.js            122 terms
 sw.js                  service worker (offline support)
 tests/                 28 verification suites
 capacitor.config.ts    native shell configuration
@@ -37,14 +37,14 @@ MOBILE-APP-SETUP.md    building the iOS/Android apps
 
 ## Content
 
-Units 1–12 are written by hand. They cover the fundamentals — what a physical trade is,
+Units 1–14 are written by hand. They cover the fundamentals — what a physical trade is,
 incoterms, quality and quantity, pricing and quotational periods, freight and chartering,
 documents and payment, risk and hedging, storage and blending, compliance and financial crime —
 and then three areas that decide whether a modern trade works at all: the carbon and
 sustainability regimes (EU ETS, CBAM, FuelEU, EUDR, RED III), marine cargo insurance and
 casualty including general average, and contracts, arbitration and credit protection.
 
-Beyond Unit 12 the content engine generates exercises deterministically from a seed, so the
+Beyond Unit 14 the content engine generates exercises deterministically from a seed, so the
 same level always produces the same questions. Every numeric exercise is checked by the test
 suite against an independent arithmetic oracle, and every exercise carries an explanation
 that states the reasoning, not just the sum.
