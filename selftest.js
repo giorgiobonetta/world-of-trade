@@ -122,7 +122,7 @@
     t('the engine started', !!L, L ? '' : 'app.js did not run — check the console');
     if (!L) return;
     t('it is using the scratch save, not yours', L.STORAGE_KEY === 'wot-learn-selftest', L.STORAGE_KEY);
-    t('the curriculum loaded', L.allLessons.length === 143, L.allLessons.length + ' lessons');
+    t('the curriculum loaded', L.allLessons.length === 161, L.allLessons.length + ' lessons');
     t('the path drew every lesson', d.querySelectorAll('.node').length === 103,
       d.querySelectorAll('.node').length + ' nodes');
     t('Hélène is on the path', !!d.querySelector('#pathGreet svg'));
