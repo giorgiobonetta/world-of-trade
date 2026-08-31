@@ -588,3 +588,13 @@ a funzionare normalmente.
 - Added a landscape guard asking phone users to rotate back to portrait.
 - Added best-effort portrait orientation locking for installed/PWA/native contexts.
 - Tightened widths and safe-area handling to prevent horizontal overflow on 320–430 px screens.
+
+
+## v0.4.1 — Strict desk progression
+- Removed the rotate-device overlay and all visible “Rotate your phone” messaging.
+- Lifebuoy counter is forced visible in the mobile reward HUD, including screens below 470 px.
+- Removed future-desk taster access from both UI and game-engine unlocking.
+- A new desk becomes visible only after every subsection of all previous desks is complete.
+- Future desk sections are omitted from the Career Path and Trading House map until unlocked.
+- Inside the current desk, subsections unlock strictly one at a time.
+- PWA cache bumped to v34 to prevent stale progression/UI code after deployment.

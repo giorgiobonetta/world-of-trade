@@ -1,8 +1,8 @@
 {
   "name": "world-of-trade-mobile",
   "private": true,
-  "version": "0.4.0",
-  "description": "World of Trade native mobile shell for iOS and Android — portrait-first mobile beta",
+  "version": "0.4.1",
+  "description": "World of Trade mobile beta \u2014 strict desk progression and compact portrait HUD",
   "scripts": {
     "cap:sync": "npx cap sync",
     "android:add": "npx cap add android",

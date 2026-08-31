@@ -230,6 +230,18 @@
     return n ? n.id : null;
   }
 
+  /* Strict desk progression. A desk becomes visible only when every lesson
+     (and therefore every question) in all previous desks has been completed.
+     Keeping this rule in the game engine prevents direct links or future UI
+     controls from bypassing the Career Path. */
+  function deskUnlockedByIndex(ui) {
+    if (ui <= 0) return true;
+    return UNITS.slice(0, ui).every(unitDone);
+  }
+  function visibleCareerUnits() {
+    return UNITS.filter((_, ui) => deskUnlockedByIndex(ui));
+  }
+
   /* ── ripasso e checkpoint ────────────────────────────────────────── */
   const REVIEW_SIZE = 8;
   const CHECK_SIZE = 8;
@@ -515,25 +527,25 @@
       }
     }
 
-    $('#pathBody').innerHTML = UNITS.map((u, ui) => {
+    const visibleUnits = visibleCareerUnits();
+    $('#pathBody').innerHTML = visibleUnits.map((u) => {
+      const ui = UNITS.indexOf(u);
       const nodes = u.lessons.map((l, li) => {
         const done = isDone(l.id);
         const isNext = l.id === next;
-        // apertura di unità: accessibile, ma non è il passo del percorso
-        const assaggio = !done && !isNext && li === 0;
-        const locked = !done && !isNext && !assaggio;
-        const cls = done ? 'done' : isNext ? 'next' : assaggio ? 'taster' : 'locked';
+        const locked = !done && !isNext;
+        const cls = done ? 'done' : isNext ? 'next' : 'locked';
         const medal = done ? '✓' : locked ? '🔒' : String(li + 1);
         const acc = state.best[l.id];
         const weak = l.exercises.reduce((n, _, i) => n + (state.misses[exKey(l.id, i)] > 0 ? 1 : 0), 0);
         return `${li ? '<div class="connector"></div>' : ''}
           <button class="node ${cls}${done && weak ? ' weak' : ''}" data-lesson="${esc(l.id)}" ${locked ? 'disabled aria-disabled="true"' : ''}>
-            ${isNext ? '<span class="tag">Start</span>' : assaggio ? '<span class="tag taste">Open</span>' : ''}
+            ${isNext ? '<span class="tag">Start</span>' : ''}
             <span class="medal" aria-hidden="true">${medal}</span>
             <span><strong>${esc(l.title)}</strong>
               <small>${done
                 ? (weak ? `${weak} to review` : `Completed · ${acc != null ? acc + '% accuracy' : 'done'}`)
-                : locked ? 'Locked' : assaggio ? `Try this unit · ${l.exercises.length} questions`
+                : locked ? 'Complete the subsection above first'
                 : `${l.exercises.length} questions`}</small></span>
           </button>`;
       }).join('');
@@ -609,13 +621,11 @@
     nextExercise();
   }
 
-  /* La lezione d'apertura di ogni unità è sempre accessibile: chi vuole
-     vedere il desk metalli o l'unità sul carbonio ci arriva subito, mentre
-     il resto di quell'unità resta in ordine. Senza questo, per guardare
-     l'ultima unità bisognava attraversare tutte le precedenti. */
-  const primeLezioni = () => UNITS.map(u => u.lessons[0] && u.lessons[0].id).filter(Boolean);
-  const isApertura = id => primeLezioni().includes(id);
-  const isUnlocked = id => isDone(id) || id === nextLessonId() || isApertura(id);
+  /* Career progression is intentionally strict: only completed lessons and
+     the single next lesson in sequence can be opened. There are no preview
+     or “taster” lessons in future desks. */
+  const isApertura = () => false; // retained only for backward-compatible tests/API
+  const isUnlocked = id => isDone(id) || id === nextLessonId();
 
   function startLesson(lessonId) {
     const lesson = allLessons.find(l => l.id === lessonId);
@@ -1293,7 +1303,10 @@
   function renderWorldMap() {
     const host = $('#worldMapHost'); if (!host) return;
     const next = nextLessonId();
-    const groups = careerWorldGroups();
+    const visibleIds = new Set(visibleCareerUnits().map(u => u.id));
+    const groups = careerWorldGroups()
+      .map(g => ({ ...g, units: g.units.filter(u => visibleIds.has(u.id)) }))
+      .filter(g => g.units.length);
     host.innerHTML = groups.map(g => {
       const lessons = g.units.flatMap(u => u.lessons);
       const doneN = lessons.filter(l => isDone(l.id)).length;
