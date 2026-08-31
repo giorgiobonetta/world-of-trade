@@ -6,6 +6,74 @@
   const $$ = (s, r=document) => [...r.querySelectorAll(s)];
   const reduceMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+
+  const MOBILE_LABELS = {
+    pathScreen: 'Path',
+    playScreen: 'Play',
+    practiceScreen: 'Practice',
+    leagueScreen: 'League'
+  };
+
+  function closeMobileMenu() {
+    const toggle = $('#mobileMenuToggle');
+    const panel = $('#mobileMenuPanel');
+    if (toggle) toggle.setAttribute('aria-expanded','false');
+    if (panel) panel.hidden = true;
+  }
+
+  function syncMobileNav(screenId=currentScreen()) {
+    const toggle = $('#mobileMenuToggle');
+    const panel = $('#mobileMenuPanel');
+    const label = $('#mobileMenuLabel');
+    const profile = $('#mobileProfileButton');
+    const menuScreen = MOBILE_LABELS[screenId] ? screenId : null;
+    if (label) label.textContent = menuScreen ? MOBILE_LABELS[menuScreen] : 'Sections';
+    $$('.mobile-menu-item[data-mobile-screen]').forEach(btn => {
+      const active = btn.dataset.mobileScreen === screenId;
+      btn.classList.toggle('active', active);
+      if (active) btn.setAttribute('aria-current','page');
+      else btn.removeAttribute('aria-current');
+    });
+    if (profile) {
+      const active = screenId === 'profileScreen';
+      profile.classList.toggle('active', active);
+      if (active) profile.setAttribute('aria-current','page');
+      else profile.removeAttribute('aria-current');
+    }
+    if (panel && toggle && toggle.getAttribute('aria-expanded') !== 'true') panel.hidden = true;
+  }
+
+  function openScreenFromMobile(screenId) {
+    const source = $(`.nav-item[data-screen="${screenId}"]`);
+    if (source) source.click();
+    closeMobileMenu();
+  }
+
+  function initMobileMenu() {
+    const toggle = $('#mobileMenuToggle');
+    const panel = $('#mobileMenuPanel');
+    const profile = $('#mobileProfileButton');
+    if (!toggle || !panel || !profile) return;
+
+    toggle.addEventListener('click', e => {
+      e.stopPropagation();
+      const open = toggle.getAttribute('aria-expanded') === 'true';
+      toggle.setAttribute('aria-expanded', open ? 'false' : 'true');
+      panel.hidden = open;
+    });
+
+    $$('.mobile-menu-item[data-mobile-screen]', panel).forEach(btn => {
+      btn.addEventListener('click', () => openScreenFromMobile(btn.dataset.mobileScreen));
+    });
+
+    profile.addEventListener('click', () => openScreenFromMobile('profileScreen'));
+
+    document.addEventListener('click', e => {
+      if (!panel.hidden && !$('#mobileSectionNav')?.contains(e.target)) closeMobileMenu();
+    });
+
+    syncMobileNav();
+  }
   function syncNav(screenId) {
     $$('.nav-item[data-screen]').forEach(btn => {
       const active = btn.dataset.screen === screenId;
@@ -24,6 +92,7 @@
     if (['path','play','practice','league','profile'].includes(simple)) {
       document.body.dataset.section = simple;
       syncNav(id);
+      syncMobileNav(id);
     }
   }
 
@@ -80,6 +149,7 @@
 
   function init() {
     initReveal();
+    initMobileMenu();
     updateSection();
     prepareReveal();
     improveDialogSemantics();
@@ -100,6 +170,7 @@
     // Escape consistently dismisses the visual coach/briefing before anything else.
     document.addEventListener('keydown', e => {
       if (e.key !== 'Escape') return;
+      if ($('#mobileMenuToggle')?.getAttribute('aria-expanded') === 'true') { closeMobileMenu(); return; }
       const brief = $('#dailyBriefing');
       const coach = $('#heleneCoach');
       if (brief && !brief.hidden) brief.querySelector('.brief-close')?.click();

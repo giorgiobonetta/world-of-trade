@@ -598,3 +598,10 @@ a funzionare normalmente.
 - Future desk sections are omitted from the Career Path and Trading House map until unlocked.
 - Inside the current desk, subsections unlock strictly one at a time.
 - PWA cache bumped to v34 to prevent stale progression/UI code after deployment.
+
+## v0.4.2 — Mobile header dropdown
+- On portrait phones, Path / Play / Practice / League now live inside one dropdown menu.
+- Profile remains a separate one-tap button.
+- The four reward counters (streak, level, lifebuoys, XP) retain readable sizing and are never compressed to make room for navigation.
+- Desktop navigation is unchanged.
+- PWA cache bumped to v35.

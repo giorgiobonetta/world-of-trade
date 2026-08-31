@@ -1564,3 +1564,171 @@ body.overlay-open .helene-call{opacity:0;pointer-events:none;transform:translate
   .header-stats .stat.lives{display:flex!important;visibility:visible!important}
   .stat.lives #statLives{display:inline!important}
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   MOBILE HEADER v0.4.2
+   Portrait phones use a dropdown for Path / Play / Practice / League.
+   Reward counters keep their readable size; Profile stays one tap away.
+   ══════════════════════════════════════════════════════════════════════ */
+.mobile-section-nav{display:none}
+
+@media (max-width:820px) and (orientation:portrait){
+  .app-header-inner{
+    grid-template-columns:minmax(42px,1fr) auto!important;
+    grid-template-rows:auto auto!important;
+    grid-template-areas:"brand rewards" "mobile-nav mobile-nav"!important;
+    gap:8px 10px!important;
+    padding:7px max(10px,env(safe-area-inset-right)) 9px max(10px,env(safe-area-inset-left))!important;
+  }
+
+  /* Desktop five-tab strip is intentionally removed on portrait phones. */
+  .game-nav{display:none!important}
+
+  .app-header .brand-link{grid-area:brand!important}
+  .app-header .brand{
+    height:34px!important;
+    max-width:72px!important;
+  }
+
+  /* Do not squeeze the four counters to make navigation fit. */
+  .header-stats{
+    grid-area:rewards!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-end!important;
+    gap:5px!important;
+    max-width:none!important;
+    overflow:visible!important;
+  }
+  .app-header .stat{
+    flex:0 0 auto!important;
+    min-width:39px!important;
+    min-height:35px!important;
+    padding:5px 8px!important;
+    gap:4px!important;
+    font-size:12.5px!important;
+    border-radius:13px!important;
+  }
+  .app-header .stat i{font-size:11px!important}
+  .app-header .stat.level i{font-size:8px!important}
+  .header-stats .stat.lives,
+  .header-stats .stat.level{display:flex!important;visibility:visible!important}
+  .stat.lives #statLives{display:inline!important}
+
+  .mobile-section-nav{
+    grid-area:mobile-nav;
+    position:relative;
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    gap:7px;
+    width:100%;
+    min-width:0;
+  }
+  .mobile-menu-toggle,
+  .mobile-profile-button{
+    appearance:none;
+    border:1px solid rgba(174,205,255,.17);
+    color:#eef5ff;
+    background:linear-gradient(180deg,rgba(20,55,116,.92),rgba(8,31,76,.94));
+    box-shadow:0 4px 13px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.08);
+    min-height:46px;
+    border-radius:14px;
+    font:inherit;
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .mobile-menu-toggle{
+    min-width:0;
+    display:grid;
+    grid-template-columns:28px minmax(0,1fr) 22px;
+    align-items:center;
+    gap:8px;
+    padding:6px 11px;
+    text-align:left;
+  }
+  .mobile-menu-icon{
+    width:28px;height:28px;border-radius:9px;
+    display:grid;place-content:center;gap:3px;
+    background:rgba(255,212,92,.12);
+    border:1px solid rgba(255,212,92,.20);
+  }
+  .mobile-menu-icon i{display:block;width:12px;height:1.5px;border-radius:5px;background:#ffd45c}
+  .mobile-menu-copy{display:flex;min-width:0;flex-direction:column;line-height:1.02}
+  .mobile-menu-copy small{font-size:8px;text-transform:uppercase;letter-spacing:.10em;color:#8ea8d4;font-weight:800}
+  .mobile-menu-copy b{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mobile-menu-chevron{width:19px;height:19px;fill:none;stroke:#a8bee2;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .18s ease}
+  .mobile-menu-toggle[aria-expanded="true"] .mobile-menu-chevron{transform:rotate(180deg)}
+
+  .mobile-profile-button{
+    width:72px;
+    padding:5px 7px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:1px;
+  }
+  .mobile-profile-button svg{width:19px;height:19px;fill:none;stroke:#c8d8f4;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+  .mobile-profile-button span{font-size:9px;font-weight:800;color:#dce8fb}
+  body[data-section="profile"] .mobile-profile-button{
+    border-color:rgba(255,212,92,.50);
+    background:linear-gradient(180deg,rgba(38,77,145,.98),rgba(12,43,94,.98));
+    box-shadow:0 4px 14px rgba(0,0,0,.25),inset 0 -2px 0 #ffd45c;
+  }
+
+  .mobile-menu-panel{
+    position:absolute;
+    z-index:90;
+    top:calc(100% + 7px);
+    left:0;
+    right:79px;
+    padding:6px;
+    border-radius:16px;
+    border:1px solid rgba(174,205,255,.18);
+    background:linear-gradient(180deg,rgba(8,31,75,.99),rgba(4,19,50,.995));
+    box-shadow:0 18px 45px rgba(0,0,0,.46),inset 0 1px 0 rgba(255,255,255,.06);
+    backdrop-filter:blur(18px);
+  }
+  .mobile-menu-panel[hidden]{display:none!important}
+  .mobile-menu-item{
+    width:100%;
+    min-height:50px;
+    padding:7px 9px;
+    display:grid;
+    grid-template-columns:36px minmax(0,1fr);
+    align-items:center;
+    gap:9px;
+    border:0;
+    border-radius:11px;
+    background:transparent;
+    color:#edf4ff;
+    font:inherit;
+    text-align:left;
+    cursor:pointer;
+  }
+  .mobile-menu-item + .mobile-menu-item{margin-top:2px}
+  .mobile-menu-item:active{background:rgba(255,255,255,.08)}
+  .mobile-menu-item.active{background:rgba(35,83,158,.45)}
+  .mobile-menu-item.active::after{content:"";position:absolute}
+  .mobile-menu-glyph{
+    width:34px;height:34px;border-radius:10px;
+    display:grid;place-items:center;
+    border:1px solid rgba(174,205,255,.13);
+    background:rgba(255,255,255,.045);
+  }
+  .mobile-menu-item.active .mobile-menu-glyph{background:#ffd45c;border-color:#ffe390}
+  .mobile-menu-glyph svg{width:18px;height:18px;fill:none;stroke:#b9cbea;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .mobile-menu-item.active .mobile-menu-glyph svg{stroke:#173668}
+  .mobile-menu-item > span:last-child{min-width:0;display:flex;flex-direction:column}
+  .mobile-menu-item b{font-size:12.5px;line-height:1.1}
+  .mobile-menu-item small{font-size:9px;color:#8fa7cf;margin-top:2px}
+}
+
+@media (max-width:370px) and (orientation:portrait){
+  .app-header-inner{padding-left:max(7px,env(safe-area-inset-left))!important;padding-right:max(7px,env(safe-area-inset-right))!important;gap:7px 7px!important}
+  .app-header .brand{height:29px!important;max-width:58px!important}
+  .header-stats{gap:3px!important}
+  .app-header .stat{min-width:36px!important;min-height:33px!important;padding:5px 6px!important;font-size:11.5px!important}
+  .mobile-profile-button{width:66px}
+  .mobile-menu-panel{right:73px}
+}

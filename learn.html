@@ -259,6 +259,31 @@
       <button class="nav-item" data-screen="leagueScreen"><span class="nav-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 4v3a5 5 0 0 0 10 0V4"/><path d="M5 4h14M9 14h6M8 20h8M12 14v6"/></svg></span><b>League</b><small>Compete</small></button>
       <button class="nav-item" data-screen="profileScreen"><span class="nav-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"/><path d="M5.5 20c.8-4 3.1-6 6.5-6s5.7 2 6.5 6"/></svg></span><b>Profile</b><small>Desk ID</small></button>
     </nav>
+    <div id="mobileSectionNav" class="mobile-section-nav" aria-label="Mobile game navigation">
+      <button id="mobileMenuToggle" class="mobile-menu-toggle" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="mobileMenuPanel">
+        <span class="mobile-menu-icon" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="mobile-menu-copy"><small>Section</small><b id="mobileMenuLabel">Path</b></span>
+        <svg class="mobile-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg>
+      </button>
+      <button id="mobileProfileButton" class="mobile-profile-button" type="button" aria-label="Open Profile">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3"/><path d="M5.5 20c.8-4 3.1-6 6.5-6s5.7 2 6.5 6"/></svg>
+        <span>Profile</span>
+      </button>
+      <div id="mobileMenuPanel" class="mobile-menu-panel" role="menu" hidden>
+        <button type="button" class="mobile-menu-item active" data-mobile-screen="pathScreen" role="menuitem">
+          <span class="mobile-menu-glyph"><svg viewBox="0 0 24 24"><path d="M5 18c0-4 3-5 6-6s6-2 6-6"/><circle cx="5" cy="18" r="2"/><circle cx="17" cy="6" r="2"/></svg></span><span><b>Path</b><small>Career progression</small></span>
+        </button>
+        <button type="button" class="mobile-menu-item" data-mobile-screen="playScreen" role="menuitem">
+          <span class="mobile-menu-glyph"><svg viewBox="0 0 24 24"><path d="M13 2 5.5 13H11l-1 9L18.5 10H13z"/></svg></span><span><b>Play</b><small>Trading floor</small></span>
+        </button>
+        <button type="button" class="mobile-menu-item" data-mobile-screen="practiceScreen" role="menuitem">
+          <span class="mobile-menu-glyph"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.2 5.5"/><path d="M20 5v6h-6"/></svg></span><span><b>Practice</b><small>Train weak areas</small></span>
+        </button>
+        <button type="button" class="mobile-menu-item" data-mobile-screen="leagueScreen" role="menuitem">
+          <span class="mobile-menu-glyph"><svg viewBox="0 0 24 24"><path d="M7 4v3a5 5 0 0 0 10 0V4"/><path d="M5 4h14M9 14h6M8 20h8M12 14v6"/></svg></span><span><b>League</b><small>Compete</small></span>
+        </button>
+      </div>
+    </div>
     <div class="stats header-stats" aria-label="Player rewards and level">
       <div class="stat streak" title="Day streak"><i aria-hidden="true">🔥</i><b id="statStreak">0</b></div>
       <div class="stat level" title="Career level"><i aria-hidden="true">LV</i><b id="statLevel">1</b></div>
