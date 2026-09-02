@@ -460,10 +460,73 @@
     $$('.screen').forEach(s => s.classList.toggle('active', s.id === id));
     const immersive = ['lessonScreen','doneScreen','flashScreen','bossScreen'].includes(id);
     document.body.classList.toggle('immersive', immersive);
-    $$('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.screen === id));
+    $$('.nav-item').forEach(b => {
+      const attiva = b.dataset.screen === id;
+      b.classList.toggle('active', attiva);
+      // per chi usa uno screen reader "attivo" deve essere un'informazione,
+      // non solo un colore: la classe da sola non dice niente
+      if (attiva) b.setAttribute('aria-current', 'page');
+      else b.removeAttribute('aria-current');
+    });
     if (!immersive) renderMetaScreens();
     try { window.dispatchEvent(new CustomEvent('wot:screen', { detail: { id } })); } catch (e) {}
     window.scrollTo(0, 0);
+  }
+
+
+  /* ── fascia di unità ─────────────────────────────────────────────────
+     In un percorso da 173 livelli è facile perdere il filo di dove si è.
+     La fascia resta in cima e dice desk e sezione della parte di percorso
+     che si sta guardando, cambiando colore a ogni sezione. */
+
+  const SEZIONI = ['Merchant Foundations', 'Desk Academy I', 'Desk Academy II',
+                   'Commodity Desks', 'Trading House Functions', 'Assets & Infrastructure'];
+
+  function fasediUnita(id) {
+    const m = GAME.unitMeta[id] || {};
+    return m.phase || m.chapter || SEZIONI[0];
+  }
+
+  /* Quale unità deve comparire nella fascia: l'ultima il cui inizio è già
+     passato sotto la fascia stessa. Presa a parte dallo scorrimento perché
+     è l'unica parte con una logica, e così si può provare davvero. */
+  function unitaInFascia(cime, soglia) {
+    let scelta = null;
+    for (const c of cime) {
+      if (c.top <= soglia) scelta = c.id;
+      else break;
+    }
+    return scelta || (cime[0] ? cime[0].id : null);
+  }
+
+  function disegnaFascia(unitId) {
+    const b = $('#unitBanner');
+    if (!b) return;
+    const u = UNITS.find(x => x.id === unitId);
+    if (!u) { b.hidden = true; return; }
+    const ui = UNITS.indexOf(u);
+    const fase = fasediUnita(u.id);
+    const nSez = Math.max(1, SEZIONI.indexOf(fase) + 1);
+    b.hidden = false;
+    b.dataset.section = String(nSez);
+    b.dataset.unit = u.id;
+    $('#unitBannerKicker').textContent = `Section ${nSez} · Desk ${ui + 1} of ${UNITS.length}`;
+    $('#unitBannerTitle').textContent = u.title;
+  }
+
+  function aggiornaFascia() {
+    if (!$('#pathScreen')?.classList.contains('active')) return;
+    const b = $('#unitBanner');
+    if (!b) return;
+    const alt = b.getBoundingClientRect().height || 56;
+    const testa = ($('#appHeader')?.getBoundingClientRect().height || 0) + alt;
+    const cime = $$('#pathScreen .unit').map(s => ({
+      id: s.id.replace(/^unit-/, ''), top: s.getBoundingClientRect().top,
+    }));
+    if (!cime.length) { b.hidden = true; return; }
+    const scelta = unitaInFascia(cime, testa);
+    if (scelta && b.dataset.unit !== scelta) disegnaFascia(scelta);
+    else if (b.hidden) disegnaFascia(scelta);
   }
 
   /* ── schermata percorso ──────────────────────────────────────────── */
@@ -583,6 +646,8 @@
         catch (e) { target.scrollIntoView(); }
       }
     }
+
+    aggiornaFascia();
   }
 
   /* ── esecuzione della lezione ────────────────────────────────────── */
@@ -610,6 +675,9 @@
       // l'unica modalità che non ne consuma, così non ci si blocca mai.
       gratis: cfg.mode === 'review',
       hearts: cfg.mode === 'review' ? MAX_LIVES : livesNow(),
+      // quanti se ne avevano all'inizio: serve a dire quanti ne è costata
+      // QUESTA lezione, non quanti ne mancano al fondo in generale
+      heartsIniziali: cfg.mode === 'review' ? MAX_LIVES : livesNow(),
       maxHearts: MAX_LIVES,
       current: null,
       state: 'answering',
@@ -679,6 +747,8 @@
     renderHearts();
     renderProgress();
     $('#feedback').hidden = true;
+    const piede0 = document.querySelector('.lesson-foot');
+    if (piede0) piede0.className = 'lesson-foot';
     const btn = $('#checkButton');
     btn.className = 'btn primary';
     btn.textContent = 'Check';
@@ -1098,6 +1168,11 @@
         </div>
       </div>`;
     fb.hidden = false;
+    // il piede prende il colore del riscontro, così Continue sta dentro la
+    // fascia invece che in una striscia scura sotto: è un blocco solo, e
+    // l'occhio non deve saltare fra due contenitori
+    const piede = document.querySelector('.lesson-foot');
+    if (piede) piede.className = `lesson-foot ${buono ? 'good' : 'bad'}`;
     const btn = $('#checkButton');
     btn.disabled = false;
     btn.className = `btn ${buono ? 'go' : 'stop'}`;
@@ -1740,7 +1815,53 @@
   $('#bossBrowse')?.addEventListener('click', () => $('#bossShelf')?.scrollIntoView({ behavior: motionOK() ? 'smooth' : 'auto', block:'start' }));
   $$('.nav-item').forEach(b => b.addEventListener('click', () => show(b.dataset.screen)));
   $('#continueButton').addEventListener('click', () => { show(doneReturnScreen); if (doneReturnScreen === 'pathScreen') renderPath(); });
-  $('#quitButton').addEventListener('click', () => { const target = run?.mode === 'frontier' ? 'playScreen' : 'pathScreen'; run = null; show(target); if (target === 'pathScreen') renderPath(); });
+  /* Uscire da una lezione a metà costa: gli XP non sono ancora messi in
+     banca e i salvagenti spesi non tornano. Chiederlo evita l'uscita per
+     sbaglio — la X sta accanto alla barra e si tocca facilmente. */
+  function abbandona() {
+    const target = run?.mode === 'frontier' ? 'playScreen' : 'pathScreen';
+    run = null;
+    const dlg = $('#quitDialog');
+    if (dlg) dlg.hidden = true;
+    show(target);
+    if (target === 'pathScreen') renderPath();
+  }
+
+  function chiediUscita() {
+    const dlg = $('#quitDialog');
+    // a lezione appena iniziata non c'è ancora niente da perdere
+    if (!dlg || !run || run.answered === 0) { abbandona(); return; }
+    const art = $('#quitArt');
+    if (art && window.MASCOT) art.innerHTML = window.MASCOT.svg('oops', 76);
+    const copia = $('#quitCopy');
+    if (copia) {
+      const spesi = Math.max(0, (run.heartsIniziali ?? MAX_LIVES) - (run.hearts ?? MAX_LIVES));
+      copia.textContent = run.mode === 'review'
+        ? 'Practice costs nothing, but the questions you have answered will not count towards your record.'
+        : `${run.answered} of ${run.total} answered. The XP is not banked yet`
+          + (spesi ? `, and the ${spesi} lifebuoy${spesi === 1 ? '' : 's'} spent here ${spesi === 1 ? 'does' : 'do'} not come back.` : '.');
+    }
+    dlg.hidden = false;
+    setTimeout(() => { try { $('#quitStay').focus(); } catch (e) {} }, 20);
+  }
+
+  function chiudiUscita() {
+    const dlg = $('#quitDialog');
+    if (dlg) dlg.hidden = true;
+    try { $('#checkButton').focus(); } catch (e) {}
+  }
+
+  $('#quitButton').addEventListener('click', chiediUscita);
+  if ($('#quitStay')) $('#quitStay').addEventListener('click', chiudiUscita);
+  if ($('#quitLeave')) $('#quitLeave').addEventListener('click', abbandona);
+  if ($('#quitDialog')) $('#quitDialog').addEventListener('click', e => {
+    if (e.target === $('#quitDialog')) chiudiUscita();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    const dlg = $('#quitDialog');
+    if (dlg && !dlg.hidden) { e.preventDefault(); chiudiUscita(); }
+  });
   $('#resetButton').addEventListener('click', () => {
     if (!confirm('Reset all progress? This cannot be undone.')) return;
     state = defaultState(); save(); renderPath();
@@ -1753,6 +1874,34 @@
 
   renderPath();
   avviaOrologioVite();
+
+  // la fascia segue lo scorrimento del percorso. passive: non blocca lo scroll,
+  // e il lavoro vero è rimandato a un frame per non ricalcolare a ogni pixel
+  {
+    let inCoda = false;
+    const suScroll = () => {
+      if (inCoda) return;
+      inCoda = true;
+      const dopo = () => { inCoda = false; aggiornaFascia(); };
+      if (typeof requestAnimationFrame === 'function') requestAnimationFrame(dopo);
+      else setTimeout(dopo, 16);
+    };
+    const guida = $('#unitBannerGuide');
+    if (guida) guida.addEventListener('click', () => {
+      const id = $('#unitBanner')?.dataset.unit;
+      const u = UNITS.find(x => x.id === id);
+      // il glossario filtrato sull'unità che si sta guardando
+      location.href = 'glossary.html' + (u ? '?unit=' + encodeURIComponent(u.id) : '');
+    });
+    window.addEventListener('scroll', suScroll, { passive: true });
+    window.addEventListener('resize', suScroll, { passive: true });
+    window.addEventListener('wot:screen', e => {
+      const b = $('#unitBanner');
+      if (!b) return;
+      if (e.detail?.id !== 'pathScreen') { b.hidden = true; return; }
+      aggiornaFascia();
+    });
+  }
 
   // se la scheda è rimasta in secondo piano per ore, al rientro il fondo
   // va ricalcolato subito: l'intervallo può essere stato messo in pausa
@@ -1770,13 +1919,33 @@
     try { id = new URLSearchParams(location.search).get('lesson'); } catch (e) {}
     if (!id || !allLessons.some(l => l.id === id)) return;
     if (isUnlocked(id)) { startLesson(id); return; }
+
+    const hint = $('#lockedHint');
     const nodo = $(`[data-lesson="${id}"]`);
     if (nodo) {
+      // la lezione è nel desk che si sta guardando: si può indicare il nodo
       nodo.classList.add('flagged');
       nodo.setAttribute('aria-describedby', 'lockedHint');
       try { nodo.scrollIntoView({ block: 'center', behavior: motionOK() ? 'smooth' : 'auto' }); } catch (e) {}
-      const hint = $('#lockedHint');
       if (hint) { hint.hidden = false; hint.textContent = 'That lesson is still locked — it comes after the ones above.'; }
+      return;
+    }
+
+    /* Il percorso disegna solo il desk corrente, quindi una lezione di un
+       desk più avanti non ha nessun nodo da evidenziare. Senza questo ramo
+       il link dal glossario non faceva assolutamente niente: la pagina si
+       apriva e l'utente restava a chiedersi se avesse cliccato male. */
+    const u = UNITS.find(x => x.lessons.some(l => l.id === id));
+    const lez = u && u.lessons.find(l => l.id === id);
+    const quante = u ? UNITS.indexOf(u) - UNITS.findIndex(x => x.lessons.some(l => isUnlocked(l.id))) : 0;
+    if (hint) {
+      hint.hidden = false;
+      hint.textContent = u
+        ? `“${lez.title}” is in ${u.title}`
+          + (quante > 0 ? `, ${quante} desk${quante === 1 ? '' : 's'} further along the path.` : ', further along the path.')
+          + ' It opens once you reach that desk.'
+        : 'That lesson is not available yet.';
+      try { hint.scrollIntoView({ block: 'center', behavior: motionOK() ? 'smooth' : 'auto' }); } catch (e) {}
     }
   })();
 
@@ -1786,7 +1955,9 @@
     rivela, puoRivelare, renderRivela, livesNow, spendiVita, forseGuadagnaVita,
     maturaVite, attesaVita, testoAttesa, renderStatLives, avviaOrologioVite, fermaOrologioVite,
     MAX_LIVES, STREAK_PER_LIFE, CHECK_MIN_LIVES, LIFE_REGEN_MS,
-    replaceState, defaultState, STORAGE_KEY: KEY, SOGLIE, renderStreak, isUnlocked, isApertura, SANDBOX,
+    replaceState, defaultState, STORAGE_KEY: KEY, SOGLIE, renderStreak, isUnlocked,
+    unitaInFascia, disegnaFascia, aggiornaFascia, fasediUnita, SEZIONI,
+    chiediUscita, chiudiUscita, abbandona, isApertura, SANDBOX,
     careerRank, careerLevel, skillScore, startFlash, finishFlash, get flash(){return flash;}, startFrontier, unlockedMasteryWorlds,
     startBoss, startDaily, finishBoss, quitBoss, get boss(){return boss;}, ensureDaily, dailyQuests, claimDailyQuest, localDayKey,
     ensureCompetitive, leagueScore, leagueEntry, renderLeagueHub, unlockedAchievements, save, GAME, COMP };

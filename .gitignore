@@ -1,7 +1,5 @@
-# La chiave publishable di Supabase sta legittimamente nel repo: il browser
-# deve inviarla a ogni richiesta, quindi è pubblica per definizione. A proteggere
-# i dati sono le policy RLS su Supabase. Una chiave sb_secret_ / service_role,
-# invece, non deve MAI finire qui né in un file che il browser possa caricare.
+# Le TUE chiavi Supabase: non devono finire su GitHub.
+supabase-config.js
 
 node_modules/
 .DS_Store

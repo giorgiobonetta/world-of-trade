@@ -107,6 +107,13 @@
         orfane.map(v => v.term + '→' + v.lesson).join(', ')); } catch (e) {}
     }
     riempiFiltro();
+    // ?unit=u10 arriva dalla fascia del percorso: apre il glossario già
+    // filtrato sul desk che si stava guardando, invece di scaricare
+    // sull'utente il compito di ritrovarlo in una lista di 32 voci
+    try {
+      const chiesta = new URLSearchParams(location.search).get('unit');
+      if (chiesta && perUnita.some(g => g.id === chiesta)) $('#glUnit').value = chiesta;
+    } catch (e) {}
     $('#glSearch').addEventListener('input', disegna);
     $('#glUnit').addEventListener('change', disegna);
     // un termine può essere linkato direttamente: glossary.html#t-demurrage
