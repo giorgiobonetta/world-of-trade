@@ -541,7 +541,11 @@
     }
     _lastXp = state.xp || 0;
   }
-  function renderPath() {
+  /* vaiAlPunto: portare l'utente al livello successivo ha senso quando
+     ENTRA nel percorso o torna da una lezione. Su un ridisegno di sfondo —
+     un salvagente che matura, la sincronia che arriva — significa strappargli
+     la pagina da sotto gli occhi mentre sta leggendo. */
+  function renderPath({ vaiAlPunto = false } = {}) {
     renderStatLives();
     renderTopStats();
     const next = nextLessonId();
@@ -638,8 +642,9 @@
     }));
     $$('[data-check]').forEach(b => b.addEventListener('click', () => startCheckpoint(b.dataset.check)));
 
-    // con molte lezioni il percorso è lungo: portiamo l'utente al punto giusto
-    if (state.done.length) {
+    // con molte lezioni il percorso è lungo: portiamo l'utente al punto giusto,
+    // ma solo se è appena arrivato, non mentre sta già leggendo
+    if (vaiAlPunto && state.done.length) {
       const target = $('#pathBody .node.next');
       if (target && target.scrollIntoView) {
         try { target.scrollIntoView({ block: 'center', behavior: motionOK() ? 'smooth' : 'auto' }); }
@@ -935,7 +940,7 @@
     _orologioVite = setTimeout(() => {
       _orologioVite = null;
       const prima = limitaVite(state.lives);
-      if (livesNow() !== prima) { save(); renderPath(); }
+      if (livesNow() !== prima) { save(); renderPath(); }   // di sfondo: nessuno scorrimento
       renderStatLives();
       avviaOrologioVite();
     }, Math.max(250, passo));
@@ -1814,7 +1819,7 @@
   $('#bossQuit')?.addEventListener('click', quitBoss);
   $('#bossBrowse')?.addEventListener('click', () => $('#bossShelf')?.scrollIntoView({ behavior: motionOK() ? 'smooth' : 'auto', block:'start' }));
   $$('.nav-item').forEach(b => b.addEventListener('click', () => show(b.dataset.screen)));
-  $('#continueButton').addEventListener('click', () => { show(doneReturnScreen); if (doneReturnScreen === 'pathScreen') renderPath(); });
+  $('#continueButton').addEventListener('click', () => { show(doneReturnScreen); if (doneReturnScreen === 'pathScreen') renderPath({ vaiAlPunto: true }); });
   /* Uscire da una lezione a metà costa: gli XP non sono ancora messi in
      banca e i salvagenti spesi non tornano. Chiederlo evita l'uscita per
      sbaglio — la X sta accanto alla barra e si tocca facilmente. */
@@ -1824,7 +1829,7 @@
     const dlg = $('#quitDialog');
     if (dlg) dlg.hidden = true;
     show(target);
-    if (target === 'pathScreen') renderPath();
+    if (target === 'pathScreen') renderPath({ vaiAlPunto: true });
   }
 
   function chiediUscita() {
@@ -1872,7 +1877,7 @@
     }
   });
 
-  renderPath();
+  renderPath({ vaiAlPunto: true });   // primo arrivo: si parte da dove si era rimasti
   avviaOrologioVite();
 
   // la fascia segue lo scorrimento del percorso. passive: non blocca lo scroll,
@@ -1896,6 +1901,8 @@
     window.addEventListener('scroll', suScroll, { passive: true });
     window.addEventListener('resize', suScroll, { passive: true });
     window.addEventListener('wot:screen', e => {
+      // rientrando nel percorso si torna al punto in cui si era rimasti
+      if (e.detail?.id === 'pathScreen') renderPath({ vaiAlPunto: true });
       const b = $('#unitBanner');
       if (!b) return;
       if (e.detail?.id !== 'pathScreen') { b.hidden = true; return; }
@@ -1906,6 +1913,8 @@
   // se la scheda è rimasta in secondo piano per ore, al rientro il fondo
   // va ricalcolato subito: l'intervallo può essere stato messo in pausa
   document.addEventListener('visibilitychange', () => {
+    // a scheda nascosta le animazioni decorative non servono a nessuno
+    document.body.classList.toggle('in-pausa', document.visibilityState !== 'visible');
     if (document.visibilityState !== 'visible') return;
     const prima = limitaVite(state.lives);
     if (livesNow() !== prima) { save(); renderPath(); }

@@ -105,9 +105,17 @@ button{font:inherit;color:inherit;border:0;background:none}
   box-shadow:inset 0 3px 0 rgba(255,255,255,.4),inset 0 -4px 0 rgba(0,0,0,.22),0 4px 0 rgba(5,18,48,.55);
 }
 .node.done .medal{background:linear-gradient(180deg,var(--green-hi),var(--green-deep));color:#06371f}
-.node.next .medal{background:linear-gradient(180deg,var(--gold-hi),var(--gold-mid));animation:pulseRing 2s ease-in-out infinite}
-@keyframes pulseRing{0%,100%{box-shadow:inset 0 3px 0 rgba(255,255,255,.5),inset 0 -4px 0 rgba(0,0,0,.2),0 4px 0 rgba(5,18,48,.55),0 0 0 0 rgba(255,212,92,.55)}
-  50%{box-shadow:inset 0 3px 0 rgba(255,255,255,.5),inset 0 -4px 0 rgba(0,0,0,.2),0 4px 0 rgba(5,18,48,.55),0 0 0 14px rgba(255,212,92,0)}}
+.node.next .medal{background:linear-gradient(180deg,var(--gold-hi),var(--gold-mid));position:relative}
+/* L'anello pulsante era un box-shadow animato: ridipinge a ogni fotogramma.
+   Un pseudo-elemento che scala e sfuma usa solo transform e opacity, le due
+   proprietà che il browser compone senza toccare layout né pittura. */
+.node.next .medal::after{
+  content:'';position:absolute;inset:0;border-radius:50%;pointer-events:none;
+  border:3px solid rgba(255,212,92,.55);
+  animation:pulseRing 2s ease-out infinite;
+  will-change:transform,opacity;
+}
+@keyframes pulseRing{from{transform:scale(1);opacity:.75}to{transform:scale(1.42);opacity:0}}
 .node.next{border-color:var(--gold)}
 .node.locked{opacity:.42;cursor:not-allowed;filter:saturate(.4)}
 .node.locked .medal{background:linear-gradient(180deg,#5b6a86,#333e57);color:#9fb0c9;animation:none}
@@ -729,7 +737,7 @@ body.immersive .game-nav{display:none}
 .quest-copy h3{margin:0 0 2px;font-size:15px}.quest-copy p{margin:0;color:#b9cce9;font-size:12px;line-height:1.35}.quest-copy small{display:block;margin-top:4px;color:#8fa8cf;font-size:10px;font-variant-numeric:tabular-nums}
 .quest-progress{height:6px;margin-top:7px;overflow:hidden;border-radius:99px;background:#10264d}.quest-progress i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#4fe08a,#a8f7c8);transition:width .35s var(--spring)}
 .quest-claim{min-width:82px;padding:9px 10px;border-radius:11px;cursor:pointer;font-size:11px;font-weight:900;color:#0b223f;background:linear-gradient(180deg,var(--gold-hi),var(--gold-mid));box-shadow:0 2px 0 rgba(126,76,4,.7)}.quest-claim[disabled]{cursor:default;color:#7f95b7;background:#172b50;box-shadow:none;opacity:.7}.quest-row.done:not(.claimed) .quest-claim{animation:questPulse 1.8s ease-in-out infinite}
-@keyframes questPulse{50%{transform:translateY(-2px);box-shadow:0 4px 0 rgba(126,76,4,.7),0 0 16px rgba(255,212,92,.18)}}
+@keyframes questPulse{50%{transform:translateY(-2px) scale(1.02)}}
 .daily-bonus{display:flex;align-items:center;gap:11px;margin-top:12px;padding:12px 13px;border-radius:14px;color:#d7e7fb;background:rgba(4,14,40,.38);border:1px dashed rgba(255,212,92,.24)}.daily-bonus>span{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:#0b223f;font-weight:900;background:linear-gradient(180deg,var(--gold-hi),var(--gold-mid))}.daily-bonus b,.daily-bonus small{display:block}.daily-bonus b{font-size:13px}.daily-bonus small{margin-top:2px;color:#9fb7db;font-size:11px}
 @media (max-width:520px){.daily-quests{padding:17px}.quest-row{grid-template-columns:38px 1fr;gap:10px}.quest-icon{width:38px;height:38px}.quest-claim{grid-column:1/-1;width:100%}}
 
@@ -1889,4 +1897,36 @@ body.overlay-open .helene-call{opacity:0;pointer-events:none;transform:translate
 @media (max-width:360px) and (orientation:portrait){
   .tab-glyph{ width:26px; height:26px }
   .tab-item.active::before{ width:48px; margin-left:-24px }
+}
+
+@media (prefers-reduced-motion:reduce){
+  .node.next .medal::after{ animation:none; opacity:.55 }
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   MENO LAVORO QUANDO NON SERVE
+   Le animazioni decorative — la nave che deriva, la rotta tratteggiata, le
+   macchie di luce sullo sfondo — girano all'infinito. Durante una lezione
+   nessuno le guarda, e a scheda nascosta nemmeno: fermarle libera il
+   compositore e allunga la batteria senza togliere niente.
+   ══════════════════════════════════════════════════════════════════════ */
+body.immersive .backdrop .bd-ship,
+body.immersive .backdrop .bd-route,
+body.immersive::before,
+body.immersive::after,
+body.in-pausa .backdrop .bd-ship,
+body.in-pausa .backdrop .bd-route,
+body.in-pausa::before,
+body.in-pausa::after,
+body.in-pausa .node.next .medal::after{
+  animation-play-state:paused;
+}
+
+/* Le sezioni del percorso fuori dallo schermo non hanno bisogno di essere
+   disposte e dipinte a ogni scorrimento. contain-intrinsic-size evita che
+   la barra di scorrimento salti quando entrano ed escono dalla vista. */
+#pathBody .unit{
+  content-visibility:auto;
+  contain-intrinsic-size:auto 620px;
 }
