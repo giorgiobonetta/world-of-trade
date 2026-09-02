@@ -28,10 +28,10 @@ learn.html             the game shell
 index.html             splash used by the native shell (redirects to learn.html)
 curriculum.js          14 hand-written units, 316 exercises
 content-engine.js      deterministic generator for the remaining units
-glossary.js            122 terms
+glossary.js            122 terms, also used in-lesson by the coach
 intro.js               the three-screen first-run introduction
 sw.js                  service worker (offline support)
-tests/                 34 verification suites
+tests/                 35 verification suites
 capacitor.config.ts    native shell configuration
 MOBILE-APP-SETUP.md    building the iOS/Android apps
 ```

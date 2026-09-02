@@ -21,6 +21,7 @@
   const MAX_LIVES = 5;          // quanti se ne possono tenere
   const START_LIVES = 5;        // con quanti si comincia
   const STREAK_PER_LIFE = 10;   // risposte giuste di fila per riguadagnarne uno
+  const MAX_PRESENTAZIONI = 2;  // quanti concetti nuovi al massimo in una lezione
   const LIFE_REGEN_MS = 20 * 60 * 1000;  // uno ogni venti minuti, anche a app chiusa
   const CHECK_MIN_LIVES = 3;    // un checkpoint deve poter arrivare a un punteggio
   const HEARTS = MAX_LIVES;
@@ -90,6 +91,7 @@
     lives: START_LIVES, // fondo di salvagenti: persiste fra le sessioni
     livesEarned: 0,// quanti ne sono stati riguadagnati con le serie
     livesAt: 0,    // da quando matura il prossimo salvagente: 0 = fondo pieno
+    visti: [],     // termini che Hélène ha già presentato: mai due volte
     skillXp: {},    // pratica oltre al progresso base: skill -> punti
     flash: { best:0, plays:0, correct:0, total:0 },
     frontier: { best:0, plays:0, cleared:0, correct:0, total:0 },
@@ -126,7 +128,8 @@
         // un salvataggio precedente non ha il fondo: si parte pieni
         lives: s.lives === undefined ? START_LIVES : Math.max(0, Math.min(MAX_LIVES, Number(s.lives) || 0)),
         livesEarned: Number(s.livesEarned) || 0,
-        livesAt: Number(s.livesAt) || 0 };
+        livesAt: Number(s.livesAt) || 0,
+        visti: Array.isArray(s.visti) ? s.visti.map(String) : [] };
     } catch (e) { return defaultState(); }
   }
   function save() {
@@ -145,6 +148,7 @@
     const f = obj(next.flash), fr = obj(next.frontier), b = obj(next.boss), d = obj(next.daily), ds = obj(next.dailyStats), dh = obj(next.dailyHistory), cp = obj(next.competitive);
     state = { ...defaultState(), ...next,
       done: Array.isArray(next.done) ? next.done.filter(id => allLessons.some(l => l.id === id)) : [],
+      visti: Array.isArray(next.visti) ? next.visti.map(String) : [],
       best: obj(next.best), misses: obj(next.misses), doneAt: obj(next.doneAt), badges: obj(next.badges),
       skillXp: obj(next.skillXp),
       flash: { best:Number(f.best)||0, plays:Number(f.plays)||0, correct:Number(f.correct)||0, total:Number(f.total)||0 },
@@ -743,6 +747,92 @@
       banner: `Checkpoint · ${unit.title} · ${CHECK_PASS}% to pass` });
   }
 
+
+  /* ── Hélène presenta i concetti nuovi ────────────────────────────────
+     Un esercizio che usa per la prima volta una parola del mestiere mette
+     l'utente davanti a una domanda su qualcosa che nessuno gli ha ancora
+     spiegato. Prima di quella domanda compare una scheda breve: cos'è, e
+     perché a un trader interessa. Una volta sola per termine, per sempre. */
+
+  const VOCI = () => (window.GLOSSARY || []);
+
+  /* Un termine come "Letter of credit (LC)" non compare mai così nel testo:
+     nelle domande si legge "letter of credit" oppure "LC". Ogni voce genera
+     quindi le sue forme — nome esteso e sigla — e si cerca ciascuna. */
+  function formeDi(termine) {
+    const s = String(termine).trim();
+    let forme;
+    // tre formati convivono nel glossario, e vanno riconosciuti tutti:
+    //   "Letter of credit (LC)"     sigla fra parentesi
+    //   "FOB — Free On Board"       sigla e nome separati dal trattino lungo
+    //   "GAFTA / FOSFA"             due voci in una
+    const par = s.match(/^(.*?)\s*\(([^)]+)\)\s*$/);
+    const trattino = s.match(/^(.*?)\s+[—–-]\s+(.*)$/);
+    if (par) forme = [par[1], par[2]];
+    else if (trattino) forme = [trattino[1], trattino[2]];
+    else forme = [s];
+    return forme.flatMap(f => f.includes(' / ') ? f.split(' / ') : [f])
+                .map(f => f.trim())
+                .filter(f => f.length >= 2);
+  }
+
+  /* Si cercano dalla forma più lunga alla più corta: "basis risk" deve
+     vincere su "basis", altrimenti si presenta il concetto sbagliato. */
+  const _vociOrdinate = () => VOCI()
+    .filter(v => v.term && (v.helene || v.def))
+    .map(v => ({ voce: v, forme: formeDi(v.term) }))
+    .sort((a, b) => Math.max(...b.forme.map(f => f.length)) - Math.max(...a.forme.map(f => f.length)));
+
+  const _fugaRegex = s => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+  /* Il confine di parola non basta: "P&I" e "TC/RC" contengono caratteri
+     che \b non riconosce, quindi si guarda cosa sta prima e dopo. */
+  function citato(testo, termine) {
+    const t = String(testo || '');
+    const rx = new RegExp('(^|[^A-Za-z0-9])' + _fugaRegex(termine) + '(s|es)?($|[^A-Za-z0-9])', 'i');
+    return rx.test(t);
+  }
+
+  const vistoConcetto = termine => Array.isArray(state.visti) && state.visti.includes(termine);
+
+  function segnaVisto(termine) {
+    if (!Array.isArray(state.visti)) state.visti = [];
+    if (!state.visti.includes(termine)) { state.visti.push(termine); save(); }
+  }
+
+  /* Il primo concetto mai incontrato dentro il testo di un esercizio, o null.
+     Si guarda solo la domanda, mai la spiegazione: quella arriva dopo. */
+  function concettoNuovo(ex) {
+    if (!ex) return null;
+    const testo = [ex.prompt, ex.sentence && ex.sentence.join(' '),
+                   Array.isArray(ex.options) ? ex.options.join(' ') : '',
+                   Array.isArray(ex.pairs) ? ex.pairs.flat().join(' ') : '',
+                   Array.isArray(ex.items) ? ex.items.join(' ') : ''].filter(Boolean).join(' · ');
+    for (const { voce, forme } of _vociOrdinate()) {
+      if (vistoConcetto(voce.term)) continue;
+      if (forme.some(f => citato(testo, f))) return voce;
+    }
+    return null;
+  }
+
+  function disegnaPresentazione(voce) {
+    const M = window.MASCOT;
+    $('#exerciseArea').innerHTML = `
+      <section class="teach-card">
+        <div class="teach-face" aria-hidden="true">${M ? M.svg('teach', 84) : ''}</div>
+        <p class="teach-kicker">${esc(M ? M.name : 'Hélène')} · new term</p>
+        <h2 class="teach-term">${esc(voce.term)}</h2>
+        <p class="teach-say">${esc(voce.helene || voce.def)}</p>
+        ${voce.why ? `<p class="teach-why">${esc(voce.why)}</p>` : ''}
+      </section>`;
+    const btn = $('#checkButton');
+    btn.className = 'btn primary';
+    btn.textContent = 'Got it';
+    btn.disabled = false;
+    const rev = $('#revealButton');
+    if (rev) rev.hidden = true;
+  }
+
   function nextExercise() {
     if (!run) return;
     if (!run.queue.length) return finishRun();
@@ -758,6 +848,20 @@
     btn.className = 'btn primary';
     btn.textContent = 'Check';
     btn.disabled = true;
+    /* Se questa domanda usa una parola mai incontrata, prima la presentiamo:
+       l'esercizio resta in canna e parte appena l'utente ha letto.
+       Non più di due volte per lezione: alcune lezioni introdurrebbero
+       quattro termini su cinque esercizi, e diventerebbe una presentazione
+       con qualche domanda in mezzo invece di una lezione. Gli altri termini
+       aspettano la prossima volta che si affacciano. */
+    const voce = (run.presentati || 0) < MAX_PRESENTAZIONI ? concettoNuovo(run.current.ex) : null;
+    if (voce) {
+      run.presentati = (run.presentati || 0) + 1;
+      run.state = 'insegna';
+      run.presentando = voce.term;
+      disegnaPresentazione(voce);
+      return;
+    }
     renderRivela();
     renderExercise(run.current.ex);
   }
@@ -1109,6 +1213,17 @@
 
   function onCheck() {
     if (!run) return;
+    if (run.state === 'insegna') {
+      segnaVisto(run.presentando);
+      run.presentando = null;
+      run.state = 'answering';
+      const btn = $('#checkButton');
+      btn.textContent = 'Check';
+      btn.disabled = true;
+      renderRivela();
+      renderExercise(run.current.ex);
+      return;
+    }
     if (run.state === 'feedback') { nextExercise(); return; }
     const ex = run.current.ex;
     const ok = evaluate(ex);
@@ -1967,6 +2082,7 @@
     replaceState, defaultState, STORAGE_KEY: KEY, SOGLIE, renderStreak, isUnlocked,
     unitaInFascia, disegnaFascia, aggiornaFascia, fasediUnita, SEZIONI,
     chiediUscita, chiudiUscita, abbandona, isApertura, SANDBOX,
+    concettoNuovo, vistoConcetto, segnaVisto, citato, formeDi, MAX_PRESENTAZIONI,
     careerRank, careerLevel, skillScore, startFlash, finishFlash, get flash(){return flash;}, startFrontier, unlockedMasteryWorlds,
     startBoss, startDaily, finishBoss, quitBoss, get boss(){return boss;}, ensureDaily, dailyQuests, claimDailyQuest, localDayKey,
     ensureCompetitive, leagueScore, leagueEntry, renderLeagueHub, unlockedAchievements, save, GAME, COMP };

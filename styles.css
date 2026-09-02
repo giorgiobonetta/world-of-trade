@@ -1930,3 +1930,38 @@ body.in-pausa .node.next .medal::after{
   content-visibility:auto;
   contain-intrinsic-size:auto 620px;
 }
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   PRESENTAZIONE DI UN CONCETTO
+   Compare al posto della domanda, la prima volta che una parola del
+   mestiere si affaccia. Deve leggersi in dieci secondi: se diventa una
+   pagina di teoria, la gente la salta e siamo punto e a capo.
+   ══════════════════════════════════════════════════════════════════════ */
+.teach-card{
+  max-width:600px; margin:6px auto 0; padding:22px 20px 24px;
+  text-align:center; border-radius:var(--r-lg);
+  background:linear-gradient(180deg,rgba(21,54,116,.72),rgba(9,28,68,.72));
+  border:2px solid rgba(255,212,92,.26);
+  box-shadow:0 7px 0 rgba(4,13,35,.35);
+  animation:teachIn .32s var(--spring);
+}
+@keyframes teachIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.teach-face{ display:flex; justify-content:center; margin-bottom:6px }
+.teach-kicker{
+  margin:0; font-size:11px; font-weight:700; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--gold-hi); opacity:.9;
+}
+.teach-term{ margin:6px 0 10px; font-size:26px; line-height:1.2 }
+.teach-say{ margin:0 auto; max-width:52ch; font-size:16.5px; line-height:1.6; color:#f0f6ff }
+.teach-why{
+  margin:14px auto 0; max-width:52ch; padding-top:13px;
+  border-top:1px solid rgba(255,255,255,.14);
+  font-size:14.5px; line-height:1.55; color:var(--muted);
+}
+@media (max-width:520px){
+  .teach-card{ padding:18px 15px 20px }
+  .teach-term{ font-size:22px }
+  .teach-say{ font-size:15.5px }
+}
+@media (prefers-reduced-motion:reduce){ .teach-card{ animation:none } }
