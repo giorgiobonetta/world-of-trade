@@ -4,8 +4,8 @@ An interactive course in **physical commodity trading**, built as a short-lesson
 Duolingo mould: bite-sized levels, immediate feedback, a written explanation behind every
 answer.
 
-- **32 units · 173 levels · 856 exercises**
-- **122-term glossary** covering incoterms, quotational periods, basis, carry, chartering, insurance,
+- **34 units · 219 levels · 1,086 exercises**
+- **171-term glossary** covering incoterms, quotational periods, basis, carry, chartering, insurance,
   documentary credits, hedging and compliance
 - Runs as a website, installs as a PWA, and ships as a native iOS/Android shell via Capacitor
 - No framework, no build step — plain HTML, CSS and JavaScript
@@ -26,27 +26,38 @@ Then open `http://localhost:8000/landing.html`. It deploys to Vercel as-is — n
 landing.html           public landing page
 learn.html             the game shell
 index.html             splash used by the native shell (redirects to learn.html)
-curriculum.js          14 hand-written units, 316 exercises
-content-engine.js      deterministic generator for the remaining units
-glossary.js            122 terms, also used in-lesson by the coach
+curriculum.js          the 16 MSc core courses, hand-written: 111 levels, 546 exercises
+scenes.js              the sixteen SVG scenes used as section backgrounds
+content-engine.js      deterministic generator for the specialist desks
+glossary.js            171 terms, also used in-lesson by the coach
 intro.js               the three-screen first-run introduction
 sw.js                  service worker (offline support)
-tests/                 35 verification suites
+tests/                 37 verification suites
 capacitor.config.ts    native shell configuration
 MOBILE-APP-SETUP.md    building the iOS/Android apps
 ```
 
 ## Content
 
-Units 1–14 are written by hand. They cover the fundamentals — what a physical trade is,
-incoterms, quality and quantity, pricing and quotational periods, freight and chartering,
-documents and payment, risk and hedging, storage and blending, compliance and financial crime —
-and then three areas that decide whether a modern trade works at all: the carbon and
-sustainability regimes (EU ETS, CBAM, FuelEU, EUDR, RED III), marine cargo insurance and
-casualty including general average, and contracts, arbitration and credit protection.
+The career path follows the **sixteen compulsory courses of the MSc in Commodity Trading at
+the University of Geneva** — seven in the autumn semester, nine in the spring — and each course
+is one section of the path, with its own background scene and colour palette:
 
-Beyond Unit 14 the content engine generates exercises deterministically from a seed, so the
-same level always produces the same questions. Every numeric exercise is checked by the test
+| # | Autumn | # | Spring |
+|---|---|---|---|
+| 1 | International Economics and Trade | 8 | Commodity Price Mechanisms |
+| 2 | Quantitative Methods | 9 | Hedging Tools & Techniques |
+| 3 | Financial Statements Analysis | 10 | Options |
+| 4 | Legal Aspects & Regulations | 11 | Energy I (Oil & Gas) |
+| 5 | Shipping | 12 | Energy II (Renewable) |
+| 6 | Sustainability, Business Ethics & Human Rights | 13 | Metals, Ores & Minerals |
+| 7 | Information Technologies and Innovations | 14 | Soft Commodities |
+| | | 15 | Trade Finance Banking Instruments |
+| | | 16 | Types of Financing for Commodity Companies |
+
+All 111 levels in those courses are written by hand. Beyond them the content engine generates
+exercises deterministically from a seed, so the same specialist level always produces the same
+questions. Every numeric exercise is checked by the test
 suite against an independent arithmetic oracle, and every exercise carries an explanation
 that states the reasoning, not just the sum.
 

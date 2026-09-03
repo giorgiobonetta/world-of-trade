@@ -1,3 +1,69 @@
+# World of Trade — Curriculum v8: the Geneva MSc
+
+The career path is now organised around the **sixteen compulsory courses of the MSc in
+Commodity Trading at the University of Geneva** (study plan 2025–2026, seven courses in the
+autumn semester and nine in the spring). Each course is one section of the path.
+
+**Structure**
+
+- 16 sections replace the previous 14 hand-written units. The 65 existing levels were
+  reassigned to the course that actually teaches them — Incoterms and contracts into *Legal
+  Aspects & Regulations*, chartering, laytime, documents and marine insurance into *Shipping*,
+  carbon and financial crime into *Sustainability, Business Ethics & Human Rights*, structure
+  and tax into *Financial Statements Analysis*, desk risk into *Quantitative Methods* — and
+  renumbered so a level id names its course and its position.
+- 46 new levels, 230 new exercises, written for the courses the old curriculum did not cover:
+  International Economics and Trade, Quantitative Methods, Financial Statements Analysis,
+  Information Technologies and Innovations, Options, Energy I (Oil & Gas), Energy II
+  (Renewable), Metals, Ores & Minerals, Soft Commodities, plus the missing pieces of price
+  mechanisms, hedging, trade finance and corporate financing.
+- The path is now divided into **Autumn Semester** and **Spring Semester** instead of a single
+  "Merchant Foundations" chapter; the section band and the world map follow.
+- Totals: 34 units, 219 levels, 1,086 exercises. Glossary: 171 terms, with at least five for
+  every course.
+- Six new skills in the career profile (Trade Economics, Trading Technology, Options, Energy
+  Markets, Metals & Minerals, Soft Commodities); `insurance` folded into Shipping and
+  `structure` renamed Accounts, Structure & Tax.
+
+**Backgrounds**
+
+- Every section now has its own background: sixteen hand-drawn SVG scenes in `scenes.js`
+  (trade routes, a distribution curve, balance sheets, the scales, a quay and a container
+  ship, a shoot and a turbine, a server rack, candlesticks, opposing arrows, a fork in the
+  road, refinery towers, wind and solar, ingots and a headframe, silos and fields, a bank
+  façade, the capital stack) plus a palette per course.
+- The scene sits behind the text on its own layer, fades towards the title, retreats on narrow
+  screens and is hidden from assistive technology. No external files: nothing extra to
+  download.
+- Fixed a polish rule that overwrote the section header background with a single blue and
+  would have made all sixteen palettes identical.
+
+**Saved careers**
+
+- Because every level changed id, a saved career from before this build is **translated** on
+  load: completed levels, best scores, completion dates and the review queue all follow their
+  level into its new course. Unit checkpoint medals are discarded, since the unit boundaries
+  moved. Careers stored in the cloud are translated before being merged.
+
+**Tests**
+
+- `corsi-master.mjs` (new): the sixteen sections are the sixteen courses, in order, with the
+  right semester, code, scene, skill and division, and all 111 levels are played to the end.
+- `sfondi.mjs` (new): every palette measured for contrast against the three text colours of the
+  header, the scene behind the text, line paths that stay lines, no scene text or external
+  reference.
+- `migrazione.mjs` (new): an old saved career is translated and not translated twice.
+- `unita-nuove.mjs` retired: `corsi-master.mjs` covers all sixteen courses rather than five units.
+- Fixed a real defect in `salvagenti.mjs`: a missing `solver()` meant the suite crashed before
+  its first assertion, so it had been reporting nothing since it was written.
+- Strengthened six explanations that were shorter than the standard the rest of the course
+  holds, and two numeric answers of zero whose explanation never showed the accepted result.
+- 807 assertions across 37 suites, all green.
+
+**Service worker** bumped to v40; `scenes.js` precached.
+
+---
+
 # World of Trade — Experience v7
 
 This build adds the experience/retention layer on top of the v6 content-overhaul build:

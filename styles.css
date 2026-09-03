@@ -73,17 +73,76 @@ button{font:inherit;color:inherit;border:0;background:none}
 .intro p{color:var(--muted);margin:12px auto 0;font-size:17px;max-width:420px}
 
 /* ── percorso ────────────────────────────────────────────────────── */
-.unit{margin:34px 0 10px}
+/* Ogni sezione è un corso del master e ha il suo sfondo: la palette arriva
+   da [data-scene="…"] più sotto, il disegno da scenes.js. I valori di
+   default qui sotto valgono per una sezione senza scena dichiarata. */
+.unit{
+  margin:34px 0 10px;padding:2px 0 14px;border-radius:calc(var(--r-lg) + 6px);
+  --sc-bg1:var(--royal-mid); --sc-bg2:var(--royal-deep);
+  --sc-far:#ffffff; --sc-mid:#ffffff; --sc-near:var(--gold-hi);
+  --sc-accent:rgba(255,212,92,.34); --sc-tint:rgba(38,96,201,.14);
+  background:radial-gradient(120% 70% at 50% 0%,var(--sc-tint),transparent 72%);
+}
 .unit-head{
   padding:20px 22px;border-radius:var(--r-lg);margin-bottom:26px;position:relative;overflow:hidden;
-  background:linear-gradient(180deg,var(--royal-mid),var(--royal-deep));
-  border:3px solid rgba(255,212,92,.34);
+  min-height:108px;
+  background:linear-gradient(180deg,var(--sc-bg1),var(--sc-bg2));
+  border:3px solid var(--sc-accent);
   box-shadow:0 7px 0 rgba(5,18,48,.6),inset 0 2px 0 rgba(255,255,255,.22);
 }
-.unit-head::after{content:'';position:absolute;inset:0 0 auto;height:46%;background:linear-gradient(180deg,rgba(255,255,255,.16),transparent);pointer-events:none}
+.unit-head::after{content:'';position:absolute;inset:0 0 auto;height:46%;background:linear-gradient(180deg,rgba(255,255,255,.16),transparent);pointer-events:none;z-index:2}
+.unit-head .n,.unit-head h2,.unit-head p,.unit-head .unit-badge{position:relative;z-index:3}
 .unit-head .n{display:block;color:var(--gold-hi);font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.18em}
 .unit-head h2{font-size:24px;margin-top:5px;text-shadow:0 2px 0 rgba(5,18,48,.5)}
 .unit-head p{margin:5px 0 0;color:#d6e5ff;font-size:15.5px}
+
+/* ── la scena di sfondo della sezione ────────────────────────────── */
+/* La scena occupa la metà destra della testata e sfuma verso il testo, che sta
+   a sinistra. Ancorarla a destra con proporzioni naturali (`meet`, non
+   `slice`) è ciò che evita di ingrandire il disegno fino a farne una macchia
+   dietro il titolo. */
+.unit-scene{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden;
+  -webkit-mask-image:linear-gradient(90deg,transparent 8%,rgba(0,0,0,.22) 40%,#000 76%);
+  mask-image:linear-gradient(90deg,transparent 8%,rgba(0,0,0,.22) 40%,#000 76%)}
+.scene-art{position:absolute;top:0;right:0;height:100%;width:56%;opacity:.5}
+.scene-art .a{fill:var(--sc-far)}
+.scene-art .b{fill:var(--sc-mid)}
+.scene-art .c{fill:var(--sc-near)}
+/* Un tracciato senza riempimento è una linea: l'attributo perde contro il
+   CSS, quindi va riaffermato con più specificità o le linee diventano
+   macchie piene. */
+.scene-art .a[fill="none"]{fill:none;stroke:var(--sc-far);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.scene-art .b[fill="none"]{fill:none;stroke:var(--sc-mid);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.scene-art .c[fill="none"]{fill:none;stroke:var(--sc-near);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+@media (prefers-reduced-transparency:reduce){ .scene-art{opacity:.28} }
+/* su schermo stretto il titolo occupa quasi tutta la riga: la scena si
+   ritira e si attenua, invece di finirgli dietro */
+@media (max-width:520px){
+  .scene-art{ width:50%; opacity:.4 }
+  .unit-scene{
+    -webkit-mask-image:linear-gradient(90deg,transparent 12%,rgba(0,0,0,.16) 46%,#000 84%);
+    mask-image:linear-gradient(90deg,transparent 12%,rgba(0,0,0,.16) 46%,#000 84%)}
+}
+
+/* Le sedici palette, una per corso. Il fondo più chiaro della testata resta
+   scuro abbastanza da tenere il testo bianco sopra la soglia AA: i valori
+   sono verificati in tests/contrasto.mjs. */
+.unit[data-scene="trade"]{ --sc-bg1:#1c4fa4; --sc-bg2:#0e2c63; --sc-far:#4f86e8; --sc-mid:#7fb0ff; --sc-near:#ffd45c; --sc-accent:rgba(255,212,92,.38); --sc-tint:rgba(28,79,164,.20) }
+.unit[data-scene="quant"]{ --sc-bg1:#12645c; --sc-bg2:#083b36; --sc-far:#3fa89b; --sc-mid:#7fd8c8; --sc-near:#a8f7c8; --sc-accent:rgba(168,247,200,.34); --sc-tint:rgba(18,100,92,.20) }
+.unit[data-scene="accounts"]{ --sc-bg1:#37465e; --sc-bg2:#1d2837; --sc-far:#6d7f9c; --sc-mid:#a9b8cf; --sc-near:#fff0b8; --sc-accent:rgba(255,240,184,.30); --sc-tint:rgba(55,70,94,.24) }
+.unit[data-scene="legal"]{ --sc-bg1:#6b2440; --sc-bg2:#3d1224; --sc-far:#a8536f; --sc-mid:#d38fa4; --sc-near:#ffd45c; --sc-accent:rgba(255,212,92,.34); --sc-tint:rgba(107,36,64,.22) }
+.unit[data-scene="shipping"]{ --sc-bg1:#14567a; --sc-bg2:#08334a; --sc-far:#3f93bd; --sc-mid:#84c8e6; --sc-near:#ffd45c; --sc-accent:rgba(255,212,92,.36); --sc-tint:rgba(20,86,122,.22) }
+.unit[data-scene="sustainability"]{ --sc-bg1:#1f6338; --sc-bg2:#0e3a20; --sc-far:#49a068; --sc-mid:#8ad9a3; --sc-near:#e9f7a8; --sc-accent:rgba(233,247,168,.32); --sc-tint:rgba(31,99,56,.22) }
+.unit[data-scene="tech"]{ --sc-bg1:#4a2b8c; --sc-bg2:#271350; --sc-far:#8062cc; --sc-mid:#b49bf2; --sc-near:#7fe8ff; --sc-accent:rgba(127,232,255,.32); --sc-tint:rgba(74,43,140,.24) }
+.unit[data-scene="pricing"]{ --sc-bg1:#7a4a12; --sc-bg2:#472a08; --sc-far:#b8802f; --sc-mid:#e0b064; --sc-near:#fff0b8; --sc-accent:rgba(255,240,184,.34); --sc-tint:rgba(122,74,18,.22) }
+.unit[data-scene="hedging"]{ --sc-bg1:#234c86; --sc-bg2:#122a4f; --sc-far:#5480bd; --sc-mid:#8fb4e4; --sc-near:#ffd45c; --sc-accent:rgba(255,212,92,.34); --sc-tint:rgba(35,76,134,.22) }
+.unit[data-scene="options"]{ --sc-bg1:#6a2a6e; --sc-bg2:#3c123f; --sc-far:#a057a5; --sc-mid:#d194d6; --sc-near:#ffd45c; --sc-accent:rgba(255,212,92,.32); --sc-tint:rgba(106,42,110,.22) }
+.unit[data-scene="oil"]{ --sc-bg1:#4a3320; --sc-bg2:#241708; --sc-far:#8a6a44; --sc-mid:#c0a077; --sc-near:#ff9d4d; --sc-accent:rgba(255,157,77,.34); --sc-tint:rgba(74,51,32,.26) }
+.unit[data-scene="renewable"]{ --sc-bg1:#0f5f70; --sc-bg2:#063a45; --sc-far:#3ba0b3; --sc-mid:#84d9e6; --sc-near:#d8f77f; --sc-accent:rgba(216,247,127,.32); --sc-tint:rgba(15,95,112,.22) }
+.unit[data-scene="metals"]{ --sc-bg1:#6d3a1f; --sc-bg2:#3a1d0d; --sc-far:#a56a44; --sc-mid:#d1a184; --sc-near:#ffc98a; --sc-accent:rgba(255,201,138,.32); --sc-tint:rgba(109,58,31,.24) }
+.unit[data-scene="softs"]{ --sc-bg1:#5a6120; --sc-bg2:#32380c; --sc-far:#8d9640; --sc-mid:#c3cd7c; --sc-near:#ffd45c; --sc-accent:rgba(255,212,92,.34); --sc-tint:rgba(90,97,32,.22) }
+.unit[data-scene="tradefinance"]{ --sc-bg1:#1c4076; --sc-bg2:#0d2245; --sc-far:#4a76b5; --sc-mid:#8aacdd; --sc-near:#fff0b8; --sc-accent:rgba(255,240,184,.34); --sc-tint:rgba(28,64,118,.22) }
+.unit[data-scene="financing"]{ --sc-bg1:#17544a; --sc-bg2:#0a3029; --sc-far:#3f8f7f; --sc-mid:#83c8b6; --sc-near:#ffd45c; --sc-accent:rgba(255,212,92,.34); --sc-tint:rgba(23,84,74,.22) }
 
 .nodes{display:flex;flex-direction:column;align-items:center;gap:0}
 .connector{width:6px;height:24px;background:repeating-linear-gradient(180deg,rgba(255,212,92,.42) 0 7px,transparent 7px 14px);border-radius:3px}
@@ -1263,9 +1322,11 @@ body[data-section="profile"]{--section-accent:#ffc86b}
 .mini-action:hover{background:rgba(255,255,255,.10)!important;border-color:rgba(255,255,255,.20)!important}
 .mini-action:active{transform:scale(.98)}
 
-/* Career Path: clearer progress states and less "stack of generic cards" feel. */
-.unit-head{border-width:1px!important;background:linear-gradient(145deg,rgba(25,67,139,.94),rgba(8,29,67,.94))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 12px 28px rgba(0,0,0,.20)!important}
-.unit-head::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,var(--gold-hi),var(--gold-mid))}
+/* Career Path: clearer progress states and less "stack of generic cards" feel.
+   Il fondo resta quello della scena del corso: se qui si rimettesse un colore
+   fisso, i sedici sfondi tornerebbero tutti blu — è già successo una volta. */
+.unit-head{border-width:1px!important;background:linear-gradient(145deg,var(--sc-bg1),var(--sc-bg2))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 12px 28px rgba(0,0,0,.20)!important}
+.unit-head::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;z-index:3;background:linear-gradient(180deg,var(--sc-near),var(--gold-mid))}
 .node{
   border-width:1px!important;background:linear-gradient(155deg,rgba(24,64,130,.94),rgba(9,31,72,.96))!important;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 10px 22px rgba(0,0,0,.19)!important;
@@ -1852,6 +1913,7 @@ body.overlay-open .helene-call{opacity:0;pointer-events:none;transform:translate
 .unit-banner[data-section="4"]{ background:linear-gradient(180deg,#9a6516,#6f4710) }
 .unit-banner[data-section="5"]{ background:linear-gradient(180deg,#6d4a9e,#4b3172) }
 .unit-banner[data-section="6"]{ background:linear-gradient(180deg,#a8443f,#77302c) }
+.unit-banner[data-section="7"]{ background:linear-gradient(180deg,#4a2b8c,#2d1857) }
 
 @media (max-width:520px){
   .unit-banner{ padding:10px 13px; border-radius:0 }

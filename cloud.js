@@ -387,6 +387,9 @@
       };
     };
     return {
+      // la versione del programma è la più alta delle due: una carriera già
+      // migrata non deve essere migrata una seconda volta
+      rev: Math.max(Number(a.rev) || 0, Number(b.rev) || 0),
       done: [...new Set([...(a.done || []), ...(b.done || [])])],
       xp: Math.max(Number(a.xp) || 0, Number(b.xp) || 0),
       streak: Math.max(Number(a.streak) || 0, Number(b.streak) || 0),
@@ -502,7 +505,12 @@
         if (!silenzioso) stato('Syncing…');
         const remoto = await pull();
         const locale = window.__LEARN__ ? window.__LEARN__.state : null;
-        const fuso = merge(locale, remoto);
+        // la riga sul server può essere stata scritta prima che il corso
+        // fosse riorganizzato sui corsi del master: gli id delle lezioni
+        // vanno tradotti prima di fondere, o si fondono carriere diverse
+        const remotoMigrato = window.__LEARN__?.migraSalvataggio
+          ? window.__LEARN__.migraSalvataggio(remoto) : remoto;
+        const fuso = merge(locale, remotoMigrato);
         if (window.__LEARN__) window.__LEARN__.replaceState(fuso);
         await push(fuso);
         try { if (window.__LEARN__?.leagueEntry) await pushLeague(window.__LEARN__.leagueEntry()); } catch (leagueError) { /* optional table may not exist yet */ }

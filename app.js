@@ -33,6 +33,9 @@
   const GAME = window.WOT_GAME || { skills:{}, unitMeta:{}, ranks:[], randomFlash:null, bossCatalog:[], makeBossDeal:null, makeDailyDeal:null, dailyMeta:null };
   const COMP = window.WOT_COMP || { divisions:[], houses:[], achievements:[], weekKey:()=>'', weekRange:()=>'', division:id=>({id,name:'Bronze',promote:200}), seasonMove:id=>id, localOpponents:()=>[] };
   const CONTENT = window.WOT_CONTENT || { makeMasterySet:null, worldCatalog:[] };
+  // le scene di sfondo delle sezioni: se scenes.js non c'è, il percorso
+  // funziona identico e le sezioni restano col fondo di default
+  const SCENES = window.WOT_SCENES || {};
   const allLessons = UNITS.flatMap(u => u.lessons.map(l => ({ ...l, unitId: u.id })));
   const skillIdForLesson = lessonId => {
     const lesson = allLessons.find(l => l.id === lessonId);
@@ -81,6 +84,7 @@
   /* ── stato ───────────────────────────────────────────────────────── */
   const defaultState = () => ({
     done: [], xp: 0, streak: 0, lastDay: null, best: {},
+    rev: CURRICULUM_REV, // versione del programma: serve a migrare i salvataggi
     updatedAt: 0,   // quando questo dispositivo ha toccato la carriera l'ultima volta
     misses: {},    // 'u1l1#3' -> quante volte sbagliato, non ancora recuperato
     doneAt: {},    // quando una lezione e' stata completata (per l'anzianita')
@@ -101,13 +105,59 @@
     dailyHistory: { deals:{}, perfect:{} },
     competitive: { week:null, startXp:0, tier:'bronze', alias:'', house:'', seasons:0, history:{}, lastPlacement:null, lastSeason:null },
   });
-  let state = load();
+
+  /* ── migrazione dei salvataggi al programma del master ────────────
+     Riorganizzando il corso sui sedici corsi obbligatori di Ginevra, ogni
+     lezione ha cambiato posizione e quindi identificativo. Senza questa
+     mappa una carriera salvata verrebbe letta con gli id nuovi: alcune
+     lezioni scomparirebbero e altre risulterebbero fatte al posto di
+     quelle giuste. Le medaglie di unità vengono invece scartate, perché il
+     confine delle unità è cambiato e un checkpoint vecchio non ne
+     certifica più nessuna. */
+  const CURRICULUM_REV = 2;
+  const MAPPA_CORSI = {
+    u1l1:"u1l1", u1l2:"u1l2", u7l1:"u2l3", u7l2:"u2l4", u7l3:"u2l5", u7l4:"u2l6",
+    u13l1:"u3l4", u13l2:"u3l5", u13l3:"u3l6", u13l4:"u3l7", u13l5:"u3l8", u13l6:"u3l9",
+    u2l1:"u4l1", u2l2:"u4l2", u2l3:"u4l3", u2l4:"u4l4", u12l1:"u4l5", u12l2:"u4l6",
+    u12l3:"u4l7", u12l4:"u4l8", u12l5:"u4l9", u12l6:"u4l10", u1l3:"u5l1", u8l1:"u5l2",
+    u8l2:"u5l3", u8l3:"u5l4", u8l4:"u5l5", u6l1:"u5l6", u6l2:"u5l7", u6l3:"u5l8",
+    u6l4:"u5l9", u11l1:"u5l10", u11l2:"u5l11", u11l3:"u5l12", u11l4:"u5l13", u11l5:"u5l14",
+    u11l6:"u5l15", u10l1:"u6l1", u10l2:"u6l2", u10l3:"u6l3", u10l4:"u6l4", u10l5:"u6l5",
+    u10l6:"u6l6", u9l1:"u6l8", u9l2:"u6l9", u9l3:"u6l10", u9l4:"u6l11", u3l1:"u8l1",
+    u3l2:"u8l3", u3l3:"u8l4", u3l4:"u8l5", u4l1:"u9l2", u4l2:"u9l3", u4l3:"u9l4",
+    u4l4:"u9l5", u5l1:"u15l1", u1l4:"u15l2", u5l2:"u15l4", u5l3:"u15l6", u14l1:"u16l2",
+    u14l2:"u16l3", u14l3:"u16l4", u14l4:"u16l5", u14l5:"u16l6", u14l6:"u16l7",
+  };
+
+  function migraSalvataggio(s) {
+    if (!s || typeof s !== 'object' || Number(s.rev) >= CURRICULUM_REV) return s;
+    const nuovo = id => MAPPA_CORSI[id] || id;
+    const obj = v => (v && typeof v === 'object' && !Array.isArray(v)) ? v : {};
+    const rimappaChiavi = (src, f) => {
+      const out = {};
+      for (const [k, v] of Object.entries(obj(src))) out[f(k)] = v;
+      return out;
+    };
+    // le chiavi degli errori hanno forma "lezione#indice"
+    const chiaveErrore = k => {
+      const i = String(k).indexOf('#');
+      return i < 0 ? nuovo(k) : nuovo(String(k).slice(0, i)) + String(k).slice(i);
+    };
+    return { ...s, rev: CURRICULUM_REV,
+      done: Array.isArray(s.done) ? s.done.map(nuovo) : [],
+      best: rimappaChiavi(s.best, nuovo),
+      doneAt: rimappaChiavi(s.doneAt, nuovo),
+      misses: rimappaChiavi(s.misses, chiaveErrore),
+      badges: {} };
+  }
+
+  let state;
 
   function load() {
     try {
       const raw = localStorage.getItem(KEY);
       if (!raw) return defaultState();
-      const s = JSON.parse(raw);
+      const s = migraSalvataggio(JSON.parse(raw));
       const obj = v => (v && typeof v === 'object' && !Array.isArray(v)) ? v : {};
       // i salvataggi piu' vecchi non hanno questi campi: vanno ricostruiti, non assunti
       const flash = obj(s.flash), frontier = obj(s.frontier), boss = obj(s.boss), daily = obj(s.daily), dailyStats = obj(s.dailyStats), dailyHistory = obj(s.dailyHistory), competitive = obj(s.competitive);
@@ -132,6 +182,8 @@
         visti: Array.isArray(s.visti) ? s.visti.map(String) : [] };
     } catch (e) { return defaultState(); }
   }
+  state = load();
+
   function save() {
     ensureCompetitive();
     state.updatedAt = Date.now();
@@ -483,7 +535,7 @@
      La fascia resta in cima e dice desk e sezione della parte di percorso
      che si sta guardando, cambiando colore a ogni sezione. */
 
-  const SEZIONI = ['Merchant Foundations', 'Desk Academy I', 'Desk Academy II',
+  const SEZIONI = ['Autumn Semester', 'Spring Semester', 'Desk Academy I', 'Desk Academy II',
                    'Commodity Desks', 'Trading House Functions', 'Assets & Infrastructure'];
 
   function fasediUnita(id) {
@@ -514,7 +566,7 @@
     b.hidden = false;
     b.dataset.section = String(nSez);
     b.dataset.unit = u.id;
-    $('#unitBannerKicker').textContent = `Section ${nSez} · Desk ${ui + 1} of ${UNITS.length}`;
+    $('#unitBannerKicker').textContent = `Section ${nSez} · Course ${ui + 1} of ${UNITS.length}`;
     $('#unitBannerTitle').textContent = u.title;
   }
 
@@ -623,13 +675,18 @@
       const badge = state.badges[u.id];
       const ready = unitDone(u);
       const meta = GAME.unitMeta[u.id] || {};
-      const phase = meta.phase || meta.chapter || 'Merchant Foundations';
+      const phase = meta.phase || meta.chapter || SEZIONI[0];
       const prevMeta = ui > 0 ? (GAME.unitMeta[UNITS[ui-1].id] || {}) : {};
-      const prevPhase = prevMeta.phase || prevMeta.chapter || 'Merchant Foundations';
+      const prevPhase = prevMeta.phase || prevMeta.chapter || SEZIONI[0];
       const phaseHead = ui === 0 || phase !== prevPhase ? `<div class="phase-divider"><span>${esc(phase)}</span><i></i></div>` : '';
-      return `${phaseHead}<section class="unit" id="unit-${esc(u.id)}">
+      // lo sfondo tematico del corso: decorativo, quindi fuori dal flusso
+      // di lettura e senza testo. Se la scena manca, la sezione resta
+      // semplicemente col fondo di default.
+      const scena = SCENES[u.scene] || '';
+      return `${phaseHead}<section class="unit" id="unit-${esc(u.id)}"${u.scene ? ` data-scene="${esc(u.scene)}"` : ''}>
         <div class="unit-head">
-          <span class="n">Desk ${ui + 1} · ${esc(meta.division || 'Foundations')}</span>
+          ${scena ? `<div class="unit-scene" aria-hidden="true">${scena}</div>` : ''}
+          <span class="n">Course ${ui + 1} · ${esc(meta.division || 'Foundations')}</span>
           ${badge ? `<span class="unit-badge" title="Checkpoint passed">★ ${badge}%</span>` : ''}
           <h2>${esc(u.title)}</h2>
           <p>${esc(u.subtitle)}</p>
@@ -1487,7 +1544,7 @@
     const foundations = UNITS.filter(u => String(u.id).startsWith('u'));
     const advanced = UNITS.filter(u => !String(u.id).startsWith('u'));
     const groups = [];
-    if (foundations.length) groups.push({ id:'foundations', title:'Merchant Foundations', subtitle:'Core mechanics every desk must know.', icon:'MF', units:foundations });
+    if (foundations.length) groups.push({ id:'foundations', title:'MSc Core Courses', subtitle:`The ${foundations.length} compulsory courses of the Geneva Commodity Trading master.`, icon:'MSc', units:foundations });
     advanced.forEach(u => {
       const meta = GAME.unitMeta[u.id] || {};
       groups.push({ id:u.id, title:u.title, subtitle:u.subtitle, icon:meta.icon || '◆', units:[u], phase:meta.phase || meta.chapter || 'Desk Academy' });
@@ -1613,7 +1670,7 @@
     const frontierBtn = $('#frontierStart'); if (frontierBtn) { frontierBtn.disabled = !frontierWorlds; frontierBtn.textContent = frontierWorlds ? 'Start desk run' : 'Complete Foundations'; }
     const frontierCopy = $('#frontierCopy'); if (frontierCopy) frontierCopy.textContent = frontierWorlds
       ? `10 fresh questions across ${frontierWorlds} specialist desk${frontierWorlds === 1 ? '' : 's'}. Every run is regenerated.`
-      : 'Complete all 31 Merchant Foundations levels to unlock the endless specialist rotation.';
+      : 'Complete 31 course levels to unlock the endless specialist rotation.';
     renderDailyHub();
     renderBossHub();
   }
@@ -2066,8 +2123,8 @@
       hint.hidden = false;
       hint.textContent = u
         ? `“${lez.title}” is in ${u.title}`
-          + (quante > 0 ? `, ${quante} desk${quante === 1 ? '' : 's'} further along the path.` : ', further along the path.')
-          + ' It opens once you reach that desk.'
+          + (quante > 0 ? `, ${quante} course${quante === 1 ? '' : 's'} further along the path.` : ', further along the path.')
+          + ' It opens once you reach that course.'
         : 'That lesson is not available yet.';
       try { hint.scrollIntoView({ block: 'center', behavior: motionOK() ? 'smooth' : 'auto' }); } catch (e) {}
     }
@@ -2079,7 +2136,7 @@
     rivela, puoRivelare, renderRivela, livesNow, spendiVita, forseGuadagnaVita,
     maturaVite, attesaVita, testoAttesa, renderStatLives, avviaOrologioVite, fermaOrologioVite,
     MAX_LIVES, STREAK_PER_LIFE, CHECK_MIN_LIVES, LIFE_REGEN_MS,
-    replaceState, defaultState, STORAGE_KEY: KEY, SOGLIE, renderStreak, isUnlocked,
+    replaceState, defaultState, migraSalvataggio, CURRICULUM_REV, STORAGE_KEY: KEY, SOGLIE, renderStreak, isUnlocked,
     unitaInFascia, disegnaFascia, aggiornaFascia, fasediUnita, SEZIONI,
     chiediUscita, chiudiUscita, abbandona, isApertura, SANDBOX,
     concettoNuovo, vistoConcetto, segnaVisto, citato, formeDi, MAX_PRESENTAZIONI,

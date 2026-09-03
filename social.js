@@ -268,7 +268,7 @@
     const worlds=unlockedWorlds(), p=friendProfiles.get(opponentId);
     const d=$('#socialDialog'); if(!d)return;
     if(!worlds.length) {
-      d.innerHTML='<section class="social-modal"><button class="social-x" type="button">×</button><span class="eyebrow">Desk duel</span><h2>Finish Merchant Foundations first</h2><p>Head-to-head desk challenges unlock after level 31 so both the professional context and the exercises make sense.</p></section>';
+      d.innerHTML='<section class="social-modal"><button class="social-x" type="button">×</button><span class="eyebrow">Desk duel</span><h2>Finish the core courses first</h2><p>Head-to-head desk challenges unlock after level 31 so both the professional context and the exercises make sense.</p></section>';
       d.hidden=false; $('.social-x',d)?.addEventListener('click',closeDialog); return;
     }
     d.innerHTML=`<section class="social-modal"><button class="social-x" type="button">×</button><span class="eyebrow">Challenge ${esc(p?.alias||'Trader')}</span><h2>Choose the desk</h2><p>Both players receive the exact same 10 deterministic questions. No career XP is awarded.</p><label>Desk<select id="duelDesk">${worlds.map(w=>`<option value="${esc(w.id)}">${esc(w.title)}</option>`).join('')}</select></label><button id="sendChallenge" class="btn primary wide" type="button">Send challenge</button><small id="sendChallengeStatus"></small></section>`;
