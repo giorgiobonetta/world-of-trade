@@ -8,7 +8,7 @@
 */
 window.CURRICULUM = [
 
-  /* ── Autumn Semester ────────────────────────────────────── */
+  /* ── Core Trading Path · Part I ─────────────────────────── */
   {
     id: "u1",
     title: "International Economics and Trade",
@@ -2774,7 +2774,7 @@ window.CURRICULUM = [
     ]
   },
 
-  /* ── Spring Semester ────────────────────────────────────── */
+  /* ── Core Trading Path · Part II ────────────────────────── */
   {
     id: "u8",
     title: "Commodity Price Mechanisms",

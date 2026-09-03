@@ -49,26 +49,25 @@
     softs:     { name:'Soft Commodities', short:'Softs', icon:'✿', description:'Trade crops against a balance sheet that the weather rewrites every week.' },
   };
 
-  /* I sedici corsi obbligatori del MSc in Commodity Trading di Ginevra:
-     sette in autunno, nove in primavera. `division` è l'etichetta breve
-     mostrata sulla testata della sezione, `chapter` il semestre. */
+  /* Core trading path. These units are presented as an in-game career journey,
+     not as university semesters. */
   const foundationUnitMeta = {
-    u1: { division:'Trade Economics', skill:'macro', chapter:'Autumn Semester', icon:'IET' },
-    u2: { division:'Quantitative Methods', skill:'risk', chapter:'Autumn Semester', icon:'QM' },
-    u3: { division:'Financial Analysis', skill:'structure', chapter:'Autumn Semester', icon:'FSA' },
-    u4: { division:'Legal & Regulatory', skill:'legal', chapter:'Autumn Semester', icon:'LAW' },
-    u5: { division:'Shipping', skill:'freight', chapter:'Autumn Semester', icon:'SHP' },
-    u6: { division:'Sustainability & Ethics', skill:'carbon', chapter:'Autumn Semester', icon:'ESG' },
-    u7: { division:'Trading Technology', skill:'tech', chapter:'Autumn Semester', icon:'IT' },
-    u8: { division:'Price Mechanisms', skill:'pricing', chapter:'Spring Semester', icon:'CPM' },
-    u9: { division:'Derivatives', skill:'hedging', chapter:'Spring Semester', icon:'HDG' },
-    u10:{ division:'Options', skill:'options', chapter:'Spring Semester', icon:'OPT' },
-    u11:{ division:'Oil & Gas', skill:'energy', chapter:'Spring Semester', icon:'E-I' },
-    u12:{ division:'Power & Renewables', skill:'energy', chapter:'Spring Semester', icon:'E-II' },
-    u13:{ division:'Metals & Minerals', skill:'metals', chapter:'Spring Semester', icon:'MET' },
-    u14:{ division:'Agriculture', skill:'softs', chapter:'Spring Semester', icon:'AGR' },
-    u15:{ division:'Trade Finance', skill:'finance', chapter:'Spring Semester', icon:'TFB' },
-    u16:{ division:'Structured Finance', skill:'structured', chapter:'Spring Semester', icon:'FIN' },
+    u1: { division:'Trade Economics', skill:'macro', chapter:'Core Trading Path', icon:'IET' },
+    u2: { division:'Quantitative Methods', skill:'risk', chapter:'Core Trading Path', icon:'QM' },
+    u3: { division:'Financial Analysis', skill:'structure', chapter:'Core Trading Path', icon:'FSA' },
+    u4: { division:'Legal & Regulatory', skill:'legal', chapter:'Core Trading Path', icon:'LAW' },
+    u5: { division:'Shipping', skill:'freight', chapter:'Core Trading Path', icon:'SHP' },
+    u6: { division:'Sustainability & Ethics', skill:'carbon', chapter:'Core Trading Path', icon:'ESG' },
+    u7: { division:'Trading Technology', skill:'tech', chapter:'Core Trading Path', icon:'IT' },
+    u8: { division:'Price Mechanisms', skill:'pricing', chapter:'Core Trading Path', icon:'CPM' },
+    u9: { division:'Derivatives', skill:'hedging', chapter:'Core Trading Path', icon:'HDG' },
+    u10:{ division:'Options', skill:'options', chapter:'Core Trading Path', icon:'OPT' },
+    u11:{ division:'Oil & Gas', skill:'energy', chapter:'Core Trading Path', icon:'E-I' },
+    u12:{ division:'Power & Renewables', skill:'energy', chapter:'Core Trading Path', icon:'E-II' },
+    u13:{ division:'Metals & Minerals', skill:'metals', chapter:'Core Trading Path', icon:'MET' },
+    u14:{ division:'Agriculture', skill:'softs', chapter:'Core Trading Path', icon:'AGR' },
+    u15:{ division:'Trade Finance', skill:'finance', chapter:'Core Trading Path', icon:'TFB' },
+    u16:{ division:'Structured Finance', skill:'structured', chapter:'Core Trading Path', icon:'FIN' },
   };
 
   const unitMeta = { ...foundationUnitMeta, ...(window.WOT_CONTENT?.unitMeta || {}) };

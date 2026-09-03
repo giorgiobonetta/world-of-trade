@@ -65,10 +65,18 @@
     return challenges.filter(c=>c.opponent_id===me && !scoreFor(c.id,me)).length;
   }
   function renderNavBadge() {
-    const nav=document.querySelector('.nav-item[data-screen="leagueScreen"]'); if(!nav)return;
-    let b=nav.querySelector('.social-nav-badge'); const n=pendingIncomingCount();
-    if(!n){b?.remove();return;}
-    if(!b){b=document.createElement('span');b.className='social-nav-badge';nav.appendChild(b);} b.textContent=n>9?'9+':String(n);
+    const n=pendingIncomingCount();
+    document.querySelectorAll('.tab-badge[data-tab-badge="leagueScreen"]').forEach(b=>{
+      b.hidden=!n; b.textContent=n>99?'99+':String(n||'');
+      b.setAttribute('aria-label', n===1?'1 notification':`${n} notifications`);
+    });
+    // Keep compatibility with any desktop/social badge already present.
+    const nav=document.querySelector('#gameNav .nav-item[data-screen="leagueScreen"]');
+    if(nav){
+      let b=nav.querySelector('.social-nav-badge');
+      if(!n){b?.remove();}
+      else{if(!b){b=document.createElement('span');b.className='social-nav-badge';nav.appendChild(b);} b.textContent=n>9?'9+':String(n);}
+    }
   }
 
   async function ensureProfile() {
@@ -377,5 +385,5 @@
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 
-  window.WOT_SOCIAL={get profile(){return profile;},get friends(){return friends;},referralUrl,renderPanel,refresh:refreshIfLeague};
+  window.WOT_SOCIAL={get profile(){return profile;},get friends(){return friends;},referralUrl,renderPanel,refresh:refreshIfLeague,pendingIncomingCount};
 })();

@@ -2027,3 +2027,76 @@ body.in-pausa .node.next .medal::after{
   .teach-say{ font-size:15.5px }
 }
 @media (prefers-reduced-motion:reduce){ .teach-card{ animation:none } }
+
+/* Installed-app preview */
+@media (display-mode: standalone) {
+  html, body { min-height: 100%; overscroll-behavior: none; }
+  body { -webkit-tap-highlight-color: transparent; }
+  .install-host { display:none !important; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   MOBILE TAB BAR — CLEAN ICON STATE + NOTIFICATIONS
+   Selected state is yellow only: no square/pill background or outline.
+   ══════════════════════════════════════════════════════════════════════ */
+@media (max-width:820px) and (orientation:portrait){
+  .tab-bar .tab-item,
+  .tab-bar .tab-item.active{
+    background:transparent!important;
+    border:0!important;
+    box-shadow:none!important;
+    outline:0;
+  }
+  .tab-bar .tab-item.active{ color:var(--gold-hi)!important; }
+  .tab-bar .tab-item.active::before,
+  .tab-bar .tab-item.active::after{ display:none!important; content:none!important; }
+  .tab-bar .tab-item:not(.active){ color:#8da5c8!important; }
+  .tab-bar .tab-item:focus-visible{
+    outline:2px solid rgba(255,212,92,.72)!important;
+    outline-offset:-6px!important;
+    border-radius:50%!important;
+  }
+  .tab-badge{
+    position:absolute;
+    top:2px;
+    left:calc(50% + 7px);
+    z-index:4;
+    min-width:18px;
+    height:18px;
+    padding:0 5px;
+    display:grid;
+    place-items:center;
+    border-radius:999px;
+    background:#e94b61;
+    color:#fff;
+    border:2px solid #071633;
+    box-shadow:0 2px 7px rgba(0,0,0,.35);
+    font-size:9px;
+    line-height:1;
+    font-weight:900;
+    font-variant-numeric:tabular-nums;
+  }
+  .tab-badge[hidden]{display:none!important}
+
+  /* Hélène must live above the tab bar, never on top of Profile. */
+  .helene-call{
+    right:max(12px,env(safe-area-inset-right))!important;
+    bottom:calc(78px + env(safe-area-inset-bottom))!important;
+  }
+  .helene-coach{
+    bottom:calc(132px + env(safe-area-inset-bottom))!important;
+  }
+  .social-toast{
+    bottom:calc(82px + env(safe-area-inset-bottom))!important;
+  }
+
+  /* Adaptive Training stays anchored to a full portrait viewport. */
+  #practiceScreen.active{
+    min-height:calc(100dvh - 70px - env(safe-area-inset-bottom));
+    overflow-anchor:none;
+  }
+  #practiceScreen .tab-wrap{min-height:calc(100dvh - 160px)}
+
+  /* Career Path is levels-only: no decorative top gap left behind. */
+  #pathScreen .path-levels-only{padding-top:6px!important}
+}

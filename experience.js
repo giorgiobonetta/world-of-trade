@@ -211,24 +211,27 @@
 
   function onScreen(id) {
     if (!GUIDE[id]) return;
+    // Never carry an open coach overlay between tabs: on mobile that can lock
+    // body scrolling and visibly shift the Adaptive Training screen.
+    closeCoach();
     currentScreen=id;
     document.body.dataset.section=id.replace('Screen','').toLowerCase();
-    setTimeout(()=>showCoach(id,false),260);
-    if(id==='pathScreen')renderDailyPulse();
+    // Career Path is levels-only and Adaptive Training must remain viewport-stable.
+    // Hélène is still available manually through the floating H button.
+    if(id!=='practiceScreen' && id!=='pathScreen') setTimeout(()=>showCoach(id,false),260);
     if(id==='leagueScreen')renderInvite();
   }
 
   function readyAfterAuth() {
     if(document.body.classList.contains('auth-locked'))return;
-    renderDailyPulse(); renderInvite(); decorateSections();
+    renderInvite(); decorateSections();
     const active=$('.screen.active')?.id||'pathScreen'; onScreen(active);
-    setTimeout(()=>showBriefing(false),650);
   }
 
   function init(){
     ensureShell(); captureReferral(); decorateSections(); renderInvite();
     window.addEventListener('wot:screen',e=>onScreen(e.detail?.id));
-    window.addEventListener('wot:saved',()=>{renderDailyPulse();if(!$('#dailyBriefing')?.hidden){};});
+    window.addEventListener('wot:saved',()=>{});
     window.addEventListener('wot:auth',e=>{if(e.detail?.signedIn)setTimeout(readyAfterAuth,250);else{closeCoach();closeBriefing();}});
     // Existing sessions may have been loaded before this module executes.
     let tries=0;const t=setInterval(()=>{tries++;if(!document.body.classList.contains('auth-locked')){clearInterval(t);readyAfterAuth();}else if(tries>40)clearInterval(t);},150);

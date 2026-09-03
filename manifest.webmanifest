@@ -1,21 +1,23 @@
 {
+  "id": "/",
   "name": "World of Trade — Learn physical commodity trading",
   "short_name": "World of Trade",
   "description": "Learn physical commodity trading step by step: incoterms, pricing, hedging, trade finance, execution, freight and desk risk.",
-  "start_url": "learn.html",
-  "scope": "./",
+  "start_url": "/learn.html?source=installed-app",
+  "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "fullscreen"],
   "orientation": "portrait",
   "background_color": "#071232",
   "theme_color": "#071232",
   "lang": "en",
-  "categories": ["education", "finance"],
+  "categories": ["education", "finance", "games"],
   "icons": [
-    { "src": "world-of-trade-premium-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "world-of-trade-premium-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    { "src": "/world-of-trade-premium-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/world-of-trade-premium-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
   "shortcuts": [
-    { "name": "Practice", "short_name": "Practice", "url": "learn.html?go=practice" }
+    { "name": "Practice", "short_name": "Practice", "url": "/learn.html?go=practice" }
   ]
 }

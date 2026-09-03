@@ -671,3 +671,12 @@ a funzionare normalmente.
 - The four reward counters (streak, level, lifebuoys, XP) retain readable sizing and are never compressed to make room for navigation.
 - Desktop navigation is unchanged.
 - PWA cache bumped to v35.
+
+## Mobile UI cleanup — 2026-09-03
+- Bottom tab selection is now yellow-icon-only; removed active square/pill background.
+- Added per-tab notification badges in the top-right corner of each bottom icon.
+- Fixed Adaptive Training viewport jump by preventing its automatic Hélène overlay and stabilising the portrait viewport.
+- Raised Hélène above the bottom tab bar so Profile is never covered.
+- Career Path is now levels-only: removed page title/subtitle, Hélène greeting, Opening Bell and percentage progress UI.
+- Removed Autumn/Spring semester framing from the game; foundations now belong to a neutral Core Trading Path.
+- Trading Floor header no longer says “Play” and its explanatory lede was removed.

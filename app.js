@@ -511,6 +511,39 @@
     syncLeagueOnline(token);
   }
 
+  function setTabBadge(screenId, count) {
+    const badge = document.querySelector(`.tab-badge[data-tab-badge="${screenId}"]`);
+    if (!badge) return;
+    const n = Math.max(0, Number(count) || 0);
+    badge.hidden = n <= 0;
+    badge.textContent = n > 99 ? '99+' : String(n);
+    badge.setAttribute('aria-label', n === 1 ? '1 notification' : `${n} notifications`);
+  }
+
+  function updateTabBadges(activeScreen = document.querySelector('.screen.active')?.id || 'pathScreen') {
+    // Path: one newly available next step, but no badge while the user is already looking at Path.
+    setTabBadge('pathScreen', activeScreen === 'pathScreen' ? 0 : (nextLessonId() ? 1 : 0));
+
+    // Trading Floor: today's fresh deal + rewards currently ready to claim.
+    ensureDaily();
+    const quests = dailyQuests();
+    const claimable = quests.filter(q => q.done && !state.daily.claimed?.[q.id]).length;
+    const freshDeal = state.daily.dealDone ? 0 : 1;
+    const bonusReady = quests.length && quests.every(q => state.daily.claimed?.[q.id]) && !state.daily.bonusClaimed ? 1 : 0;
+    setTabBadge('playScreen', activeScreen === 'playScreen' ? 0 : freshDeal + claimable + bonusReady);
+
+    // Adaptive training: number of weak/old items waiting in the queue.
+    setTabBadge('practiceScreen', activeScreen === 'practiceScreen' ? 0 : dueCount());
+
+    // League is updated by social.js because incoming friend challenges are loaded asynchronously.
+
+    // Profile: newly unlocked achievements since the last Profile visit.
+    const unlockedN = unlockedAchievements().length;
+    const seenN = Number(localStorage.getItem('wot_profile_achievements_seen') || 0);
+    setTabBadge('profileScreen', activeScreen === 'profileScreen' ? 0 : Math.max(0, unlockedN - seenN));
+    if (activeScreen === 'profileScreen') localStorage.setItem('wot_profile_achievements_seen', String(unlockedN));
+  }
+
   /* ── navigazione fra schermate ───────────────────────────────────── */
   function show(id) {
     $$('.screen').forEach(s => s.classList.toggle('active', s.id === id));
@@ -525,8 +558,10 @@
       else b.removeAttribute('aria-current');
     });
     if (!immersive) renderMetaScreens();
+    updateTabBadges(id);
     try { window.dispatchEvent(new CustomEvent('wot:screen', { detail: { id } })); } catch (e) {}
-    window.scrollTo(0, 0);
+    // Keep tab switches stable on mobile. The active screen starts at the top, but avoid smooth/anchored jumps.
+    requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0, behavior: 'auto' }));
   }
 
 
@@ -535,7 +570,7 @@
      La fascia resta in cima e dice desk e sezione della parte di percorso
      che si sta guardando, cambiando colore a ogni sezione. */
 
-  const SEZIONI = ['Autumn Semester', 'Spring Semester', 'Desk Academy I', 'Desk Academy II',
+  const SEZIONI = ['Core Trading Path', 'Desk Academy I', 'Desk Academy II',
                    'Commodity Desks', 'Trading House Functions', 'Assets & Infrastructure'];
 
   function fasediUnita(id) {
@@ -566,7 +601,7 @@
     b.hidden = false;
     b.dataset.section = String(nSez);
     b.dataset.unit = u.id;
-    $('#unitBannerKicker').textContent = `Section ${nSez} · Course ${ui + 1} of ${UNITS.length}`;
+    $('#unitBannerKicker').textContent = `Desk ${ui + 1} of ${UNITS.length}`;
     $('#unitBannerTitle').textContent = u.title;
   }
 
@@ -678,7 +713,7 @@
       const phase = meta.phase || meta.chapter || SEZIONI[0];
       const prevMeta = ui > 0 ? (GAME.unitMeta[UNITS[ui-1].id] || {}) : {};
       const prevPhase = prevMeta.phase || prevMeta.chapter || SEZIONI[0];
-      const phaseHead = ui === 0 || phase !== prevPhase ? `<div class="phase-divider"><span>${esc(phase)}</span><i></i></div>` : '';
+      const phaseHead = ''; // Career Path shows desks and levels only; no academic/phase dividers.
       // lo sfondo tematico del corso: decorativo, quindi fuori dal flusso
       // di lettura e senza testo. Se la scena manca, la sezione resta
       // semplicemente col fondo di default.
@@ -686,7 +721,7 @@
       return `${phaseHead}<section class="unit" id="unit-${esc(u.id)}"${u.scene ? ` data-scene="${esc(u.scene)}"` : ''}>
         <div class="unit-head">
           ${scena ? `<div class="unit-scene" aria-hidden="true">${scena}</div>` : ''}
-          <span class="n">Course ${ui + 1} · ${esc(meta.division || 'Foundations')}</span>
+          <span class="n">Desk ${ui + 1} · ${esc(meta.division || 'Foundations')}</span>
           ${badge ? `<span class="unit-badge" title="Checkpoint passed">★ ${badge}%</span>` : ''}
           <h2>${esc(u.title)}</h2>
           <p>${esc(u.subtitle)}</p>
@@ -1708,7 +1743,7 @@
     <section class="flash-record"><span class="eyebrow">Daily desk record</span><div class="profile-numbers"><div><b>${dailyDealCount()}</b><span>Daily deals</span></div><div><b>${perfectDayCount()}</b><span>Perfect days</span></div><div><b>${dailyQuests().filter(q => state.daily.claimed[q.id]).length}/3</b><span>Today</span></div></div></section>`;
   }
 
-  function renderMetaScreens() { renderTopStats(); renderPlayHub(); renderPracticeHub(); renderProfile(); if ($('#leagueScreen')?.classList.contains('active')) renderLeagueHub(); }
+  function renderMetaScreens() { renderTopStats(); renderPlayHub(); renderPracticeHub(); renderProfile(); if ($('#leagueScreen')?.classList.contains('active')) renderLeagueHub(); updateTabBadges(); }
 
   /* ── Boss Deals ──────────────────────────────────────────────────── */
   let boss = null;
@@ -2131,7 +2166,7 @@
   })();
 
   window.__LEARN__ = { get state(){return state;}, get run(){return run;}, startLesson, onCheck, renderPath,
-    startReview, startCheckpoint, reviewItems, checkpointItems, dueCount, exKey, unitDone,
+    startReview, startCheckpoint, reviewItems, checkpointItems, dueCount, exKey, unitDone, updateTabBadges,
     allLessons, UNITS, CHECK_PASS, REVIEW_SIZE, CHECK_SIZE, HEARTS, CHECK_HEARTS,
     rivela, puoRivelare, renderRivela, livesNow, spendiVita, forseGuadagnaVita,
     maturaVite, attesaVita, testoAttesa, renderStatLives, avviaOrologioVite, fermaOrologioVite,

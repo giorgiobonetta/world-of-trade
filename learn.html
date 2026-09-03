@@ -306,41 +306,26 @@
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H19v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M8 8h7M8 11.5h7"/></svg>
     </button>
   </div>
-  <div class="wrap">
-    <div class="intro">
-      <span class="eyebrow">Career Path</span>
-      <h1>Your next levels</h1>
-      <p>Work down the path one level at a time. Your rank and the full trading house map are in Profile.</p>
-    </div>
-    <div id="pathGreet"></div>
+  <div class="wrap path-levels-only">
     <p id="offlineFlag" class="offline-flag" role="status" hidden></p>
-    <div id="reviewHost"></div>
-    <div id="pathProgress" class="course-bar" hidden>
-      <div class="course-bar-top"><span id="courseLabel"></span><span id="coursePct"></span></div>
-      <div class="course-track" id="courseTrack" role="progressbar" aria-label="Course progress"
-           aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="courseFill"></i></div>
-    </div>
     <div id="pathBody"></div>
-      <div class="share-host"></div>
-    <div id="cloudHost" class="cloud-host"></div>
-    <div id="installHost" class="install-host"></div>
-  <p id="lockedHint" class="locked-hint" role="status" hidden></p>
-  <p class="gl-row"><a class="gl-back" href="glossary.html">Glossary — every term, explained</a></p>
-  <footer class="app-legal">
-    <p>Educational material only. Not trading, investment, legal or tax advice.
-       Figures and cases are illustrative and simplified for teaching — they are not
-       market data and do not model any real market.
-       <a href="privacy.html">Privacy and terms</a></p>
-  </footer>
-  <p class="reset-row"><button id="introReplay" class="link-btn">How this works</button> · <button id="resetButton" class="link-btn">Reset all progress</button></p>
+    <!-- Utility hosts remain in the DOM for sync/PWA logic but are intentionally not part of Career Path UI. -->
+    <div id="pathGreet" hidden></div>
+    <div id="reviewHost" hidden></div>
+    <div class="share-host" hidden></div>
+    <div id="cloudHost" class="cloud-host" hidden></div>
+    <div id="installHost" class="install-host" hidden></div>
+    <p id="lockedHint" class="locked-hint" role="status" hidden></p>
+    <p class="gl-row" hidden><a class="gl-back" href="glossary.html">Glossary — every term, explained</a></p>
+    <footer class="app-legal" hidden><a href="privacy.html">Privacy and terms</a></footer>
+    <p class="reset-row" hidden><button id="introReplay" class="link-btn">How this works</button> · <button id="resetButton" class="link-btn">Reset all progress</button></p>
   </div>
 </main>
 
 <!-- PLAY -->
 <main id="playScreen" class="screen">
-  <header class="section-top"><div><span class="eyebrow">Trading Floor</span><h1>Play</h1></div></header>
+  <header class="section-top"><div><h1>Trading Floor</h1></div></header>
   <div class="wrap tab-wrap">
-    <p class="tab-lede">Four ways to train outside the career path. Flash is the quick one, Boss Deals the deep one; the Deal of the Day is the same for everyone, and the Trading Floor Run mixes desks you have already opened.</p>
     <section class="mode-hero">
       <span class="mode-kicker">⚡ Infinite practice</span>
       <h2>Flash Trading</h2>
@@ -543,19 +528,19 @@
 <!-- NAVIGAZIONE IN FONDO — su telefono sostituisce il menu a panino -->
 <nav id="tabBar" class="tab-bar" aria-label="Sections">
   <button class="nav-item tab-item active" data-screen="pathScreen" aria-label="Path">
-    <span class="tab-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 20c0-5 3.5-6.5 7-7.5S18 9 18 4"/><circle cx="4" cy="20" r="2.4"/><circle cx="18" cy="4" r="2.4"/></svg></span>
+    <span class="tab-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 20c0-5 3.5-6.5 7-7.5S18 9 18 4"/><circle cx="4" cy="20" r="2.4"/><circle cx="18" cy="4" r="2.4"/></svg></span><span class="tab-badge" data-tab-badge="pathScreen" hidden></span>
     <b class="sr-only">Path</b></button>
   <button class="nav-item tab-item" data-screen="playScreen" aria-label="Play">
-    <span class="tab-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M13.5 2 5 13.2h5.2L9.6 22 19 10.4h-5.4z"/></svg></span>
+    <span class="tab-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M13.5 2 5 13.2h5.2L9.6 22 19 10.4h-5.4z"/></svg></span><span class="tab-badge" data-tab-badge="playScreen" hidden></span>
     <b class="sr-only">Play</b></button>
   <button class="nav-item tab-item" data-screen="practiceScreen" aria-label="Practice">
-    <span class="tab-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20.5 12a8.5 8.5 0 1 1-2.6-6.1"/><path d="M20.5 4v5h-5"/></svg></span>
+    <span class="tab-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20.5 12a8.5 8.5 0 1 1-2.6-6.1"/><path d="M20.5 4v5h-5"/></svg></span><span class="tab-badge" data-tab-badge="practiceScreen" hidden></span>
     <b class="sr-only">Practice</b></button>
   <button class="nav-item tab-item" data-screen="leagueScreen" aria-label="League">
-    <span class="tab-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 3h10v5a5 5 0 0 1-10 0z"/><path d="M7 4.5H4.2A3.3 3.3 0 0 0 7.5 9M17 4.5h2.8A3.3 3.3 0 0 1 16.5 9"/><path d="M12 13v4M8.5 20.5h7"/></svg></span>
+    <span class="tab-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 3h10v5a5 5 0 0 1-10 0z"/><path d="M7 4.5H4.2A3.3 3.3 0 0 0 7.5 9M17 4.5h2.8A3.3 3.3 0 0 1 16.5 9"/><path d="M12 13v4M8.5 20.5h7"/></svg></span><span class="tab-badge" data-tab-badge="leagueScreen" hidden></span>
     <b class="sr-only">League</b></button>
   <button class="nav-item tab-item" data-screen="profileScreen" aria-label="Profile">
-    <span class="tab-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M4.8 20.2c.9-4.3 3.5-6.4 7.2-6.4s6.3 2.1 7.2 6.4"/></svg></span>
+    <span class="tab-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M4.8 20.2c.9-4.3 3.5-6.4 7.2-6.4s6.3 2.1 7.2 6.4"/></svg></span><span class="tab-badge" data-tab-badge="profileScreen" hidden></span>
     <b class="sr-only">Profile</b></button>
 </nav>
 
