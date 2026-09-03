@@ -1,3 +1,14 @@
+# v0.4.6 — Game Experience Pass
+
+- Immediate visual + optional haptic feedback on answers.
+- Subtle question-to-question transition without moving the page.
+- End-of-level screen now shows career level progress and XP to the next level.
+- Perfect runs and newly unlocked desks get an explicit reward card.
+- Career completion CTA goes directly to the next level / next desk instead of forcing a return to Path.
+- Practice completion correctly returns to Practice; Trading Floor runs return to Trading Floor.
+- Added lightweight streak/lifebuoy floating feedback; no new currency or farming loop.
+- PWA cache bumped to v45.
+
 # World of Trade — current changes
 
 ## v0.4.5 — Fixed HUD, stable tabs, standalone curriculum

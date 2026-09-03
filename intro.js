@@ -13,7 +13,7 @@
     {
       titolo: 'Physical commodity trading, one level at a time',
       copia: 'Not theory for its own sake: the mechanics a desk actually uses — buying a cargo, moving it, financing it, and keeping the margin once costs and risk have taken their share.',
-      punti: ['32 units, 173 levels', 'Every answer comes with the reasoning behind it', 'Start anywhere: the first level of each unit is open'],
+      punti: ['34 desks, 219 levels', 'Every answer comes with the reasoning behind it', 'Complete each desk to reveal the next one'],
       faccia: 'teach',
     },
     {

@@ -445,6 +445,12 @@
       <div><span>XP earned</span><strong id="doneXp">0</strong></div>
       <div><span>Accuracy</span><strong id="doneAcc">0%</strong></div>
     </div>
+    <section class="done-career-progress" aria-label="Career level progress">
+      <div><span>Career progress</span><strong id="doneCareerLevel">LV 1</strong></div>
+      <div class="done-level-track"><i id="doneLevelFill"></i></div>
+      <small id="doneLevelNote">50 XP to LV 2</small>
+    </section>
+    <section id="doneUnlock" class="done-unlock" hidden></section>
     <div class="share-host"></div>
     <button id="continueButton" class="btn primary wide">Continue</button>
   </div>
@@ -513,6 +519,7 @@
 <script defer src="experience.js"></script>
 <script defer src="intro.js"></script>
 <script defer src="ui-polish.js"></script>
+<script defer src="game-feel.js"></script>
 
 <!-- NAVIGAZIONE IN FONDO — su telefono sostituisce il menu a panino -->
 <nav id="tabBar" class="tab-bar" aria-label="Sections">

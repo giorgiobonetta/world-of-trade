@@ -2203,3 +2203,73 @@ body.immersive,body.auth-locked{padding-top:0!important}
     scroll-margin-top:var(--app-header-h);
   }
 }
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   v0.4.6 — GAME EXPERIENCE PASS
+   Feedback is immediate, rewards explain what changed, and completing a
+   Career level can move straight into the next one.
+   ═══════════════════════════════════════════════════════════════════ */
+#exerciseArea.question-in{animation:wotQuestionIn .24s cubic-bezier(.2,.8,.2,1)}
+@keyframes wotQuestionIn{from{opacity:.55;transform:translateY(7px)}to{opacity:1;transform:none}}
+
+#lessonScreen::after{
+  content:"";position:fixed;inset:0;z-index:250;pointer-events:none;opacity:0;
+  box-shadow:inset 0 0 0 0 transparent;
+}
+body.answer-pulse-good #lessonScreen::after{animation:wotPulseGood .42s ease}
+body.answer-pulse-bad #lessonScreen::after{animation:wotPulseBad .42s ease}
+@keyframes wotPulseGood{0%,100%{opacity:0;box-shadow:inset 0 0 0 0 rgba(79,224,138,0)}35%{opacity:1;box-shadow:inset 0 0 52px 4px rgba(79,224,138,.18)}}
+@keyframes wotPulseBad{0%,100%{opacity:0;box-shadow:inset 0 0 0 0 rgba(255,123,143,0)}35%{opacity:1;box-shadow:inset 0 0 58px 5px rgba(255,123,143,.18)}}
+
+.game-float{
+  position:fixed;z-index:260;left:50%;top:max(92px,calc(env(safe-area-inset-top) + 76px));
+  transform:translate(-50%,-8px) scale(.94);opacity:0;pointer-events:none;white-space:nowrap;
+  padding:8px 13px;border-radius:999px;font-size:11px;font-weight:900;letter-spacing:.08em;
+  background:rgba(5,18,48,.94);border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 10px 30px rgba(0,0,0,.35);transition:.28s cubic-bezier(.2,.9,.2,1);
+}
+.game-float.show{opacity:1;transform:translate(-50%,0) scale(1)}
+.game-float.good{color:#80efb8;border-color:rgba(79,224,138,.32)}
+.game-float.bad{color:#ffb0bd;border-color:rgba(255,123,143,.32)}
+.game-float.reward{color:#ffe18a;border-color:rgba(255,212,92,.38);box-shadow:0 10px 36px rgba(255,190,40,.12)}
+
+.done-career-progress{
+  width:min(390px,100%);margin:-12px auto 18px;padding:14px 15px;border-radius:17px;text-align:left;
+  background:linear-gradient(180deg,rgba(22,55,111,.72),rgba(8,27,63,.78));
+  border:1px solid rgba(255,212,92,.2);box-shadow:inset 0 1px 0 rgba(255,255,255,.08);
+}
+.done-career-progress>div:first-child{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.done-career-progress span{color:#91a8ca;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.09em}
+.done-career-progress strong{color:var(--gold-hi);font-size:15px}
+.done-level-track{height:8px;margin:9px 0 7px;border-radius:99px;background:rgba(2,10,28,.62);overflow:hidden}
+.done-level-track i{display:block;height:100%;width:0;border-radius:inherit;background:linear-gradient(90deg,#f1b933,#ffe788);box-shadow:0 0 14px rgba(255,212,92,.24);transition:width .7s cubic-bezier(.2,.8,.2,1)}
+.done-career-progress small{display:block;color:#9eb3d0;font-size:10.5px}
+
+.done-unlock{
+  width:min(390px,100%);margin:0 auto 18px;padding:14px 16px;border-radius:17px;
+  border:1px solid rgba(255,212,92,.28);background:linear-gradient(145deg,rgba(93,62,10,.28),rgba(18,42,86,.78));
+  box-shadow:0 12px 32px rgba(0,0,0,.18);animation:wotRewardIn .46s cubic-bezier(.2,.9,.2,1);
+}
+.done-unlock small,.done-unlock strong,.done-unlock span{display:block}
+.done-unlock small{color:#f7c94f;font-size:9px;font-weight:900;letter-spacing:.13em}
+.done-unlock strong{margin-top:3px;color:#fff4c8;font-size:18px;line-height:1.2}
+.done-unlock span{margin-top:4px;color:#a9bdd8;font-size:10.5px}
+.done-unlock.perfect{border-color:rgba(79,224,138,.28);background:linear-gradient(145deg,rgba(17,93,63,.28),rgba(18,42,86,.78))}
+.done-unlock.perfect small{color:#76e9ad}
+@keyframes wotRewardIn{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:none}}
+
+#doneScreen .done-wrap{padding-bottom:max(88px,calc(env(safe-area-inset-bottom) + 72px))}
+#doneScreen #continueButton{width:min(390px,100%);margin-left:auto;margin-right:auto}
+
+@media(max-width:520px){
+  .done-wrap{padding-top:max(46px,calc(env(safe-area-inset-top) + 34px))}
+  .done-stats{margin-bottom:28px}
+  .done-career-progress,.done-unlock{width:100%}
+}
+@media(prefers-reduced-motion:reduce){
+  #exerciseArea.question-in,.done-unlock{animation:none!important}
+  body.answer-pulse-good #lessonScreen::after,body.answer-pulse-bad #lessonScreen::after{animation:none!important}
+  .game-float{transition:none!important}
+  .done-level-track i{transition:none!important}
+}

@@ -1146,6 +1146,7 @@
       <div class="q-prompt">${esc(ex.prompt)}</div><div id="exBody"></div>`;
     ({ choice: renderChoice, numeric: renderNumeric, order: renderOrder,
        pairs: renderPairs, build: renderBuild }[ex.type] || renderChoice)(ex, $('#exBody'));
+    if (motionOK()) { area.classList.remove('question-in'); void area.offsetWidth; area.classList.add('question-in'); }
   }
 
   function renderChoice(ex, host) {
@@ -1344,6 +1345,12 @@
     if (!ok) { const h = $('#hearts'); h.classList.remove('lost'); void h.offsetWidth; h.classList.add('lost'); }
     renderStreak(ok);
     renderProgress();
+    try {
+      window.dispatchEvent(new CustomEvent('wot:answer', { detail: {
+        ok, retry: !!run.current.retry, streak: Number(state.streakNow)||0,
+        lifeEarned: !!vitaGuadagnata, hearts: Number(run.hearts)||0, mode: run.mode
+      }}));
+    } catch (e) {}
     if (run.hearts <= 0 && !run.gratis) setTimeout(() => failRun(), 900);
   }
 
@@ -1473,6 +1480,8 @@
     renderPath();
   }
 
+  let doneNextLessonId = null;
+
   function finishRun() {
     const acc = run.total ? Math.round((run.firstTry / run.total) * 100) : 0;
     const mode = run.mode;
@@ -1520,6 +1529,14 @@
     if (mode === 'lesson' || mode === 'review' || mode === 'frontier') { ensureDaily(); state.daily.trainingRuns = (state.daily.trainingRuns || 0) + 1; }
     touchStreak();
     save();
+
+    const finishedLesson = mode === 'lesson' ? run.lesson : null;
+    const finishedUnit = finishedLesson ? UNITS.find(u => u.id === finishedLesson.unitId) : null;
+    const nextId = nextLessonId();
+    const nextLesson = nextId ? allLessons.find(l => l.id === nextId) : null;
+    const nextUnit = nextLesson ? UNITS.find(u => u.id === nextLesson.unitId) : null;
+    const newDeskUnlocked = !!(finishedUnit && nextUnit && finishedUnit.id !== nextUnit.id && unitDone(finishedUnit));
+
     $('#doneTitle').textContent = title;
     $('#doneGoal').textContent = goal;
     if (crest && window.MASCOT) {
@@ -1528,8 +1545,53 @@
     }
     countUp($('#doneXp'), gained, '+');
     countUp($('#doneAcc'), acc, '', '%');
-    if (mode !== 'checkpoint' || acc >= CHECK_PASS) confetti(acc === 100 ? 60 : 40);
-    doneReturnScreen = mode === 'frontier' ? 'playScreen' : 'pathScreen';
+
+    // Career progress is visible immediately: rewards should answer “what changed?”
+    const levelNow = careerLevel();
+    const levelBase = Math.max(0, (levelNow - 1) * 50);
+    const levelProgress = Math.max(0, Math.min(50, (Number(state.xp)||0) - levelBase));
+    const levelPct = Math.max(0, Math.min(100, Math.round(levelProgress / 50 * 100)));
+    const toNextLevel = levelProgress >= 50 ? 0 : 50 - levelProgress;
+    const lv = $('#doneCareerLevel'), fill = $('#doneLevelFill'), note = $('#doneLevelNote');
+    if (lv) lv.textContent = `LV ${levelNow}`;
+    if (fill) fill.style.width = `${levelPct}%`;
+    if (note) note.textContent = toNextLevel ? `${toNextLevel} XP to LV ${levelNow + 1}` : 'Level ready';
+
+    const unlock = $('#doneUnlock');
+    if (unlock) {
+      if (newDeskUnlocked) {
+        unlock.hidden = false;
+        unlock.className = 'done-unlock new-desk';
+        unlock.innerHTML = `<small>NEW DESK UNLOCKED</small><strong>${esc(nextUnit.title)}</strong><span>Your next assignment is ready.</span>`;
+      } else if (acc === 100 && (mode !== 'checkpoint' || acc >= CHECK_PASS)) {
+        unlock.hidden = false;
+        unlock.className = 'done-unlock perfect';
+        unlock.innerHTML = `<small>PERFECT RUN</small><strong>100% first try</strong><span>No mistakes. Clean book.</span>`;
+      } else {
+        unlock.hidden = true;
+        unlock.innerHTML = '';
+      }
+    }
+
+    doneNextLessonId = null;
+    const cta = $('#continueButton');
+    if (mode === 'lesson' && nextId) {
+      doneNextLessonId = nextId;
+      cta.textContent = newDeskUnlocked ? `Enter ${nextUnit.title}` : 'Next level';
+      doneReturnScreen = 'pathScreen';
+    } else if (mode === 'review') {
+      cta.textContent = 'Back to Practice';
+      doneReturnScreen = 'practiceScreen';
+    } else if (mode === 'frontier') {
+      cta.textContent = 'Back to Trading Floor';
+      doneReturnScreen = 'playScreen';
+    } else {
+      cta.textContent = 'Continue';
+      doneReturnScreen = 'pathScreen';
+    }
+
+    if (mode !== 'checkpoint' || acc >= CHECK_PASS) confetti(acc === 100 || newDeskUnlocked ? 70 : 40);
+    try { window.dispatchEvent(new CustomEvent('wot:runcomplete', { detail: { mode, acc, gained, nextId, newDeskUnlocked, level:levelNow } })); } catch (e) {}
     run = null;
     show('doneScreen');
   }
@@ -2012,7 +2074,13 @@
   $('#bossQuit')?.addEventListener('click', quitBoss);
   $('#bossBrowse')?.addEventListener('click', () => $('#bossShelf')?.scrollIntoView({ behavior: motionOK() ? 'smooth' : 'auto', block:'start' }));
   $$('.nav-item').forEach(b => b.addEventListener('click', () => show(b.dataset.screen)));
-  $('#continueButton').addEventListener('click', () => { show(doneReturnScreen); if (doneReturnScreen === 'pathScreen') renderPath({ vaiAlPunto: true }); });
+  $('#continueButton').addEventListener('click', () => {
+    if (doneNextLessonId) {
+      const id = doneNextLessonId; doneNextLessonId = null; startLesson(id); return;
+    }
+    show(doneReturnScreen);
+    if (doneReturnScreen === 'pathScreen') renderPath({ vaiAlPunto: true });
+  });
   /* Uscire da una lezione a metà costa: gli XP non sono ancora messi in
      banca e i salvagenti spesi non tornano. Chiederlo evita l'uscita per
      sbaglio — la X sta accanto alla barra e si tocca facilmente. */
