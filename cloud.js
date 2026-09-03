@@ -506,7 +506,7 @@
         const remoto = await pull();
         const locale = window.__LEARN__ ? window.__LEARN__.state : null;
         // la riga sul server può essere stata scritta prima che il corso
-        // fosse riorganizzato sui corsi del master: gli id delle lezioni
+        // fosse riorganizzato sui desk del percorso: gli id delle lezioni
         // vanno tradotti prima di fondere, o si fondono carriere diverse
         const remotoMigrato = window.__LEARN__?.migraSalvataggio
           ? window.__LEARN__.migraSalvataggio(remoto) : remoto;

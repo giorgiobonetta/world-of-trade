@@ -106,8 +106,8 @@
     competitive: { week:null, startXp:0, tier:'bronze', alias:'', house:'', seasons:0, history:{}, lastPlacement:null, lastSeason:null },
   });
 
-  /* ── migrazione dei salvataggi al programma del master ────────────
-     Riorganizzando il corso sui sedici corsi obbligatori di Ginevra, ogni
+  /* ── migrazione dei salvataggi dopo la riorganizzazione del percorso ──
+     Riorganizzando le prime sedici unità del percorso, ogni
      lezione ha cambiato posizione e quindi identificativo. Senza questa
      mappa una carriera salvata verrebbe letta con gli id nuovi: alcune
      lezioni scomparirebbero e altre risulterebbero fatte al posto di
@@ -545,7 +545,13 @@
   }
 
   /* ── navigazione fra schermate ───────────────────────────────────── */
+  // Each main destination keeps its own scroll position, like a native tab bar.
+  // This prevents Practice (and the other hubs) from visibly jumping upward on tap.
+  const screenScroll = Object.create(null);
+  const mainScreens = new Set(['pathScreen','playScreen','practiceScreen','leagueScreen','profileScreen']);
   function show(id) {
+    const previous = document.querySelector('.screen.active')?.id;
+    if (previous && mainScreens.has(previous)) screenScroll[previous] = Math.max(0, window.scrollY || 0);
     $$('.screen').forEach(s => s.classList.toggle('active', s.id === id));
     const immersive = ['lessonScreen','doneScreen','flashScreen','bossScreen'].includes(id);
     document.body.classList.toggle('immersive', immersive);
@@ -560,8 +566,11 @@
     if (!immersive) renderMetaScreens();
     updateTabBadges(id);
     try { window.dispatchEvent(new CustomEvent('wot:screen', { detail: { id } })); } catch (e) {}
-    // Keep tab switches stable on mobile. The active screen starts at the top, but avoid smooth/anchored jumps.
-    requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0, behavior: 'auto' }));
+    // Restore the destination's own position. First visit starts at the top.
+    requestAnimationFrame(() => {
+      const y = mainScreens.has(id) ? (screenScroll[id] || 0) : 0;
+      window.scrollTo({ top: y, left: 0, behavior: 'auto' });
+    });
   }
 
 
@@ -1556,7 +1565,7 @@
     const foundations = UNITS.filter(u => String(u.id).startsWith('u'));
     const advanced = UNITS.filter(u => !String(u.id).startsWith('u'));
     const groups = [];
-    if (foundations.length) groups.push({ id:'foundations', title:'MSc Core Courses', subtitle:`The ${foundations.length} compulsory courses of the Geneva Commodity Trading master.`, icon:'MSc', units:foundations });
+    if (foundations.length) groups.push({ id:'foundations', title:'Core Trading Path', subtitle:`${foundations.length} foundation desks covering the mechanics every commodity trader needs.`, icon:'CORE', units:foundations });
     advanced.forEach(u => {
       const meta = GAME.unitMeta[u.id] || {};
       groups.push({ id:u.id, title:u.title, subtitle:u.subtitle, icon:meta.icon || '◆', units:[u], phase:meta.phase || meta.chapter || 'Desk Academy' });

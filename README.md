@@ -1,6 +1,6 @@
 # World of Trade
 
-An interactive course in **physical commodity trading**, built as a short-lesson app in the
+An interactive game for **physical commodity trading**, built around short desk lessons in the
 Duolingo mould: bite-sized levels, immediate feedback, a written explanation behind every
 answer.
 
@@ -26,7 +26,7 @@ Then open `http://localhost:8000/landing.html`. It deploys to Vercel as-is — n
 landing.html           public landing page
 learn.html             the game shell
 index.html             splash used by the native shell (redirects to learn.html)
-curriculum.js          the 16 MSc core courses, hand-written: 111 levels, 546 exercises
+curriculum.js          16 core trading units, hand-written: 111 levels, 546 exercises
 scenes.js              the sixteen SVG scenes used as section backgrounds
 content-engine.js      deterministic generator for the specialist desks
 glossary.js            171 terms, also used in-lesson by the coach
@@ -39,23 +39,30 @@ MOBILE-APP-SETUP.md    building the iOS/Android apps
 
 ## Content
 
-The career path follows the **sixteen compulsory courses of the MSc in Commodity Trading at
-the University of Geneva** — seven in the autumn semester, nine in the spring — and each course
+The career path starts with **sixteen core trading units** covering economics, quantitative methods, financial analysis, law, shipping, sustainability, technology, pricing, derivatives, energy, metals, agriculture and finance. Each unit
 is one section of the path, with its own background scene and colour palette:
 
-| # | Autumn | # | Spring |
-|---|---|---|---|
-| 1 | International Economics and Trade | 8 | Commodity Price Mechanisms |
-| 2 | Quantitative Methods | 9 | Hedging Tools & Techniques |
-| 3 | Financial Statements Analysis | 10 | Options |
-| 4 | Legal Aspects & Regulations | 11 | Energy I (Oil & Gas) |
-| 5 | Shipping | 12 | Energy II (Renewable) |
-| 6 | Sustainability, Business Ethics & Human Rights | 13 | Metals, Ores & Minerals |
-| 7 | Information Technologies and Innovations | 14 | Soft Commodities |
-| | | 15 | Trade Finance Banking Instruments |
-| | | 16 | Types of Financing for Commodity Companies |
+The sixteen foundation units are:
 
-All 111 levels in those courses are written by hand. Beyond them the content engine generates
+1. International Economics and Trade
+2. Quantitative Methods
+3. Financial Statements Analysis
+4. Legal Aspects & Regulations
+5. Shipping
+6. Sustainability, Business Ethics & Human Rights
+7. Information Technologies and Innovations
+8. Commodity Price Mechanisms
+9. Hedging Tools & Techniques
+10. Options
+11. Energy I (Oil & Gas)
+12. Energy II (Renewable)
+13. Metals, Ores & Minerals
+14. Soft Commodities
+15. Trade Finance Banking Instruments
+16. Types of Financing for Commodity Companies
+
+
+All 111 foundation levels are written by hand. Beyond them the content engine generates
 exercises deterministically from a seed, so the same specialist level always produces the same
 questions. Every numeric exercise is checked by the test
 suite against an independent arithmetic oracle, and every exercise carries an explanation

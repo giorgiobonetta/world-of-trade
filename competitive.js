@@ -12,7 +12,7 @@
     { id:'gold', name:'Gold', icon:'I', promote:450, demote:120 },
     { id:'platinum', name:'Platinum', icon:'P', promote:650, demote:180 },
     { id:'diamond', name:'Diamond', icon:'D', promote:900, demote:250 },
-    { id:'master', name:'Master', icon:'M', promote:Infinity, demote:350 },
+    { id:'master', name:'Elite', icon:'E', promote:Infinity, demote:350 },
   ];
 
   const houses = [
@@ -27,7 +27,7 @@
   const achievements = [
     { id:'first-ticket', icon:'01', title:'First Ticket', copy:'Complete your first Career level.', test:c => c.done >= 1 },
     { id:'foundation', icon:'MF', title:'Merchant Foundations', copy:'Complete all 31 foundation levels.', test:c => c.done >= 31 },
-    { id:'academy', icon:'173', title:'Trading House Graduate', copy:'Complete all 173 Career levels.', test:c => c.done >= 173 },
+    { id:'academy', icon:'219', title:'Trading House Graduate', copy:'Complete all 219 Career levels.', test:c => c.done >= 219 },
     { id:'flash-100', icon:'⚡', title:'Fast Hands', copy:'Score 100 in Flash Trading.', test:c => c.flashBest >= 100 },
     { id:'flash-500', icon:'⚡', title:'Lightning Book', copy:'Score 500 in Flash Trading.', test:c => c.flashBest >= 500 },
     { id:'floor-clear', icon:'∞', title:'On the Floor', copy:'Clear your first Trading Floor Run.', test:c => c.frontierCleared >= 1 },

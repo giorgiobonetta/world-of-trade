@@ -135,7 +135,7 @@ window.GLOSSARY = [
     def:'Formally naming the vessel to the counterparty for acceptance.',
     why:'Under FOB the buyer nominates. Most execution disputes are about whether a step like this happened on time and in writing.' },
   { term:'Notice of Readiness (NOR)', lesson:'u5l7',
-    def:'The master’s declaration that the vessel has arrived and is ready to work cargo.',
+    def:'Formal notice that the vessel has arrived and is ready to work cargo.',
     why:'A valid NOR triggers laytime, which then starts after the contractual turn time — often six hours. Validity turns on whether the vessel had really arrived and was really ready. If the notice was bad the clock may never have started, unless the charterer worked cargo anyway and waived the point.' },
   { term:'Laytime', lesson:'u5l7',
     def:'The free time allowed for loading or discharging under the charterparty.',

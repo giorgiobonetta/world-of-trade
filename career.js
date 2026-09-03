@@ -1,6 +1,6 @@
 /* World of Trade — career layer
    Metadata and repeatable Flash Trading generators. Kept separate from the
-   curated curriculum so the course can grow without coupling game rules to content.
+   curated curriculum so the game can grow without coupling progression rules to content.
 */
 (() => {
   'use strict';
@@ -50,7 +50,7 @@
   };
 
   /* Core trading path. These units are presented as an in-game career journey,
-     not as university semesters. */
+     as a professional trading career. */
   const foundationUnitMeta = {
     u1: { division:'Trade Economics', skill:'macro', chapter:'Core Trading Path', icon:'IET' },
     u2: { division:'Quantitative Methods', skill:'risk', chapter:'Core Trading Path', icon:'QM' },
@@ -81,7 +81,7 @@
     { id:'senior-trader', name:'Senior Trader', xp:2200, lessons:80 },
     { id:'desk-head', name:'Desk Head', xp:3500, lessons:110 },
     { id:'head-trading', name:'Head of Trading', xp:5000, lessons:130 },
-    { id:'partner', name:'Partner', xp:8000, lessons:173 },
+    { id:'partner', name:'Partner', xp:8000, lessons:219 },
   ];
 
   // Every template returns a fresh, mechanically verifiable question.

@@ -24,7 +24,7 @@
     },
     {
       titolo: 'The career path is not the whole app',
-      copia: 'Path is the course. Play holds four shorter formats, Practice returns the questions you got wrong, and League puts your week against everyone else’s.',
+      copia: 'Path is your career progression. Trading Floor holds the shorter game formats, Practice returns the questions you got wrong, and League puts your week against everyone else’s.',
       punti: ['Play · Flash, Deal of the Day, Boss Deals, Floor Run', 'Practice · weighted towards your mistakes', 'League · six divisions, weekly'],
       faccia: 'happy',
     },

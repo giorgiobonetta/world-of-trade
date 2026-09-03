@@ -1,10 +1,8 @@
 /* World of Trade — Learn
-   Il programma segue i sedici corsi obbligatori del Master of Science in
-   Commodity Trading dell'Université de Genève: sette in autunno, nove in
-   primavera. Ogni sezione è un corso, ogni lezione una sequenza di esercizi
-   brevi. Il campo `scene` decide lo sfondo tematico della sezione.
-   Tipi: choice · numeric · order · pairs · build
-   Generato da build/assemble.mjs — le lezioni si modificano qui, non nel piano.
+   A comprehensive physical commodity trading curriculum organised as an in-game
+   career path. Each desk covers a professional topic through short exercises.
+   The `scene` field selects the visual background for that desk.
+   Types: choice · numeric · order · pairs · build
 */
 window.CURRICULUM = [
 
@@ -14,7 +12,6 @@ window.CURRICULUM = [
     title: "International Economics and Trade",
     subtitle: "Why the flow exists, and what politics does to it",
     scene: "trade",
-    course: { code:"S417022", hours:48, term:"autumn" },
     lessons: [
       {
         id: "u1l1",
@@ -49,7 +46,7 @@ window.CURRICULUM = [
             prompt:"Complete the sentence",
             sentence:["A trader is paid for","moving goods","from where they are worth less","to where they are worth more"],
             distractors:["for predicting prices","by the exchange"],
-            why:"Keep this sentence: it is the whole business in one line. Everything that follows in the course — incoterms, pricing, hedging, finance, documents — is a detail of how that movement is arranged and paid for." }
+            why:"Keep this sentence: it is the whole business in one line. Everything that follows in this path — incoterms, pricing, hedging, finance, documents — is a detail of how that movement is arranged and paid for." }
         ]
       },
       {
@@ -260,7 +257,6 @@ window.CURRICULUM = [
     title: "Quantitative Methods",
     subtitle: "Measuring the exposure before defending it",
     scene: "quant",
-    course: { code:"S417030", hours:48, term:"autumn" },
     lessons: [
       {
         id: "u2l1",
@@ -486,7 +482,7 @@ window.CURRICULUM = [
             answer:0,
             why:"Hidden losses and forged documents took down a major Asian oil trader in 2020, and containers documented as nickel turned out to hold rubble in 2023. Neither was a market call. A desk that only measures price risk is measuring the wrong thing." },
           { type:"choice",
-            prompt:"What is the honest summary of this whole course?",
+            prompt:"What is the honest summary of this whole topic?",
             options:[
             "Predict prices better than others",
             "Understand the mechanics well enough that the surprises are priced, funded and documented",
@@ -504,7 +500,6 @@ window.CURRICULUM = [
     title: "Financial Statements Analysis",
     subtitle: "Reading the accounts, and where the margin is booked",
     scene: "accounts",
-    course: { code:"S417052", hours:24, term:"autumn" },
     lessons: [
       {
         id: "u3l1",
@@ -950,7 +945,6 @@ window.CURRICULUM = [
     title: "Legal Aspects & Regulations",
     subtitle: "The terms that decide who pays when a trade fails",
     scene: "legal",
-    course: { code:"S417041", hours:48, term:"autumn" },
     lessons: [
       {
         id: "u4l1",
@@ -1378,7 +1372,6 @@ window.CURRICULUM = [
     title: "Shipping",
     subtitle: "Chartering, laytime, documents and the protection of the goods",
     scene: "shipping",
-    course: { code:"S417054", hours:24, term:"autumn" },
     lessons: [
       {
         id: "u5l1",
@@ -1615,7 +1608,7 @@ window.CURRICULUM = [
           { type:"choice",
             prompt:"What is a Notice of Readiness?",
             options:[
-            "The master’s declaration that the vessel has arrived and is ready to work cargo",
+            "Formal notice from the vessel that it has arrived and is ready to work cargo",
             "The buyer’s payment instruction",
             "The insurance certificate",
             "A customs form"
@@ -1665,7 +1658,7 @@ window.CURRICULUM = [
             prompt:"A clean bill of lading means…",
             options:["The cargo was washed","No adverse remark was made about the apparent condition on loading","The cargo is insured","Payment was received"],
             answer:1,
-            why:"The master notes only apparent condition — what could be seen. A claused, or “dirty”, bill of lading records damage, and under a letter of credit it is a discrepancy that stops payment." },
+            why:"The vessel’s representative notes only apparent condition — what could be seen. A claused, or “dirty”, bill of lading records damage, and under a letter of credit it is a discrepancy that stops payment." },
           { type:"choice",
             prompt:"The vessel arrives before the original bills of lading do. What is normally used to discharge?",
             options:["A second bill of lading","A letter of indemnity","A new sales contract","Nothing — the ship waits"],
@@ -2014,7 +2007,6 @@ window.CURRICULUM = [
     title: "Sustainability, Business Ethics & Human Rights",
     subtitle: "The licence to operate, priced into the cargo",
     scene: "sustainability",
-    course: { code:"S417056", hours:24, term:"autumn" },
     lessons: [
       {
         id: "u6l1",
@@ -2542,7 +2534,6 @@ window.CURRICULUM = [
     title: "Information Technologies and Innovations",
     subtitle: "The systems the trade actually runs on",
     scene: "tech",
-    course: { code:"S417053", hours:24, term:"autumn" },
     lessons: [
       {
         id: "u7l1",
@@ -2780,7 +2771,6 @@ window.CURRICULUM = [
     title: "Commodity Price Mechanisms",
     subtitle: "How a cargo actually gets a price",
     scene: "pricing",
-    course: { code:"S417034", hours:24, term:"spring" },
     lessons: [
       {
         id: "u8l1",
@@ -2911,7 +2901,7 @@ window.CURRICULUM = [
             prompt:"You are perfectly hedged on flat price. Can basis still hurt you?",
             options:["No, a hedge covers everything","Yes — the hedge tracks the benchmark, not your local price","Only in contango","Only in agriculture"],
             answer:1,
-            why:"This is the most important idea in the course. The hedge follows the benchmark; your cargo is priced locally. When they diverge you lose money on a hedged trade." },
+            why:"This is the most important idea in this desk. The hedge follows the benchmark; your cargo is priced locally. When they diverge you lose money on a hedged trade." },
           { type:"pairs",
             prompt:"What makes a local basis move?",
             pairs:[["Local shortage","Basis strengthens"],["Congestion at origin","Basis strengthens at destination"],["A flood of imports arriving","Basis weakens"]],
@@ -3011,7 +3001,6 @@ window.CURRICULUM = [
     title: "Hedging Tools & Techniques",
     subtitle: "Protecting the margin without sinking the desk",
     scene: "hedging",
-    course: { code:"S417009", hours:24, term:"spring" },
     lessons: [
       {
         id: "u9l1",
@@ -3222,7 +3211,6 @@ window.CURRICULUM = [
     title: "Options",
     subtitle: "Paying for the right to change your mind",
     scene: "options",
-    course: { code:"S417060", hours:24, term:"spring" },
     lessons: [
       {
         id: "u10l1",
@@ -3427,7 +3415,6 @@ window.CURRICULUM = [
     title: "Energy I (Oil & Gas)",
     subtitle: "The barrel, the crack and the molecule",
     scene: "oil",
-    course: { code:"S417003", hours:24, term:"spring" },
     lessons: [
       {
         id: "u11l1",
@@ -3628,7 +3615,6 @@ window.CURRICULUM = [
     title: "Energy II (Renewable)",
     subtitle: "Trading electrons and the certificates behind them",
     scene: "renewable",
-    course: { code:"S417158", hours:24, term:"spring" },
     lessons: [
       {
         id: "u12l1",
@@ -3800,7 +3786,6 @@ window.CURRICULUM = [
     title: "Metals, Ores & Minerals",
     subtitle: "From concentrate to warrant",
     scene: "metals",
-    course: { code:"S417005", hours:24, term:"spring" },
     lessons: [
       {
         id: "u13l1",
@@ -4020,7 +4005,6 @@ window.CURRICULUM = [
     title: "Soft Commodities",
     subtitle: "Crops, crush and the weather that prices them",
     scene: "softs",
-    course: { code:"S417055", hours:24, term:"spring" },
     lessons: [
       {
         id: "u14l1",
@@ -4257,7 +4241,6 @@ window.CURRICULUM = [
     title: "Trade Finance Banking Instruments",
     subtitle: "Funding the gap, and getting paid",
     scene: "tradefinance",
-    course: { code:"S417057", hours:24, term:"spring" },
     lessons: [
       {
         id: "u15l1",
@@ -4310,7 +4293,7 @@ window.CURRICULUM = [
             prompt:"Complete the sentence",
             sentence:["Physical trading is the business","of funding the gap","between paying the supplier","and being paid by the buyer"],
             distractors:["of predicting the market","of owning ships"],
-            why:"If you remember one sentence from this course, make it this one: the trader is paid to carry the time between paying a supplier and being paid by a buyer, and everything in trade finance exists to shorten or secure that gap." }
+            why:"If you remember one sentence from this topic, make it this one: the trader is paid to carry the time between paying a supplier and being paid by a buyer, and everything in trade finance exists to shorten or secure that gap." }
         ]
       },
       {
@@ -4462,7 +4445,6 @@ window.CURRICULUM = [
     title: "Types of Financing for Commodity Companies",
     subtitle: "Lending against the flow, not the balance sheet",
     scene: "financing",
-    course: { code:"S417031", hours:24, term:"spring" },
     lessons: [
       {
         id: "u16l1",

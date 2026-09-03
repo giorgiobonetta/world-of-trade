@@ -1,5 +1,5 @@
 /* World of Trade — scene di sezione
-   Ogni corso del master ha uno sfondo suo, disegnato a mano in SVG: nessun
+   Ogni desk del percorso ha uno sfondo suo, disegnato a mano in SVG: nessun
    file esterno da scaricare, nessuna immagine da ridimensionare, e il colore
    arriva dal foglio di stile tramite le classi `a` (fondo), `b` (mezzo) e
    `c` (primo piano). Le scene sono decorative: sono marcate aria-hidden e

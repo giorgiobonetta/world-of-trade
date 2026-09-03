@@ -100,6 +100,13 @@
     $('#appHeader')?.classList.toggle('scrolled', window.scrollY > 8);
   }
 
+  function syncHeaderMetrics() {
+    const header = $('#appHeader');
+    if (!header || document.body.classList.contains('auth-locked')) return;
+    const h = Math.ceil(header.getBoundingClientRect().height || header.offsetHeight || 0);
+    if (h > 0) document.documentElement.style.setProperty('--app-header-h', `${h}px`);
+  }
+
   function visibleOverlay() {
     return $$('.cloud-dialog,.social-dialog,.daily-briefing-layer,.helene-coach')
       .some(el => !el.hidden && getComputedStyle(el).display !== 'none');
@@ -154,15 +161,22 @@
     prepareReveal();
     improveDialogSemantics();
     updateHeaderScroll();
+    syncHeaderMetrics();
     syncOverlayLock();
 
     window.addEventListener('scroll', updateHeaderScroll, { passive:true });
+    window.addEventListener('resize', () => requestAnimationFrame(syncHeaderMetrics), { passive:true });
+    window.addEventListener('orientationchange', () => setTimeout(syncHeaderMetrics, 120), { passive:true });
+    if ('ResizeObserver' in window) {
+      const header = $('#appHeader');
+      if (header) new ResizeObserver(syncHeaderMetrics).observe(header);
+    }
     window.addEventListener('wot:screen', e => {
       updateSection(e.detail?.id || currentScreen());
-      requestAnimationFrame(() => prepareReveal());
+      requestAnimationFrame(() => { syncHeaderMetrics(); prepareReveal(); });
     });
     window.addEventListener('wot:saved', () => requestAnimationFrame(() => prepareReveal()));
-    window.addEventListener('wot:auth', () => requestAnimationFrame(syncOverlayLock));
+    window.addEventListener('wot:auth', () => requestAnimationFrame(() => { syncHeaderMetrics(); syncOverlayLock(); }));
 
     const mo = new MutationObserver(mutationHandler);
     mo.observe(document.body, { subtree:true, childList:true, attributes:true, attributeFilter:['hidden'] });
