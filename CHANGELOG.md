@@ -1,3 +1,11 @@
+# v0.4.4 — Mobile scroll & safe-area fixes
+
+- Restored natural vertical scrolling in Path, Trading Floor, Practice, League and Profile.
+- Fixed immersive lesson/review screens starting under the phone status bar/notch.
+- Removed the sticky `Desk x of y` rectangle from Career Path.
+- Trading Floor, Practice, League and Profile titles are now yellow with no small kicker above them.
+- PWA cache bumped for the UI fix.
+
 # World of Trade — Curriculum v8: the Geneva MSc
 
 The career path is now organised around the **sixteen compulsory courses of the MSc in

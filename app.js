@@ -590,35 +590,12 @@
     return scelta || (cime[0] ? cime[0].id : null);
   }
 
-  function disegnaFascia(unitId) {
-    const b = $('#unitBanner');
-    if (!b) return;
-    const u = UNITS.find(x => x.id === unitId);
-    if (!u) { b.hidden = true; return; }
-    const ui = UNITS.indexOf(u);
-    const fase = fasediUnita(u.id);
-    const nSez = Math.max(1, SEZIONI.indexOf(fase) + 1);
-    b.hidden = false;
-    b.dataset.section = String(nSez);
-    b.dataset.unit = u.id;
-    $('#unitBannerKicker').textContent = `Desk ${ui + 1} of ${UNITS.length}`;
-    $('#unitBannerTitle').textContent = u.title;
+  function disegnaFascia() {
+    // The Career Path is intentionally levels-only. No sticky desk counter/banner.
+    return;
   }
 
-  function aggiornaFascia() {
-    if (!$('#pathScreen')?.classList.contains('active')) return;
-    const b = $('#unitBanner');
-    if (!b) return;
-    const alt = b.getBoundingClientRect().height || 56;
-    const testa = ($('#appHeader')?.getBoundingClientRect().height || 0) + alt;
-    const cime = $$('#pathScreen .unit').map(s => ({
-      id: s.id.replace(/^unit-/, ''), top: s.getBoundingClientRect().top,
-    }));
-    if (!cime.length) { b.hidden = true; return; }
-    const scelta = unitaInFascia(cime, testa);
-    if (scelta && b.dataset.unit !== scelta) disegnaFascia(scelta);
-    else if (b.hidden) disegnaFascia(scelta);
-  }
+  function aggiornaFascia() { return; }
 
   /* ── schermata percorso ──────────────────────────────────────────── */
   let _lastXp = null;

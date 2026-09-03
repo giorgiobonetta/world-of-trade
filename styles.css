@@ -2100,3 +2100,77 @@ body.in-pausa .node.next .medal::after{
   /* Career Path is levels-only: no decorative top gap left behind. */
   #pathScreen .path-levels-only{padding-top:6px!important}
 }
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   MOBILE SCROLL + IMMERSIVE SAFE AREA FIX v0.4.4
+   Keep every hub naturally scrollable and keep lessons below the device
+   status bar/notch when the main app header is hidden.
+   ══════════════════════════════════════════════════════════════════════ */
+.clean-section-title h1{
+  color:var(--gold)!important;
+  text-shadow:0 2px 0 rgba(5,16,45,.42),0 0 22px rgba(255,212,92,.10);
+}
+.clean-section-title .eyebrow{display:none!important}
+
+/* The Career Path no longer has a sticky "Desk x of y" banner. */
+#unitBanner,.unit-banner{display:none!important}
+
+@media (max-width:820px) and (orientation:portrait){
+  /* Installed/PWA mode must scroll like a normal app, not feel vertically locked. */
+  html,body{
+    min-height:100%;
+    height:auto!important;
+    overflow-y:auto!important;
+    overscroll-behavior-y:auto!important;
+    touch-action:pan-y;
+  }
+  body:not(.immersive):not(.auth-locked){
+    overflow-y:auto!important;
+    padding-bottom:calc(88px + env(safe-area-inset-bottom))!important;
+  }
+  .screen.active:not(#lessonScreen):not(#doneScreen):not(#flashScreen):not(#bossScreen){
+    min-height:auto!important;
+    height:auto!important;
+    overflow:visible!important;
+    padding-bottom:calc(26px + env(safe-area-inset-bottom));
+  }
+  .screen.active .wrap,.screen.active .tab-wrap{
+    overflow:visible!important;
+    max-height:none!important;
+  }
+  /* Remove the old Practice viewport anchoring that made the tab feel clipped. */
+  #practiceScreen.active,#practiceScreen .tab-wrap{
+    min-height:0!important;
+    height:auto!important;
+    overflow:visible!important;
+  }
+
+  /* Immersive question runs own the top safe area because app-header is hidden. */
+  body.immersive{
+    overflow-y:auto!important;
+    min-height:100dvh;
+  }
+  #lessonScreen.active{
+    min-height:100dvh;
+    overflow:visible!important;
+  }
+  #lessonScreen .lesson-top{
+    padding-top:max(16px,calc(env(safe-area-inset-top) + 12px))!important;
+  }
+  #lessonScreen .lesson-wrap{
+    padding-top:18px!important;
+    padding-bottom:calc(205px + env(safe-area-inset-bottom))!important;
+  }
+  /* Also protect the full-screen generated modes from the notch/status bar. */
+  #flashScreen.active,#bossScreen.active,#doneScreen.active{
+    padding-top:env(safe-area-inset-top);
+  }
+
+  .clean-section-title{padding-top:18px!important;padding-bottom:8px!important}
+  .clean-section-title h1{color:var(--gold)!important}
+}
+
+@media (display-mode:standalone) and (max-width:820px) and (orientation:portrait){
+  html,body{overscroll-behavior-y:auto!important}
+}
