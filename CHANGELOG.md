@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.6.1 — Tab Stability
+- Main tabs now redraw only the destination screen instead of rebuilding every hidden hub on each tap.
+- Tapping the already active tab is a no-op, preventing unnecessary DOM destruction/recreation.
+- Per-tab scroll is restored synchronously before paint and clamped to the destination height.
+- Main mobile hubs use one consistent full-viewport/safe-area canvas and bottom-bar reserve.
+- Mobile hub entrance/reveal animations are disabled so content cannot appear late, clipped or partially invisible after a tab switch.
+- Fixed header and bottom navigation are promoted to stable compositor layers to reduce WebView/PWA flicker.
+- Account/Profile shell is installed synchronously before paint; async account data updates it in place.
+- League / Friends / Challenges no longer inherit unsafe deep scroll positions from one another.
+- Mutation observers are coalesced to one animation-frame pass instead of rescanning the app for every small DOM insertion.
+- Account/trader sheets now participate in the global scroll lock so the page cannot move underneath an open sheet.
+- PWA cache bumped to v53 and application assets cache-busted to v061.
+
 ## v0.6.0 — Account & Social
 - Added Account & Settings from Profile with email verification state, password change, sign out, haptic preference and delete-account flow.
 - Added unique searchable `@TraderID` backed by `social_profiles.trader_tag`.

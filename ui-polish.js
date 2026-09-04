@@ -5,6 +5,7 @@
   const $ = (s, r=document) => r.querySelector(s);
   const $$ = (s, r=document) => [...r.querySelectorAll(s)];
   const reduceMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const mobileHub = () => matchMedia('(max-width: 820px) and (orientation: portrait)').matches;
 
 
   const MOBILE_LABELS = {
@@ -108,7 +109,7 @@
   }
 
   function visibleOverlay() {
-    return $$('.cloud-dialog,.social-dialog,.daily-briefing-layer,.helene-coach')
+    return $$('.cloud-dialog,.social-dialog,.daily-briefing-layer,.helene-coach,.account-dialog060')
       .some(el => !el.hidden && getComputedStyle(el).display !== 'none');
   }
 
@@ -122,13 +123,17 @@
       .filter(el => !el.classList.contains('ui-reveal'));
     targets.forEach(el => {
       el.classList.add('ui-reveal');
-      if (reduceMotion() || !observer) el.classList.add('is-visible');
+      // On the phone these elements live inside hidden native-style tabs.
+      // IntersectionObserver can report them a frame late after a tab switch,
+      // which looks like missing/incomplete content. Main mobile hubs therefore
+      // render fully immediately; reveal animation stays a desktop enhancement.
+      if (reduceMotion() || mobileHub() || !observer) el.classList.add('is-visible');
       else observer.observe(el);
     });
   }
 
   function initReveal() {
-    if (!('IntersectionObserver' in window) || reduceMotion()) return;
+    if (!('IntersectionObserver' in window) || reduceMotion() || mobileHub()) return;
     observer = new IntersectionObserver(entries => {
       entries.forEach(entry => {
         if (!entry.isIntersecting) return;
@@ -144,14 +149,23 @@
     });
   }
 
+  let mutationFrame = 0;
   function mutationHandler(mutations) {
     let shouldReveal = false, shouldLock = false;
     for (const m of mutations) {
       if (m.type === 'childList' && m.addedNodes.length) shouldReveal = true;
       if (m.type === 'attributes' && m.attributeName === 'hidden') shouldLock = true;
     }
-    if (shouldReveal) requestAnimationFrame(() => prepareReveal());
-    if (shouldLock) requestAnimationFrame(syncOverlayLock);
+    if (!shouldReveal && !shouldLock) return;
+    // Many screens are rendered with one innerHTML operation followed by several
+    // small inserts. Coalesce them into a single paint pass instead of scanning
+    // the whole document once per mutation.
+    if (mutationFrame) cancelAnimationFrame(mutationFrame);
+    mutationFrame = requestAnimationFrame(() => {
+      mutationFrame = 0;
+      if (shouldReveal) prepareReveal();
+      if (shouldLock) syncOverlayLock();
+    });
   }
 
   function init() {

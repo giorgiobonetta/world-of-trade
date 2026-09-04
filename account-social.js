@@ -11,7 +11,7 @@
   const learn=()=>window.__LEARN__||{};
   const comp=()=>window.WOT_COMP||{};
   const SETTINGS_KEY='wot-settings-v1';
-  let accountUser=null, requests=[], activeLeagueTab='league', renderToken=0;
+  let accountUser=null, requests=[], activeLeagueTab='league', renderToken=0, refreshTimer=0, mutationFrame=0;
 
   function settings(){try{return {...{haptics:true},...(JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}')||{})};}catch(e){return {haptics:true};}}
   function saveSettings(next){try{localStorage.setItem(SETTINGS_KEY,JSON.stringify({...settings(),...next}));}catch(e){}}
@@ -109,10 +109,16 @@
     selectLeagueTab(activeLeagueTab);
   }
   function selectLeagueTab(tab){
-    activeLeagueTab=['league','friends','challenges'].includes(tab)?tab:'league';
+    const next=['league','friends','challenges'].includes(tab)?tab:'league';
+    const changed=next!==activeLeagueTab;
+    activeLeagueTab=next;
     $$('[data-league-tab]').forEach(b=>b.classList.toggle('active',b.dataset.leagueTab===activeLeagueTab));
     $$('.league-page060').forEach(p=>p.classList.toggle('active',p.id===`leaguePage${activeLeagueTab[0].toUpperCase()+activeLeagueTab.slice(1)}060`));
-    if(activeLeagueTab==='friends')renderFriends();if(activeLeagueTab==='challenges')renderChallenges();
+    // A short Friends/Challenges page must never inherit a deep scroll offset
+    // from League; that looked like a blank/broken screen on mobile.
+    if(changed) window.scrollTo(0,0);
+    if(activeLeagueTab==='friends')renderFriends();
+    if(activeLeagueTab==='challenges')renderChallenges();
   }
   function requestProfileIds(){return [...new Set(requests.flatMap(r=>[r.requester_id,r.addressee_id]).filter(id=>id&&id!==me()))];}
   async function profileMapFor(ids){const map=new Map();const cached=social().friendProfiles;if(cached?.forEach)cached.forEach((v,k)=>map.set(k,v));const missing=ids.filter(id=>!map.has(id));if(missing.length){try{for(const p of await api().socialProfiles?.(missing)||[])map.set(p.user_id,p);}catch(e){}}return map;}
@@ -166,7 +172,35 @@
     installProfileAccountCard();installLeagueTabs();updateSocialTabBadges();
     if(activeLeagueTab==='friends')renderFriends();else if(activeLeagueTab==='challenges')renderChallenges();
   }
-  function init(){ensureAccountDialog();installLeagueTabs();setTimeout(refresh,280);window.addEventListener('wot:screen',e=>{if(e.detail?.id==='profileScreen')setTimeout(()=>{installProfileAccountCard();loadAccount().then(installProfileAccountCard);},80);if(e.detail?.id==='leagueScreen')setTimeout(refresh,100);});window.addEventListener('wot:auth',()=>setTimeout(refresh,220));window.addEventListener('wot:saved',()=>{if($('#profileScreen')?.classList.contains('active'))setTimeout(installProfileAccountCard,70);});const mo=new MutationObserver(()=>{if($('#profileBody')&&!$('#accountCard060'))installProfileAccountCard();if($('#leagueScreen .tab-wrap')&&!$('#leagueSubnav060'))installLeagueTabs();const old=$('#socialCircle');if(old)old.classList.add('legacy-social-hidden060');const invite=$('#inviteTraders');if(invite)invite.classList.add('legacy-social-hidden060');});mo.observe(document.body,{childList:true,subtree:true});}
+  function scheduleRefresh(delay=80){
+    clearTimeout(refreshTimer);
+    refreshTimer=setTimeout(()=>{refreshTimer=0;refresh();},delay);
+  }
+  function maintainShell(){
+    if($('#profileBody')&&!$('#accountCard060'))installProfileAccountCard();
+    if($('#leagueScreen .tab-wrap')&&!$('#leagueSubnav060'))installLeagueTabs();
+    const old=$('#socialCircle');if(old)old.classList.add('legacy-social-hidden060');
+    const invite=$('#inviteTraders');if(invite)invite.classList.add('legacy-social-hidden060');
+  }
+  function init(){
+    ensureAccountDialog();
+    maintainShell();
+    scheduleRefresh(220);
+    window.addEventListener('wot:screen',e=>{
+      const id=e.detail?.id;
+      // Install synchronous shell pieces before the next paint. Async account
+      // data can update them later without making the tab visibly reflow.
+      if(id==='profileScreen'){installProfileAccountCard();loadAccount().then(installProfileAccountCard);}
+      if(id==='leagueScreen'){installLeagueTabs();scheduleRefresh(70);}
+    });
+    window.addEventListener('wot:auth',()=>scheduleRefresh(160));
+    window.addEventListener('wot:saved',()=>{if($('#profileScreen')?.classList.contains('active'))installProfileAccountCard();});
+    const mo=new MutationObserver(()=>{
+      if(mutationFrame)return;
+      mutationFrame=requestAnimationFrame(()=>{mutationFrame=0;maintainShell();});
+    });
+    mo.observe(document.body,{childList:true,subtree:true});
+  }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
   window.WOT_ACCOUNT_SOCIAL={refresh,selectLeagueTab,openAccount,renderFriends,renderChallenges};
 })();

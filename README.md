@@ -122,3 +122,6 @@ This pass strengthens the core Career loop without adding new game modes: cleare
 
 ## v0.6 Account & Social
 Profile now contains Account & Settings. League is split into League, Friends and Challenges, with searchable Trader IDs, real friend requests and the existing deterministic desk-duel engine. Run the v0.6 SQL block in `SUPABASE-SETUP.md` before enabling trader search/friend requests/delete account.
+
+## v0.6.1 — Mobile stability
+The five main tabs now behave like stable native app canvases. Only the destination hub is refreshed, scroll restoration happens before paint, mobile reveal animations cannot leave content temporarily invisible, and every hub shares the same header/bottom-bar safe-area geometry. League sub-tabs and Account sheets also use stable scroll handling.

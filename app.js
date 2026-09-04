@@ -554,31 +554,60 @@
   // This prevents Practice (and the other hubs) from visibly jumping upward on tap.
   const screenScroll = Object.create(null);
   const mainScreens = new Set(['pathScreen','playScreen','practiceScreen','leagueScreen','profileScreen']);
+  function renderHubForScreen(id) {
+    // Do not redraw every hidden tab on each tap. Rebuilding Profile, Practice,
+    // Play and League together caused avoidable DOM churn, observers firing and
+    // visible layout jumps on mobile. Only the destination is refreshed.
+    renderTopStats();
+    if (id === 'playScreen') renderPlayHub();
+    else if (id === 'practiceScreen') renderPracticeHub();
+    else if (id === 'leagueScreen') renderLeagueHub();
+    else if (id === 'profileScreen') renderProfile();
+    updateTabBadges(id);
+  }
+
+  function clampScroll(y) {
+    const max = Math.max(0, (document.documentElement.scrollHeight || document.body.scrollHeight || 0) - window.innerHeight);
+    return Math.max(0, Math.min(Number(y) || 0, max));
+  }
+
   function show(id) {
     const previous = document.querySelector('.screen.active')?.id;
+    if (!document.getElementById(id)) return;
+    // Tapping the already active native tab should never destroy/rebuild it.
+    if (previous === id && mainScreens.has(id)) { updateTabBadges(id); return; }
     if (previous && mainScreens.has(previous)) screenScroll[previous] = Math.max(0, window.scrollY || 0);
-    $$('.screen').forEach(s => s.classList.toggle('active', s.id === id));
+
     const immersive = ['lessonScreen','doneScreen','flashScreen','bossScreen'].includes(id);
+    const section = String(id).replace(/Screen$/, '').toLowerCase();
+    document.body.classList.add('tab-switching');
     document.body.classList.toggle('immersive', immersive);
-    // Expose the active tab to CSS. Practice uses this to paint the entire
-    // app viewport, including the short-content area above the bottom bar.
     document.body.dataset.activeScreen = id;
     document.documentElement.dataset.activeScreen = id;
+    if (mainScreens.has(id)) document.body.dataset.section = section;
+
+    $$('.screen').forEach(s => s.classList.toggle('active', s.id === id));
     $$('.nav-item').forEach(b => {
       const attiva = b.dataset.screen === id;
       b.classList.toggle('active', attiva);
-      // per chi usa uno screen reader "attivo" deve essere un'informazione,
-      // non solo un colore: la classe da sola non dice niente
       if (attiva) b.setAttribute('aria-current', 'page');
       else b.removeAttribute('aria-current');
     });
-    if (!immersive) renderMetaScreens();
-    updateTabBadges(id);
+
+    if (!immersive) renderHubForScreen(id);
+
+    // Restore before the browser paints the destination. The old RAF-only
+    // restore showed the new tab for one frame at the previous tab's Y offset.
+    const target = mainScreens.has(id) ? (screenScroll[id] || 0) : 0;
+    window.scrollTo(0, clampScroll(target));
+
     try { window.dispatchEvent(new CustomEvent('wot:screen', { detail: { id } })); } catch (e) {}
-    // Restore the destination's own position. First visit starts at the top.
+
+    // Async panels (League/social) may change document height just after entry.
+    // Clamp once more without animation, then release the switch guard.
     requestAnimationFrame(() => {
-      const y = mainScreens.has(id) ? (screenScroll[id] || 0) : 0;
-      window.scrollTo({ top: y, left: 0, behavior: 'auto' });
+      window.scrollTo(0, clampScroll(target));
+      document.body.classList.remove('tab-switching');
     });
   }
 
@@ -1982,7 +2011,10 @@
     bindProfileEditor();
   }
 
-  function renderMetaScreens() { renderTopStats(); renderPlayHub(); renderPracticeHub(); renderProfile(); if ($('#leagueScreen')?.classList.contains('active')) renderLeagueHub(); updateTabBadges(); }
+  function renderMetaScreens() {
+    const active = document.querySelector('.screen.active')?.id || 'pathScreen';
+    renderHubForScreen(active);
+  }
 
   /* ── Boss Deals ──────────────────────────────────────────────────── */
   let boss = null;
