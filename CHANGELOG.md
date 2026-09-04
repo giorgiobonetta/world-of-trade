@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.5.1 — Lifebuoy Economy
+- Lifebuoys no longer regenerate instantly after being spent.
+- Automatic regeneration is 1 lifebuoy every 6 minutes, up to 5.
+- Reaching 0/5 restarts the refill clock, guaranteeing 30 full minutes to return to 5/5.
+- Correct-answer streaks no longer grant an instant lifebuoy; streaks remain a skill/XP reward.
+- The refill timestamp persists while the app is closed and is restored on reopen.
+- Cloud merge now preserves the newest lifebuoy balance and refill timestamp instead of accidentally resetting the pool to 5/5.
+- PWA cache bumped to v47.
+
 ## v0.5.0 — Core Experience
 - First-run onboarding reduced to two fast, gameplay-first screens.
 - Hélène gives a concise desk briefing only when entering a desk for the first time.

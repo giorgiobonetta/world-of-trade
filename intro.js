@@ -16,7 +16,7 @@
     {
       titolo: 'Protect the book. Keep moving.',
       copia: 'A wrong answer costs one lifebuoy. Good runs build your streak and XP. Clear every level in the desk and the next desk opens automatically.',
-      punti: ['5 lifebuoys', 'Correct streaks can earn one back', 'Clear the desk to unlock your next assignment'],
+      punti: ['5 lifebuoys', '1 regenerates every 6 minutes · 30 minutes from 0/5 to full', 'Clear the desk to unlock your next assignment'],
       faccia: 'happy',
     },
   ];

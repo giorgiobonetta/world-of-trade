@@ -14,15 +14,17 @@
   })();
   const KEY = SANDBOX ? 'wot-learn-selftest' : 'wot-learn-v1';
   /* ── economia dei salvagenti ──────────────────────────────────────
-     I salvagenti sono una risorsa persistente, non tre vite che ricominciano
-     a ogni lezione: se ne spendi uno lo hai perso davvero. Perché il gioco
-     non possa mai bloccarsi, il Ripasso non ne consuma ed è il posto dove si
-     riguadagnano. Questi quattro numeri sono l'intera economia. */
+     I salvagenti sono una risorsa persistente: se ne spendi uno, resta speso
+     finché il timer non lo rigenera. Practice non ne consuma, così il gioco
+     non può mai bloccarsi, ma non esistono recuperi istantanei tramite streak.
+     Con 5 posti e 6 minuti per posto, da 0/5 servono 30 minuti pieni per
+     tornare a 5/5, anche se l'app viene chiusa. */
   const MAX_LIVES = 5;          // quanti se ne possono tenere
   const START_LIVES = 5;        // con quanti si comincia
-  const STREAK_PER_LIFE = 10;   // risposte giuste di fila per riguadagnarne uno
+  const STREAK_PER_LIFE = 0;    // legacy API: gli streak non rigenerano più vite
   const MAX_PRESENTAZIONI = 2;  // quanti concetti nuovi al massimo in una lezione
-  const LIFE_REGEN_MS = 20 * 60 * 1000;  // uno ogni venti minuti, anche a app chiusa
+  const LIFE_REGEN_MS = 6 * 60 * 1000;   // uno ogni sei minuti, anche a app chiusa
+  const FULL_REFILL_MS = MAX_LIVES * LIFE_REGEN_MS; // 30 minuti da 0/5 a 5/5
   const CHECK_MIN_LIVES = 3;    // un checkpoint deve poter arrivare a un punteggio
   const HEARTS = MAX_LIVES;
   const CHECK_HEARTS = MAX_LIVES;
@@ -93,7 +95,7 @@
     streakNow: 0,  // risposte giuste consecutive al primo colpo, attraverso le lezioni
     streakBest: 0, // record personale, quello che si condivide
     lives: START_LIVES, // fondo di salvagenti: persiste fra le sessioni
-    livesEarned: 0,// quanti ne sono stati riguadagnati con le serie
+    livesEarned: 0,// legacy: mantenuto per compatibilità con salvataggi precedenti
     livesAt: 0,    // da quando matura il prossimo salvagente: 0 = fondo pieno
     visti: [],     // termini che Hélène ha già presentato: mai due volte
     skillXp: {},    // pratica oltre al progresso base: skill -> punti
@@ -744,7 +746,7 @@
   // un unico motore per lezione, ripasso e checkpoint
   function startRun(cfg) {
     if (!cfg.items || !cfg.items.length) return;
-    // il ripasso è sempre aperto: è la via per riguadagnare salvagenti
+    // Practice è sempre aperto: non consuma salvagenti mentre il timer li rigenera
     if (cfg.mode !== 'review' && livesNow() <= 0) { avvisoSenzaVite(); return; }
     /* Un checkpoint con una sola vita morirebbe prima di produrre un punteggio,
        e un punteggio è tutto il suo senso: serve un minimo per cominciarlo. */
@@ -1002,7 +1004,7 @@
       chip.classList.toggle('record', n > 0 && n === state.streakBest);
       if (appenaGiusta) { chip.classList.remove('pop'); void chip.offsetWidth; chip.classList.add('pop'); }
     }
-    if (appenaGiusta && SOGLIE.includes(n) && n % STREAK_PER_LIFE !== 0) festeggia(n);
+    if (appenaGiusta && SOGLIE.includes(n)) festeggia(n);
   }
 
   function festeggia(n) {
@@ -1067,6 +1069,9 @@
     const dopo = limitaVite(attuali + maturati);
     state.lives = dopo;
     state.livesAt = dopo >= MAX_LIVES ? 0 : state.livesAt + maturati * LIFE_REGEN_MS;
+    // se il timer scatta durante un run a pagamento, la vita appena maturata
+    // deve essere utilizzabile subito anche dentro quel run, non solo nell'HUD.
+    if (run && !run.gratis) run.hearts = dopo;
     return dopo;
   }
 
@@ -1078,47 +1083,26 @@
     return Math.max(0, state.livesAt + LIFE_REGEN_MS - ora);
   }
 
-  /* Toglie un salvagente dal fondo e allinea il run. Il ripasso non paga. */
+  /* Toglie un salvagente dal fondo e allinea il run. Practice non paga.
+     Quando il fondo arriva a zero il ciclo riparte da quell'istante: da 0/5
+     servono quindi sempre 30 minuti pieni per tornare a 5/5. */
   function spendiVita() {
     if (run && run.gratis) { run.hearts = Math.max(0, run.hearts - 1); return; }
     const prima = livesNow();
     state.lives = Math.max(0, prima - 1);
-    // il conto alla rovescia parte quando si scende dal massimo, non prima
-    if (prima >= MAX_LIVES) state.livesAt = Date.now();
+    const adesso = Date.now();
+    // il conto parte quando manca il primo salvagente. Se il giocatore arriva
+    // a zero, si riallinea da zero per garantire 30 minuti pieni al refill.
+    if (prima >= MAX_LIVES || state.lives === 0) state.livesAt = adesso;
     if (run) run.hearts = state.lives;
     save();
     renderStatLives();
     avviaOrologioVite();
   }
 
-  /* Una serie abbastanza lunga ne restituisce uno, fino al massimo. */
-  function forseGuadagnaVita() {
-    const n = state.streakNow || 0;
-    if (!n || n % STREAK_PER_LIFE !== 0) return false;
-    if (livesNow() >= MAX_LIVES) return false;
-    state.lives = livesNow() + 1;
-    if (state.lives >= MAX_LIVES) state.livesAt = 0;
-    state.livesEarned = (state.livesEarned || 0) + 1;
-    if (run && !run.gratis) run.hearts = state.lives;
-    save();
-    renderStatLives();
-    avviaOrologioVite();
-    annunciaVita(n);
-    return true;
-  }
-
-  function annunciaVita(n) {
-    const t = $('#streakToast');
-    if (!t) return;
-    t.innerHTML = `<span class="st-face">${SALVAGENTE}</span>
-      <span class="st-copy"><strong>Lifebuoy earned</strong>
-        <small>${n} in a row · ${livesNow()} of ${MAX_LIVES}</small></span>`;
-    t.hidden = false;
-    t.classList.remove('show'); void t.offsetWidth; t.classList.add('show');
-    clearTimeout(annunciaVita._t);
-    annunciaVita._t = setTimeout(() => { t.hidden = true; }, 2800);
-    confetti(30);
-  }
+  /* Compatibilità con codice e salvataggi precedenti: gli streak restano una
+     ricompensa di skill/XP, ma non possono più creare un salvagente subito. */
+  function forseGuadagnaVita() { return false; }
 
   function avvisoCheckpoint() {
     const el = $('#lockedHint');
@@ -1134,7 +1118,7 @@
     el.hidden = false;
     const fra = attesaVita();
     el.textContent = `No lifebuoys left. One comes back in ${testoAttesa(fra || LIFE_REGEN_MS)}`
-      + ` — or right away with ${STREAK_PER_LIFE} correct answers in a row. Practice never costs one.`;
+      + ` and the full 5/5 refill takes ${testoAttesa(FULL_REFILL_MS)}. Practice never costs a lifebuoy.`;
     try { el.scrollIntoView({ block: 'center', behavior: motionOK() ? 'smooth' : 'auto' }); } catch (e) {}
   }
 
@@ -1180,7 +1164,10 @@
     _orologioVite = setTimeout(() => {
       _orologioVite = null;
       const prima = limitaVite(state.lives);
-      if (livesNow() !== prima) { save(); renderPath(); }   // di sfondo: nessuno scorrimento
+      if (livesNow() !== prima) {
+        save(); renderPath();
+        if (run && !run.gratis) renderHearts();
+      }   // di sfondo: nessuno scorrimento
       renderStatLives();
       avviaOrologioVite();
     }, Math.max(250, passo));
@@ -2171,7 +2158,7 @@
     if (doneReturnScreen === 'pathScreen') renderPath({ vaiAlPunto: true });
   });
   /* Uscire da una lezione a metà costa: gli XP non sono ancora messi in
-     banca e i salvagenti spesi non tornano. Chiederlo evita l'uscita per
+     banca e i salvagenti spesi restano consumati finché non li rigenera il timer. Chiederlo evita l'uscita per
      sbaglio — la X sta accanto alla barra e si tocca facilmente. */
   function abbandona() {
     const target = run?.mode === 'frontier' ? 'playScreen' : 'pathScreen';
@@ -2194,7 +2181,7 @@
       copia.textContent = run.mode === 'review'
         ? 'Practice costs nothing, but the questions you have answered will not count towards your record.'
         : `${run.answered} of ${run.total} answered. The XP is not banked yet`
-          + (spesi ? `, and the ${spesi} lifebuoy${spesi === 1 ? '' : 's'} spent here ${spesi === 1 ? 'does' : 'do'} not come back.` : '.');
+          + (spesi ? `, and the ${spesi} lifebuoy${spesi === 1 ? '' : 's'} spent here ${spesi === 1 ? 'stays' : 'stay'} spent until the refill timer restores ${spesi === 1 ? 'it' : 'them'}.` : '.');
     }
     dlg.hidden = false;
     setTimeout(() => { try { $('#quitStay').focus(); } catch (e) {} }, 20);
@@ -2313,7 +2300,7 @@
     allLessons, UNITS, CHECK_PASS, REVIEW_SIZE, CHECK_SIZE, HEARTS, CHECK_HEARTS,
     rivela, puoRivelare, renderRivela, livesNow, spendiVita, forseGuadagnaVita,
     maturaVite, attesaVita, testoAttesa, renderStatLives, avviaOrologioVite, fermaOrologioVite,
-    MAX_LIVES, STREAK_PER_LIFE, CHECK_MIN_LIVES, LIFE_REGEN_MS,
+    MAX_LIVES, STREAK_PER_LIFE, CHECK_MIN_LIVES, LIFE_REGEN_MS, FULL_REFILL_MS,
     replaceState, defaultState, migraSalvataggio, CURRICULUM_REV, STORAGE_KEY: KEY, SOGLIE, renderStreak, isUnlocked,
     unitaInFascia, disegnaFascia, aggiornaFascia, fasediUnita, SEZIONI,
     chiediUscita, chiudiUscita, abbandona, isApertura, SANDBOX,

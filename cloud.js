@@ -353,6 +353,22 @@
     const bossCompleted = maxMap(a.boss?.completed, b.boss?.completed);
     const bossCleared = Object.values(bossCompleted).filter(v => Number(v) >= 60).length;
 
+    /* Lifebuoys are a spendable resource, so taking Math.max() would let an
+       older device restore lives that were already spent. Keep the resource
+       state from the newest save. Old cloud rows that do not contain lives
+       never override a local balance. On an exact timestamp tie, prefer the
+       lower balance as the conservative anti-duplication choice. */
+    const hasLives = x => x && x.lives !== undefined && Number.isFinite(Number(x.lives));
+    const ta = Number(a.updatedAt) || 0, tb = Number(b.updatedAt) || 0;
+    let lifeSource = a;
+    if (!hasLives(a) && hasLives(b)) lifeSource = b;
+    else if (hasLives(a) && hasLives(b)) {
+      if (tb > ta) lifeSource = b;
+      else if (tb === ta && Number(b.lives) < Number(a.lives)) lifeSource = b;
+    }
+    const mergedLives = hasLives(lifeSource) ? Math.max(0, Math.min(5, Number(lifeSource.lives))) : 5;
+    const mergedLivesAt = mergedLives >= 5 ? 0 : Math.max(0, Number(lifeSource.livesAt) || 0);
+
     const mergeCompetitive = (x = {}, y = {}) => {
       const hx = x.history || {}, hy = y.history || {};
       const history = maxMap(hx, hy);
@@ -396,6 +412,10 @@
       lastDay: [a.lastDay, b.lastDay].filter(Boolean).sort().pop() || null,
       reviews: Math.max(Number(a.reviews) || 0, Number(b.reviews) || 0),
       streakBest: Math.max(Number(a.streakBest) || 0, Number(b.streakBest) || 0),
+      // resource state follows the newest write; never max-merge a spendable balance
+      lives: mergedLives,
+      livesAt: mergedLivesAt,
+      livesEarned: Math.max(Number(a.livesEarned) || 0, Number(b.livesEarned) || 0),
       // la serie in corso è del dispositivo, non della carriera: non si eredita
       streakNow: Number(a.streakNow) || 0,
       best: maxMap(a.best, b.best),

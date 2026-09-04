@@ -105,3 +105,12 @@ All rights reserved.
 
 ## Core Experience v0.5
 This build focuses on the first ten minutes: fast onboarding, desk-entry briefing, decision-by-decision progress, stronger level rewards, direct next-level flow and a more game-like Desk Challenge vocabulary.
+
+## Lifebuoy economy
+- Maximum: 5.
+- Career / Trading Floor mistakes spend lifebuoys; Practice is free.
+- Regeneration: 1 every 6 minutes.
+- From 0/5, a full refill to 5/5 always takes 30 minutes.
+- Streaks do not regenerate lifebuoys instantly.
+- Refill progress persists across app closes and cloud sync.
+
