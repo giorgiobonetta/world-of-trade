@@ -105,6 +105,7 @@
     daily: { day:null, dealDone:false, dealBest:0, dealPlays:0, flashBest:0, flashCorrect:0, trainingRuns:0, bossRuns:0, claimed:{}, bonusClaimed:false },
     dailyStats: { deals:0, perfectDays:0 },
     dailyHistory: { deals:{}, perfect:{} },
+    profile: { name:'', avatar:'', updatedAt:0 },
     competitive: { week:null, startXp:0, tier:'bronze', alias:'', house:'', seasons:0, history:{}, lastPlacement:null, lastSeason:null },
   });
 
@@ -162,7 +163,7 @@
       const s = migraSalvataggio(JSON.parse(raw));
       const obj = v => (v && typeof v === 'object' && !Array.isArray(v)) ? v : {};
       // i salvataggi piu' vecchi non hanno questi campi: vanno ricostruiti, non assunti
-      const flash = obj(s.flash), frontier = obj(s.frontier), boss = obj(s.boss), daily = obj(s.daily), dailyStats = obj(s.dailyStats), dailyHistory = obj(s.dailyHistory), competitive = obj(s.competitive);
+      const flash = obj(s.flash), frontier = obj(s.frontier), boss = obj(s.boss), daily = obj(s.daily), dailyStats = obj(s.dailyStats), dailyHistory = obj(s.dailyHistory), profile = obj(s.profile), competitive = obj(s.competitive);
       return { ...defaultState(), ...s,
         done: Array.isArray(s.done) ? s.done.filter(id => allLessons.some(l => l.id === id)) : [],
         best: obj(s.best), misses: obj(s.misses), doneAt: obj(s.doneAt), badges: obj(s.badges),
@@ -174,6 +175,7 @@
         daily: { day:daily.day || null, dealDone:!!daily.dealDone, dealBest:Number(daily.dealBest)||0, dealPlays:Number(daily.dealPlays)||0, flashBest:Number(daily.flashBest)||0, flashCorrect:Number(daily.flashCorrect)||0, trainingRuns:Number(daily.trainingRuns)||0, bossRuns:Number(daily.bossRuns)||0, claimed:obj(daily.claimed), bonusClaimed:!!daily.bonusClaimed },
         dailyStats: { deals:Number(dailyStats.deals)||0, perfectDays:Number(dailyStats.perfectDays)||0 },
         dailyHistory: { deals:obj(dailyHistory.deals), perfect:obj(dailyHistory.perfect) },
+        profile: { name:String(profile.name||'').trim().slice(0,24), avatar:String(profile.avatar||'').slice(0,300000), updatedAt:Number(profile.updatedAt)||0 },
         competitive: { week:competitive.week || null, startXp:Number(competitive.startXp)||0, tier:competitive.tier || 'bronze', alias:String(competitive.alias||''), house:String(competitive.house||''), seasons:Number(competitive.seasons)||0, history:obj(competitive.history), lastPlacement:Number(competitive.lastPlacement)||null, lastSeason:obj(competitive.lastSeason) },
         reviews: Number(s.reviews) || 0, updatedAt: Number(s.updatedAt) || 0,
         streakNow: Number(s.streakNow) || 0, streakBest: Number(s.streakBest) || 0,
@@ -199,7 +201,7 @@
   function replaceState(next) {
     if (!next || typeof next !== 'object') return false;
     const obj = v => (v && typeof v === 'object' && !Array.isArray(v)) ? v : {};
-    const f = obj(next.flash), fr = obj(next.frontier), b = obj(next.boss), d = obj(next.daily), ds = obj(next.dailyStats), dh = obj(next.dailyHistory), cp = obj(next.competitive);
+    const f = obj(next.flash), fr = obj(next.frontier), b = obj(next.boss), d = obj(next.daily), ds = obj(next.dailyStats), dh = obj(next.dailyHistory), pr = obj(next.profile), cp = obj(next.competitive);
     state = { ...defaultState(), ...next,
       done: Array.isArray(next.done) ? next.done.filter(id => allLessons.some(l => l.id === id)) : [],
       visti: Array.isArray(next.visti) ? next.visti.map(String) : [],
@@ -211,6 +213,7 @@
       daily: { day:d.day || null, dealDone:!!d.dealDone, dealBest:Number(d.dealBest)||0, dealPlays:Number(d.dealPlays)||0, flashBest:Number(d.flashBest)||0, flashCorrect:Number(d.flashCorrect)||0, trainingRuns:Number(d.trainingRuns)||0, bossRuns:Number(d.bossRuns)||0, claimed:obj(d.claimed), bonusClaimed:!!d.bonusClaimed },
       dailyStats: { deals:Number(ds.deals)||0, perfectDays:Number(ds.perfectDays)||0 },
       dailyHistory: { deals:obj(dh.deals), perfect:obj(dh.perfect) },
+      profile: { name:String(pr.name||'').trim().slice(0,24), avatar:String(pr.avatar||'').slice(0,300000), updatedAt:Number(pr.updatedAt)||0 },
       competitive: { week:cp.week || null, startXp:Number(cp.startXp)||0, tier:cp.tier || 'bronze', alias:String(cp.alias||''), house:String(cp.house||''), seasons:Number(cp.seasons)||0, history:obj(cp.history), lastPlacement:Number(cp.lastPlacement)||null, lastSeason:obj(cp.lastSeason) } };
     ensureCompetitive(); 
     try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
@@ -557,6 +560,10 @@
     $$('.screen').forEach(s => s.classList.toggle('active', s.id === id));
     const immersive = ['lessonScreen','doneScreen','flashScreen','bossScreen'].includes(id);
     document.body.classList.toggle('immersive', immersive);
+    // Expose the active tab to CSS. Practice uses this to paint the entire
+    // app viewport, including the short-content area above the bottom bar.
+    document.body.dataset.activeScreen = id;
+    document.documentElement.dataset.activeScreen = id;
     $$('.nav-item').forEach(b => {
       const attiva = b.dataset.screen === id;
       b.classList.toggle('active', attiva);
@@ -1847,8 +1854,104 @@
     $('#practiceStart')?.addEventListener('click', startReview);
   }
 
+  function profileInitial(name) {
+    const clean = String(name || '').trim();
+    return clean ? clean.charAt(0).toUpperCase() : 'T';
+  }
+
+  function avatarMarkup(name, avatar) {
+    const safeName = esc(name || 'Trader');
+    if (avatar && /^data:image\/(?:jpeg|png|webp);base64,/i.test(avatar)) {
+      return `<img src="${avatar}" alt="${safeName} profile photo">`;
+    }
+    return `<span aria-hidden="true">${esc(profileInitial(name))}</span>`;
+  }
+
+  function compressProfilePhoto(file) {
+    return new Promise((resolve, reject) => {
+      if (!file || !String(file.type || '').startsWith('image/')) return reject(new Error('Choose an image file.'));
+      if (file.size > 12 * 1024 * 1024) return reject(new Error('Choose an image smaller than 12 MB.'));
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error('Could not read that image.'));
+      reader.onload = () => {
+        const img = new Image();
+        img.onerror = () => reject(new Error('That image could not be opened.'));
+        img.onload = () => {
+          try {
+            const side = Math.min(img.naturalWidth || img.width, img.naturalHeight || img.height);
+            const sx = Math.max(0, ((img.naturalWidth || img.width) - side) / 2);
+            const sy = Math.max(0, ((img.naturalHeight || img.height) - side) / 2);
+            const canvas = document.createElement('canvas');
+            canvas.width = 256; canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+            ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+            ctx.drawImage(img, sx, sy, side, side, 0, 0, 256, 256);
+            resolve(canvas.toDataURL('image/jpeg', .82));
+          } catch (e) { reject(new Error('Could not prepare that image.')); }
+        };
+        img.src = String(reader.result || '');
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function bindProfileEditor() {
+    const nameInput = $('#profileNameInput');
+    const saveName = $('#profileNameSave');
+    const photoInput = $('#profilePhotoInput');
+    const changePhoto = $('#profilePhotoChange');
+    const removePhoto = $('#profilePhotoRemove');
+    const status = $('#profileEditStatus');
+    const setStatus = (text, type='') => {
+      if (!status) return;
+      status.textContent = text || '';
+      status.className = 'profile-edit-status' + (type ? ` ${type}` : '');
+      status.hidden = !text;
+    };
+    saveName?.addEventListener('click', () => {
+      const name = String(nameInput?.value || '').trim().replace(/\s+/g, ' ').slice(0,24);
+      if (!name) { setStatus('Enter a name first.', 'bad'); nameInput?.focus(); return; }
+      state.profile ||= { name:'', avatar:'', updatedAt:0 };
+      state.profile.name = name;
+      state.profile.updatedAt = Date.now();
+      // The display name is the trader identity everywhere in the app,
+      // including League/social surfaces that read the competitive alias.
+      state.competitive ||= {};
+      state.competitive.alias = name;
+      save();
+      renderProfile();
+    });
+    nameInput?.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); saveName?.click(); }
+    });
+    changePhoto?.addEventListener('click', () => photoInput?.click());
+    photoInput?.addEventListener('change', async () => {
+      const file = photoInput.files?.[0];
+      if (!file) return;
+      setStatus('Preparing photo…');
+      try {
+        const avatar = await compressProfilePhoto(file);
+        state.profile ||= { name:'', avatar:'', updatedAt:0 };
+        state.profile.avatar = avatar;
+        state.profile.updatedAt = Date.now();
+        save();
+        renderProfile();
+      } catch (e) { setStatus(e?.message || 'Could not update the photo.', 'bad'); photoInput.value = ''; }
+    });
+    removePhoto?.addEventListener('click', () => {
+      state.profile ||= { name:'', avatar:'', updatedAt:0 };
+      if (!state.profile.avatar) return;
+      state.profile.avatar = '';
+      state.profile.updatedAt = Date.now();
+      save();
+      renderProfile();
+    });
+  }
+
   function renderProfile() {
     const host = $('#profileBody'); if (!host) return;
+    state.profile ||= { name:'', avatar:'', updatedAt:0 };
+    const displayName = String(state.profile.name || state.competitive?.alias || 'Trader').trim().slice(0,24) || 'Trader';
     const { current, next } = careerRank();
     const rows = Object.entries(GAME.skills || {}).map(([id, sk]) => {
       const score = skillScore(id);
@@ -1856,7 +1959,18 @@
         <div class="skill-track" role="progressbar" aria-label="${esc(sk.name)} mastery" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${score}"><i style="width:${score}%"></i></div></div>`;
     }).join('');
     const accuracy = state.flash.total ? Math.round(state.flash.correct / state.flash.total * 100) : 0;
-    host.innerHTML = `<section class="profile-rank"><span class="eyebrow">Current role</span><h2>${esc(current.name)}</h2>
+    host.innerHTML = `<section class="profile-editor">
+      <div class="profile-avatar" id="profileAvatar">${avatarMarkup(displayName, state.profile.avatar)}</div>
+      <div class="profile-editor-copy"><span class="eyebrow">YOUR TRADER PROFILE</span><h2>${esc(displayName)}</h2><p>Edit your public name and profile picture.</p></div>
+      <div class="profile-photo-actions">
+        <input id="profilePhotoInput" class="sr-only" type="file" accept="image/*" aria-label="Choose profile photo">
+        <button id="profilePhotoChange" class="profile-edit-btn" type="button">${state.profile.avatar ? 'Change profile photo' : 'Add profile photo'}</button>
+        <button id="profilePhotoRemove" class="profile-edit-btn ghost" type="button" ${state.profile.avatar ? '' : 'disabled'}>Remove</button>
+      </div>
+      <div class="profile-name-edit"><label for="profileNameInput">Name</label><div><input id="profileNameInput" maxlength="24" autocomplete="name" value="${esc(displayName)}"><button id="profileNameSave" type="button">Save</button></div></div>
+      <small id="profileEditStatus" class="profile-edit-status" hidden></small>
+    </section>
+    <section class="profile-rank"><span class="eyebrow">Current role</span><h2>${esc(current.name)}</h2>
       <div class="profile-numbers"><div><b>${careerLevel()}</b><span>Level</span></div><div><b>${state.xp || 0}</b><span>XP</span></div><div><b>${state.streak || 0}</b><span>Day streak</span></div></div>
       ${next ? `<p>Next promotion: <strong>${esc(next.name)}</strong> · ${next.xp} XP and ${next.lessons} foundation levels.</p>` : '<p>You reached the top career rank.</p>'}
     </section>
@@ -1865,6 +1979,7 @@
     <section class="flash-record"><span class="eyebrow">Trading Floor Run</span><div class="profile-numbers"><div><b>${state.frontier.best || 0}%</b><span>Best result</span></div><div><b>${state.frontier.plays || 0}</b><span>Runs</span></div><div><b>${state.frontier.cleared || 0}</b><span>Cleared</span></div></div></section>
     <section class="flash-record"><span class="eyebrow">Boss Deal record</span><div class="profile-numbers"><div><b>${state.boss.best || 0}%</b><span>Best result</span></div><div><b>${state.boss.cleared || 0}</b><span>Deals cleared</span></div><div><b>${state.boss.plays || 0}</b><span>Runs</span></div></div></section>
     <section class="flash-record"><span class="eyebrow">Daily desk record</span><div class="profile-numbers"><div><b>${dailyDealCount()}</b><span>Daily deals</span></div><div><b>${perfectDayCount()}</b><span>Perfect days</span></div><div><b>${dailyQuests().filter(q => state.daily.claimed[q.id]).length}/3</b><span>Today</span></div></div></section>`;
+    bindProfileEditor();
   }
 
   function renderMetaScreens() { renderTopStats(); renderPlayHub(); renderPracticeHub(); renderProfile(); if ($('#leagueScreen')?.classList.contains('active')) renderLeagueHub(); updateTabBadges(); }

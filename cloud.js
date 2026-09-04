@@ -384,6 +384,18 @@
       }
       return { ...(newer || {}), history, seasons:Math.max(Number(x.seasons)||0,Number(y.seasons)||0) };
     };
+    const mergeProfile = (x = {}, y = {}) => {
+      const tx = Number(x.updatedAt) || 0, ty = Number(y.updatedAt) || 0;
+      const newer = ty > tx ? y : x;
+      const older = newer === y ? x : y;
+      const owns = (obj, key) => Object.prototype.hasOwnProperty.call(obj || {}, key);
+      return {
+        name: String(owns(newer,'name') ? newer.name : (older.name || '')).trim().slice(0,24),
+        // An empty avatar is meaningful: it means the player removed the photo.
+        avatar: String(owns(newer,'avatar') ? newer.avatar : (older.avatar || '')).slice(0,300000),
+        updatedAt: Math.max(tx, ty),
+      };
+    };
     const mergeDaily = (x = {}, y = {}) => {
       const dx = x.day || '', dy = y.day || '';
       if (dx && dy && dx !== dy) return { ...(dx > dy ? x : y) };
@@ -451,6 +463,7 @@
         deals: maxMap(a.dailyHistory?.deals, b.dailyHistory?.deals),
         perfect: maxMap(a.dailyHistory?.perfect, b.dailyHistory?.perfect),
       },
+      profile: mergeProfile(a.profile, b.profile),
       competitive: mergeCompetitive(a.competitive, b.competitive),
       updatedAt: Math.max(Number(a.updatedAt) || 0, Number(b.updatedAt) || 0),
     };
