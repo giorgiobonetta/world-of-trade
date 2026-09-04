@@ -23,7 +23,7 @@ t('l\'esempio è comunque privo di chiavi',
 
 const html = leggi('learn.html');
 t('la pagina carica il file reale, non l\'esempio',
-  /<script src="supabase-config\.js"><\/script>/.test(html) && !/example\.js"><\/script>/.test(html));
+  /<script(?: defer)? src="supabase-config\.js"><\/script>/.test(html) && !/example\.js"><\/script>/.test(html));
 
 const sw = leggi('sw.js');
 t('il service worker non mette in cache la configurazione',

@@ -63,7 +63,9 @@ function fake() {
 /* ── il ritorno da LinkedIn: token nel frammento ── */
 {
   const sb = fake();
-  sb.righe.set('uid-li', { done: ['u2l1', 'u2l2'], xp: 60, best: {}, badges: {}, misses: {}, doneAt: {}, streakBest: 14, updatedAt: 5 });
+  // `rev` dice che la riga è già scritta col programma corrente: la
+  // migrazione non tocca gli id, che restano quelli attesi qui sotto
+  sb.righe.set('uid-li', { rev: 2, done: ['u2l1', 'u2l2'], xp: 60, best: {}, badges: {}, misses: {}, doneAt: {}, streakBest: 14, updatedAt: 5 });
   const { w, errors } = await boot({
     cloud: true, sb,
     hash: '#access_token=AT-LINKEDIN&refresh_token=RT-LI&token_type=bearer&expires_in=3600',

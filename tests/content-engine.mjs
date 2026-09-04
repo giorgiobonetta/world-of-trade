@@ -12,13 +12,13 @@ const C = ctx.window.WOT_CONTENT, G=ctx.window.WOT_GAME, U=ctx.window.CURRICULUM
 let failed=0, passed=0;
 const t=(name,ok,info='')=>{ if(ok){passed++;console.log('  ✓ '+name)}else{failed++;console.log('  ✗ '+name+(info?' — '+info:''))} };
 const L=U.flatMap(u=>u.lessons), E=L.flatMap(l=>l.exercises);
-t('20 units',U.length===20,String(U.length));
-t('103 career levels',L.length===103,String(L.length));
-t('505 career exercises',E.length===505,String(E.length));
-t('72 generated levels',C.generatedLevels===72,String(C.generatedLevels));
+t('34 units',U.length===34,String(U.length));
+t('219 career levels',L.length===219,String(L.length));
+t('1086 career exercises',E.length===1086,String(E.length));
+t('108 generated levels',C.generatedLevels===108,String(C.generatedLevels));
 t('all generated lessons validate',U.filter(u=>/^a\d+$/.test(u.id)).flatMap(u=>u.lessons).every(C.validateLesson));
 t('unit metadata covers every unit',U.every(u=>G.unitMeta[u.id]));
-t('career ends at 103-level Head of Trading gate',G.ranks.some(r=>r.id==='head-trading'&&r.lessons===103));
+t('Partner requires all 219 Career levels',G.ranks.some(r=>r.id==='partner'&&r.lessons===219));
 const dist=[0,0,0,0];
 for(const ex of E.filter(e=>e.type==='choice'&&e.options.length===4)) dist[ex.answer]++;
 t('generated answer positions are not biased to A',dist.every(n=>n>20),JSON.stringify(dist));

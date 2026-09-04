@@ -10,6 +10,7 @@ const seed = { done: [], xp: 0, best: {}, badges: {}, misses: {}, doneAt: {},
   const L = w.__LEARN__, S = solver(w, L);
   t('fuori da una lezione il pulsante è nascosto', S.$('#revealButton').hidden);
   L.startLesson('u1l1');
+  S.superaPresentazione();
   t('in lezione compare', !S.$('#revealButton').hidden);
   t('ed è attivo con tutte le vite', !S.$('#revealButton').disabled, 'vite ' + L.run.hearts);
   t('dice quanto costa', /costs 1 lifebuoy/.test(S.$('#revealButton').textContent),
@@ -22,6 +23,7 @@ const seed = { done: [], xp: 0, best: {}, badges: {}, misses: {}, doneAt: {},
   const { w } = await boot({ seed });
   const L = w.__LEARN__, S = solver(w, L);
   L.startLesson('u1l1');
+  S.superaPresentazione();
   L.run.hearts = 1;
   L.renderRivela();
   t('con una sola vita è disattivato', S.$('#revealButton').disabled);
@@ -35,8 +37,12 @@ const seed = { done: [], xp: 0, best: {}, badges: {}, misses: {}, doneAt: {},
 /* ── in un checkpoint non esiste: è una verifica ── */
 {
   const now = Date.now();
-  const { w } = await boot({ seed: { ...seed, done: ['u1l1','u1l2','u1l3','u1l4'],
-    doneAt: { u1l1: now, u1l2: now, u1l3: now, u1l4: now } } });
+  // il primo corso ha sei livelli: il checkpoint compare solo se sono tutti fatti
+  const fatte = ['u1l1','u1l2','u1l3','u1l4','u1l5','u1l6'];
+  // rev: il salvataggio è già scritto col programma corrente, così la
+  // migrazione non traduce gli id elencati qui sopra
+  const { w } = await boot({ seed: { ...seed, rev: 2, done: fatte,
+    doneAt: Object.fromEntries(fatte.map(id => [id, now])) } });
   const L = w.__LEARN__, S = solver(w, L);
   S.click(S.$('[data-check="u1"]'));
   await pausa(60);
@@ -50,6 +56,7 @@ const seed = { done: [], xp: 0, best: {}, badges: {}, misses: {}, doneAt: {},
   const { w, errors } = await boot({ seed: { ...seed, streakNow: 7, streakBest: 9 } });
   const L = w.__LEARN__, S = solver(w, L);
   L.startLesson('u1l1');
+  S.superaPresentazione();
   const ex = L.run.current.ex;
   const vitePrima = L.run.hearts, codaPrima = L.run.queue.length;
   L.rivela();
@@ -72,6 +79,7 @@ const seed = { done: [], xp: 0, best: {}, badges: {}, misses: {}, doneAt: {},
   const { w } = await boot({ seed });
   const L = w.__LEARN__, S = solver(w, L);
   L.startLesson('u1l1');
+  S.superaPresentazione();
   const ex = L.run.current.ex;
   L.rivela();
   const fb = S.$('#feedback');
@@ -104,8 +112,11 @@ const seed = { done: [], xp: 0, best: {}, badges: {}, misses: {}, doneAt: {},
     const lez = L.allLessons.find(l => l.exercises.some(e => e.type === tipo));
     if (!lez) { tipi[tipo] = 'assente dal curriculum'; continue; }
     L.startLesson(lez.id);
+    S.superaPresentazione();
     let g = 0;
     while (L.run && g++ < 15) {
+      // una presentazione può comparire anche a metà lezione, non solo all'inizio
+      S.superaPresentazione();
       const ex = L.run.current.ex;
       if (ex.type === tipo) {
         L.run.hearts = 3;                     // il costo è già verificato altrove

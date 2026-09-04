@@ -77,8 +77,9 @@ async function bootConCfg(cfg) {
   const dom = new JSDOM(html, { runScripts:'outside-only', pretendToBeVisual:true,
     url:'https://wot.test/learn', virtualConsole: vc });
   const w = dom.window; w.confirm=()=>true; w.scrollTo=()=>{};
+  if (!w.matchMedia) w.matchMedia = q => ({ matches:false, media:q, addEventListener(){}, removeEventListener(){}, addListener(){}, removeListener(){}, onchange:null });
   w.fetch = async () => { throw new Error('rete non prevista'); };
-  for (const f of [...html.matchAll(/<script src="([^"]+)"><\/script>/g)].map(m=>m[1])) {
+  for (const f of [...html.matchAll(/<script(?: defer)? src="([^"]+)"><\/script>/g)].map(m=>m[1])) {
     if (f === 'pwa.js') continue;
     w.eval(f === 'supabase-config.js' ? cfg : fs.readFileSync(DIR + '/' + f, 'utf8'));
   }

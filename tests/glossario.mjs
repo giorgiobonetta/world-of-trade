@@ -98,10 +98,10 @@ const t = suite('Glossario');
   t('svuotando la ricerca torna tutto', $$('.gl-item').length === w.GLOSSARY_PAGE.voci.length);
 
   /* filtro per unità */
-  $('#glUnit').value = 'u6';
+  $('#glUnit').value = 'u5';
   $('#glUnit').dispatchEvent(new w.Event('change', { bubbles: true }));
   t('il filtro per unità isola un\'unità', $$('.gl-unit').length === 1);
-  t('ed è quella giusta', /Execution and documents/.test($('.gl-unit h2').textContent),
+  t('ed è quella giusta', /Shipping/.test($('.gl-unit h2').textContent),
     $('.gl-unit h2').textContent.trim());
   cerca('bill');
   t('ricerca e filtro si combinano', $$('.gl-item').length >= 1,

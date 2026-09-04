@@ -23,16 +23,26 @@ const seed = done => ({ done, xp: 20 * done.length, best: {}, badges: {}, misses
 
 /* una lezione bloccata NON si apre */
 {
-  const { w, errors } = await boot({ query: '?lesson=u6l2', seed: seed([]) });
+  const { w, errors } = await boot({ query: '?lesson=u5l7', seed: seed([]) });
   await pausa(80);
   t('una lezione bloccata non si apre',
     !w.document.querySelector('#lessonScreen').classList.contains('active'));
   t('resta il percorso', w.document.querySelector('#pathScreen').classList.contains('active'));
-  const nodo = w.document.querySelector('[data-lesson="u6l2"]');
-  t('il nodo viene evidenziato, così l\'utente sa dov\'è', nodo?.classList.contains('flagged'));
-  t('e gli si spiega perché', !w.document.querySelector('#lockedHint').hidden &&
-    /still locked/.test(w.document.querySelector('#lockedHint').textContent),
-    w.document.querySelector('#lockedHint').textContent);
+  // Il percorso disegna solo il desk corrente, quindi una lezione di un desk
+  // piu' avanti non ha nessun nodo da evidenziare: al suo posto serve un
+  // messaggio che dica dove si trova e quando si aprira'.
+  const nodo = w.document.querySelector('[data-lesson="u5l7"]');
+  const avviso = w.document.querySelector('#lockedHint');
+  t('viene comunque detto qualcosa', !avviso.hidden, avviso.textContent);
+  if (nodo) {
+    t('il nodo, se disegnato, viene evidenziato', nodo.classList.contains('flagged'));
+    t('e gli si spiega perche\'', /still locked/.test(avviso.textContent), avviso.textContent);
+  } else {
+    t('il messaggio nomina la lezione cercata', /NOR and demurrage/.test(avviso.textContent), avviso.textContent);
+    t('dice in quale corso si trova e quando si aprira\'',
+      /Shipping/.test(avviso.textContent) && /opens once you reach/.test(avviso.textContent),
+      avviso.textContent);
+  }
   t('il progresso non è stato alterato', w.__LEARN__.state.done.length === 0);
   t('nessun errore runtime', errors.length === 0, errors.slice(0, 2).join('|'));
 }
@@ -56,8 +66,15 @@ const seed = done => ({ done, xp: 20 * done.length, best: {}, badges: {}, misses
 for (const q of ['?lesson=', '?lesson=nonesiste', '?lesson=../../etc/passwd', '?lesson=u1l1&lesson=u9l9']) {
   const { w, errors } = await boot({ query: q, seed: seed([]) });
   await pausa(50);
-  t(`"${q}" non rompe la pagina`, errors.length === 0 && w.document.querySelectorAll('.node').length === 103,
-    errors.slice(0, 1).join(''));
+  // il numero di livelli cambia col contenuto: si legge, non si scrive a mano
+  // si contano le lezioni dei desk effettivamente disegnati, non tutte:
+  // il percorso mostra solo il desk corrente e quelli gia' completati
+  const L = w.__LEARN__;
+  const attesi = L.UNITS
+    .filter(u => w.document.getElementById('unit-' + u.id))
+    .reduce((n, u) => n + u.lessons.length, 0);
+  t(`"${q}" non rompe la pagina`, errors.length === 0 && w.document.querySelectorAll('.node').length === attesi,
+    errors.slice(0, 1).join('') || `${w.document.querySelectorAll('.node').length} nodi`);
 }
 
 /* i link del glossario puntano tutti a lezioni reali */

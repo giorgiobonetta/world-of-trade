@@ -1,0 +1,22 @@
+import fs from 'fs';
+import vm from 'vm';
+import path from 'path';
+import { fileURLToPath } from 'url';
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+let pass=0,fail=0;const t=(n,ok,i='')=>{(ok?pass++:fail++);console.log(`${ok?'  ✓':'  ✗'} ${n}${!ok&&i?' — '+i:''}`)};
+const read=f=>fs.readFileSync(path.join(root,f),'utf8');
+const cloud=read('cloud.js'), social=read('social.js'), exp=read('experience.js'), idx=read(fs.existsSync(path.join(root,'landing.html'))?'landing.html':'index.html'), sql=read('SUPABASE-SETUP.md'), sw=read('sw.js');
+t('social module is loaded by the app',/<script(?: defer)? src="social\.js"><\/script>/.test(read('learn.html')));
+t('service worker caches social module',sw.includes("'social.js'"));
+t('LinkedIn/referral UI delegates to stable social code',exp.includes('window.WOT_SOCIAL?.referralUrl'));
+t('landing preserves referral before signup',idx.includes("wot_referrer_pending")&&idx.includes("p.get('ref')"));
+t('friend acceptance uses server-side RPC',cloud.includes('/rest/v1/rpc/accept_wot_referral'));
+t('client does not directly fabricate friendship rows',!cloud.includes('body:[{ pair_key'));
+t('challenge score is first-write only',cloud.includes('if (e.status === 409) return true')&&!sql.includes('friend_challenge_scores for update'));
+t('SQL restricts challenge creation to existing friends',sql.includes('duel creabile solo fra amici')&&sql.includes('from public.friendships f'));
+t('social tables are RLS protected', ['social_profiles','friendships','friend_challenges','friend_challenge_scores'].every(x=>sql.includes(`alter table public.${x} enable row level security`)));
+const ctx={window:{},Math,console};vm.createContext(ctx);for(const f of ['curriculum.js','content-engine.js'])vm.runInContext(read(f),ctx);
+const C=ctx.window.WOT_CONTENT;let bad=0;
+for(let i=0;i<500;i++){const w=C.worldCatalog[i%C.worldCatalog.length];const a=C.makeDeskSet('duel-'+i,10,w.id),b=C.makeDeskSet('duel-'+i,10,w.id);if(a.length!==10||JSON.stringify(a)!==JSON.stringify(b)||a.some(q=>q.worldId!==w.id||!C.validateExercise(q.ex)))bad++;}
+t('5,000 duel questions are deterministic and desk-consistent',bad===0,String(bad));
+console.log(`\nSocial v7.1: ${pass} passati, ${fail} falliti`);process.exitCode=fail?1:0;

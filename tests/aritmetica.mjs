@@ -22,7 +22,14 @@ const t = (n, c, i = '') => { c ? (ok++, console.log('  ✓ ' + n + (i ? ' — '
 const numeri = s => (String(s).match(/[\d][\d.,]*/g) || [])
   .map(x => parseFloat(x.replace(/,/g, ''))).filter(Number.isFinite);
 
-function candidati(n) {
+/* Alcune costanti non compaiono nel testo perché chi risolve deve saperle:
+   i giorni dell'anno, la base 360 dei calcoli finanziari, la conversione
+   percentuale. Vanno messe fra i numeri disponibili, altrimenti l'oracolo
+   segnala come irrisolvibili esercizi perfettamente corretti. */
+const COSTANTI = [100, 365, 360, 12, 30, 24, 1000];
+
+function candidati(nRaw) {
+  const n = nRaw.concat(COSTANTI);
   const c = new Set();
   const add = v => { if (Number.isFinite(v)) { c.add(v); c.add(-v); } };
   const N = n.length;
@@ -36,6 +43,15 @@ function candidati(n) {
         if (k === i || k === j) continue;
         add(n[i] - n[j] - n[k]);
         add((n[i] - n[j]) * n[k]); add((n[i] + n[j]) * n[k]);
+        add((n[i] - n[j]) / n[k]);                 // variazione media su un periodo
+        add(n[i] + n[j] + n[k]);                   // valore CIF: FOB più nolo più assicurazione
+        add(-n[i] + n[j] / (1 + n[k] / 100));      // attualizzazione a un periodo
+        add(n[i] * Math.sqrt(n[j]));               // VaR con la radice del tempo
+        add(n[i] * n[j] / 10000);                  // tassi in basis point
+        add(n[i] * n[j] / 10000 * n[k]);
+        add(n[i] * n[j] * n[k] / 10000);
+        add(n[i] / (n[j] / n[k]));                 // copertura: scorte ÷ consumo giornaliero
+        add(n[i] * n[j] / 100 - n[k]);             // resa percentuale meno un costo
         add(n[i] * n[j] + n[k]); add(n[i] * n[j] - n[k]); add(n[i] * n[j] * n[k]);
         add(n[i] * n[j] / n[k]); add(n[i] / n[j] * n[k]);
         add(n[i] * n[j] / 100 * n[k]); add(n[i] * n[j] / 100 / 360 * n[k]);
@@ -43,6 +59,14 @@ function candidati(n) {
         for (let m = 0; m < N; m++) {
           if ([i, j, k].includes(m)) continue;
           add(n[i] - n[j] - n[k] - n[m]);
+          add(n[i] * n[j] / 100 - n[k] - n[m]);     // resa meno feed meno conversione
+          add((n[i] - n[j] - n[k]) / n[m]);         // TCE: ricavi meno costi, diviso i giorni
+          add(n[i] * n[j] * n[k] + n[i] * n[m]);    // storage: giorni per tariffa, più il finanziamento
+          add(n[i] * n[j] / 10000 * n[k] / n[m]);   // basis point pro rata temporis
+          // valore attuale netto su due periodi
+          add(-n[i] + n[j] / (1 + n[m] / 100) + n[k] / Math.pow(1 + n[m] / 100, 2));
+          add(n[i] * n[j] / n[k] * n[m]);           // rendimento annualizzato
+          add(n[i] * n[j] / n[k] * n[m] * 100);
           add((n[i] - n[j] - n[k]) * n[m]);
           add((n[i] - n[j]) * n[k] / n[m]);
           add(n[i] * n[j] / 100 * n[k] / n[m]);

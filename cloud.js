@@ -44,6 +44,7 @@
   const FRIEND_TABLE = 'friendships';
   const CHALLENGE_TABLE = 'friend_challenges';
   const CHALLENGE_SCORE_TABLE = 'friend_challenge_scores';
+  const FRIEND_REQUEST_TABLE = 'friend_requests';
 
   const $ = s => document.querySelector(s);
   const esc = v => String(v ?? '').replace(/[&<>"']/g,
@@ -233,14 +234,14 @@
 
   async function socialProfileByUser(userId) {
     const uid = cleanUuid(userId); if (!uid) return null;
-    const rows = await call(`/rest/v1/${SOCIAL_PROFILE_TABLE}?select=user_id,alias,house,referral_code,created_at,updated_at&user_id=eq.${uid}&limit=1`, { method:'GET', auth:true });
+    const rows = await call(`/rest/v1/${SOCIAL_PROFILE_TABLE}?select=user_id,alias,house,referral_code,trader_tag,created_at,updated_at&user_id=eq.${uid}&limit=1`, { method:'GET', auth:true });
     return Array.isArray(rows) && rows[0] ? rows[0] : null;
   }
 
   async function socialProfileByCode(code) {
     const c = String(code||'').trim().replace(/[^A-Za-z0-9_-]/g,'').slice(0,24);
     if (!c) return null;
-    const rows = await call(`/rest/v1/${SOCIAL_PROFILE_TABLE}?select=user_id,alias,house,referral_code&referral_code=eq.${encodeURIComponent(c)}&limit=1`, { method:'GET', auth:true });
+    const rows = await call(`/rest/v1/${SOCIAL_PROFILE_TABLE}?select=user_id,alias,house,referral_code,trader_tag&referral_code=eq.${encodeURIComponent(c)}&limit=1`, { method:'GET', auth:true });
     return Array.isArray(rows) && rows[0] ? rows[0] : null;
   }
 
@@ -248,12 +249,16 @@
     const uid = idUtente(); if (!uid) return null;
     const alias = String(profile.alias || 'Trader').trim().replace(/\s+/g,' ').slice(0,24) || 'Trader';
     const code = String(profile.referral_code || '').trim().replace(/[^A-Za-z0-9_-]/g,'').slice(0,24);
+    const tagRaw = String(profile.trader_tag || '').trim().replace(/^@/,'').toLowerCase();
+    const traderTag = tagRaw ? tagRaw.replace(/[^a-z0-9_]/g,'').slice(0,20) : '';
     if (!code) throw new Error('Referral code is missing.');
+    const body = { user_id:uid, alias, house:profile.house || null, referral_code:code, updated_at:new Date().toISOString() };
+    if (traderTag) body.trader_tag = traderTag;
     const rows = await withFreshToken(() => call(`/rest/v1/${SOCIAL_PROFILE_TABLE}`, {
       method:'POST', auth:true, headers:{ Prefer:'resolution=merge-duplicates,return=representation' },
-      body:[{ user_id:uid, alias, house:profile.house || null, referral_code:code, updated_at:new Date().toISOString() }],
+      body:[body],
     }));
-    return Array.isArray(rows) && rows[0] ? rows[0] : { user_id:uid, alias, house:profile.house || null, referral_code:code };
+    return Array.isArray(rows) && rows[0] ? rows[0] : { ...body };
   }
 
   async function friendRows() {
@@ -266,7 +271,7 @@
   async function socialProfiles(userIds = []) {
     const ids = [...new Set((userIds||[]).map(cleanUuid).filter(Boolean))].slice(0,500);
     if (!ids.length) return [];
-    const rows = await call(`/rest/v1/${SOCIAL_PROFILE_TABLE}?select=user_id,alias,house,referral_code&user_id=in.(${ids.join(',')})`, { method:'GET', auth:true });
+    const rows = await call(`/rest/v1/${SOCIAL_PROFILE_TABLE}?select=user_id,alias,house,referral_code,trader_tag&user_id=in.(${ids.join(',')})`, { method:'GET', auth:true });
     return Array.isArray(rows) ? rows : [];
   }
 
@@ -338,6 +343,61 @@
       if (e.status === 409) return true;
       throw e;
     }
+  }
+
+  /* ── Account & social discovery v0.6 ─────────────────────────────── */
+  async function updatePassword(password) {
+    const value = String(password || '');
+    if (value.length < 8) throw new Error('Use at least 8 characters.');
+    const user = await withFreshToken(() => call('/auth/v1/user', {
+      method:'PUT', auth:true, body:{ password:value }
+    }));
+    return user || true;
+  }
+
+  async function deleteMyAccount() {
+    const uid = idUtente();
+    if (!uid) throw new Error('You are not signed in.');
+    await withFreshToken(() => call('/rest/v1/rpc/delete_wot_account', {
+      method:'POST', auth:true, body:{}
+    }));
+    putSession(null);
+    try { localStorage.removeItem(SESS); } catch (e) {}
+    return true;
+  }
+
+  async function searchSocialProfiles(query) {
+    const me = idUtente();
+    const q = String(query || '').trim().replace(/^@/,'').replace(/[^A-Za-z0-9_ .-]/g,'').slice(0,40);
+    if (q.length < 2) return [];
+    const safe = encodeURIComponent(`*${q}*`);
+    const path = `/rest/v1/${SOCIAL_PROFILE_TABLE}?select=user_id,alias,house,referral_code,trader_tag&or=(trader_tag.ilike.${safe},alias.ilike.${safe})&limit=20`;
+    const rows = await withFreshToken(() => call(path, { method:'GET', auth:true }));
+    return (Array.isArray(rows) ? rows : []).filter(r => r.user_id !== me);
+  }
+
+  async function friendRequestRows() {
+    const uid = idUtente(); if (!uid) return [];
+    const path = `/rest/v1/${FRIEND_REQUEST_TABLE}?select=id,pair_key,requester_id,addressee_id,status,created_at,responded_at&or=(requester_id.eq.${uid},addressee_id.eq.${uid})&order=created_at.desc&limit=200`;
+    const rows = await withFreshToken(() => call(path, { method:'GET', auth:true }));
+    return Array.isArray(rows) ? rows : [];
+  }
+
+  async function sendFriendRequest(addresseeId) {
+    const uid = idUtente(), other = cleanUuid(addresseeId);
+    if (!uid || !other || uid === other) throw new Error('Invalid trader.');
+    const rows = await withFreshToken(() => call('/rest/v1/rpc/send_wot_friend_request', {
+      method:'POST', auth:true, body:{ p_addressee:other }
+    }));
+    return Array.isArray(rows) && rows[0] ? rows[0] : null;
+  }
+
+  async function respondFriendRequest(requestId, accept) {
+    const rid = cleanUuid(requestId); if (!rid) throw new Error('Invalid friend request.');
+    const rows = await withFreshToken(() => call('/rest/v1/rpc/respond_wot_friend_request', {
+      method:'POST', auth:true, body:{ p_request:rid, p_accept:!!accept }
+    }));
+    return Array.isArray(rows) && rows[0] ? rows[0] : null;
   }
 
   /* ── fusione ──────────────────────────────────────────────────────── */
@@ -729,6 +789,8 @@
     signUp, signIn, pull, push, leagueRows, houseRows, pushLeague,
     socialProfileByUser, socialProfileByCode, upsertSocialProfile, friendRows, socialProfiles, acceptReferral, friendLeagueRows,
     createFriendChallenge, friendChallenges, friendChallengeScores, submitFriendChallengeScore,
+    searchSocialProfiles, friendRequestRows, sendFriendRequest, respondFriendRequest,
+    updatePassword, deleteMyAccount,
     sincronizza, merge, apri, chiudi, disegna, esci,
     vaiA, leggiRitorno, idUtente, chiUtente, aggiornaGate,
   });

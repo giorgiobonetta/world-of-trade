@@ -7,14 +7,22 @@ const leggi = f => fs.readFileSync(DIR + '/' + f, 'utf8');
 {
   const html = leggi('learn.html');
   for (const f of ['mascot.js','curriculum.js','content-engine.js','career.js','competitive.js','app.js','pwa.js','cloud.js','share.js','supabase-config.js'])
-    t('learn.html carica ' + f, html.includes(`<script src="${f}"></script>`));
+    t('learn.html carica ' + f, html.includes(`<script defer src="${f}"></script>`));
   t('mascot.js prima di app.js', html.indexOf('mascot.js') < html.indexOf('app.js'));
   t('content-engine.js tra curriculum e career', html.indexOf('curriculum.js') < html.indexOf('content-engine.js') && html.indexOf('content-engine.js') < html.indexOf('career.js'));
   t('career.js prima di app.js', html.indexOf('career.js') < html.indexOf('app.js'));
   t('competitive.js tra career e app', html.indexOf('career.js') < html.indexOf('competitive.js') && html.indexOf('competitive.js') < html.indexOf('app.js'));
-  t('cinque tab principali incluso League', (html.match(/class="nav-item/g)||[]).length === 5 && html.includes('data-screen="leagueScreen"'));
+  // le stesse cinque sezioni compaiono due volte: nella nav in alto per il
+  // desktop e nella barra in fondo per il telefono
+  t('cinque tab nella nav superiore, incluso League',
+    (html.match(/class="nav-item(?: active)?"/g) || []).length === 5 && html.includes('data-screen="leagueScreen"'));
+  t('e le stesse cinque nella barra in fondo',
+    (html.match(/class="nav-item tab-item/g) || []).length === 5);
   t('config prima di cloud.js', html.indexOf('supabase-config.js') < html.indexOf('cloud.js'));
-  const dichiarati = [...html.matchAll(/<script src="([^"]+)"><\/script>/g)].map(m => m[1]);
+  t('ogni script e\' differito, cosi\' non blocca il disegno della pagina',
+    (html.match(/<script defer src=/g) || []).length === (html.match(/<script src=|<script defer src=/g) || []).length,
+    `${(html.match(/<script defer src=/g) || []).length} su ${(html.match(/<script src=|<script defer src=/g) || []).length}`);
+  const dichiarati = [...html.matchAll(/<script(?: defer)? src="([^"]+)"><\/script>/g)].map(m => m[1]);
   // supabase-config.js è dichiarato dalla pagina ma non spedito: lo crea chi installa
   const presente = f => fs.existsSync(DIR + '/' + f) ||
     (f === 'supabase-config.js' && fs.existsSync(DIR + '/supabase-config.example.js'));
@@ -27,13 +35,31 @@ const leggi = f => fs.readFileSync(DIR + '/' + f, 'utf8');
   const { w, errors } = await boot();
   const L = w.__LEARN__;
   const es = L.allLessons.reduce((a, l) => a + l.exercises.length, 0);
-  t('20 unità, 103 livelli, 505 esercizi',
-    L.UNITS.length === 20 && L.allLessons.length === 103 && es === 505,
+  t('34 unità, 219 livelli, 1086 esercizi',
+    L.UNITS.length === 34 && L.allLessons.length === 219 && es === 1086,
     `${L.UNITS.length}u ${L.allLessons.length}l ${es}e`);
-  t('il percorso disegna un nodo per lezione', w.document.querySelectorAll('.node').length === 103);
-  t('solo la prima è aperta',
-    w.document.querySelectorAll('.node.next').length === 1 &&
-    w.document.querySelectorAll('.node.locked').length === 102);
+  // derivato dal contenuto: l'invariante è "un nodo per lezione", non "103 nodi"
+  // Il percorso mostra soltanto il desk corrente e quelli gia' completati:
+  // i futuri non vengono disegnati affatto. L'invariante non e' piu' "un nodo
+  // per lezione dell'intero corso", ma "un nodo per lezione di cio' che si vede".
+  {
+    const visibili = L.UNITS.filter(u => w.document.getElementById('unit-' + u.id));
+    const attesi = visibili.reduce((n, u) => n + u.lessons.length, 0);
+    t('il percorso disegna un nodo per ogni lezione visibile',
+      w.document.querySelectorAll('.node').length === attesi,
+      `${w.document.querySelectorAll('.node').length} nodi per ${attesi} lezioni in ${visibili.length} desk`);
+    t('a inizio percorso si vede un solo desk', visibili.length === 1,
+      visibili.map(u => u.id).join(' '));
+  }
+  // un solo nodo è "il prossimo passo"; le aperture di unità sono accessibili
+  // ma marcate diversamente, e tutto il resto resta chiuso
+  {
+    const q = s => w.document.querySelectorAll(s).length;
+    t('un solo nodo è il passo successivo', q('.node.next') === 1, String(q('.node.next')));
+    t('ogni nodo disegnato ha uno stato riconoscibile',
+      q('.node.next') + q('.node.taster') + q('.node.locked') + q('.node.done') === q('.node'),
+      `${q('.node.locked')} chiuse su ${q('.node')}`);
+  }
   t('le bloccate non sono cliccabili',
     [...w.document.querySelectorAll('.node.locked')].every(n => n.disabled));
   t('ogni esercizio ha una spiegazione',
@@ -58,8 +84,11 @@ const leggi = f => fs.readFileSync(DIR + '/' + f, 'utf8');
 /* ── ripasso e checkpoint ── */
 {
   const now = Date.now();
-  const { w } = await boot({ seed: { done: ['u1l1','u1l2','u1l3','u1l4'], xp: 80, best: {}, badges: {},
-    misses: { 'u1l2#1': 3 }, doneAt: { u1l1: now, u1l2: now, u1l3: now, u1l4: now }, reviews: 0, updatedAt: 1 } });
+  // il primo desk del percorso ha sei livelli: servono tutti perché il
+  // checkpoint compaia, e uno solo deve comparire
+  const fatte = ['u1l1','u1l2','u1l3','u1l4','u1l5','u1l6'];
+  const { w } = await boot({ seed: { rev: 2, done: fatte, xp: 80, best: {}, badges: {},
+    misses: { 'u1l2#1': 3 }, doneAt: Object.fromEntries(fatte.map(id => [id, now])), reviews: 0, updatedAt: 1 } });
   const L = w.__LEARN__;
   t('la card di ripasso compare', !!w.document.querySelector('#reviewButton'));
   const items = L.reviewItems();
@@ -68,8 +97,12 @@ const leggi = f => fs.readFileSync(DIR + '/' + f, 'utf8');
   t('solo da lezioni completate', items.every(i => L.state.done.includes(i.lessonId)));
   t('un solo checkpoint disponibile', w.document.querySelectorAll('[data-check]').length === 1);
   const cp = L.checkpointItems(L.UNITS[0]);
+  // otto domande distribuite su tutte le lezioni del corso, non su una sola:
+  // il numero di lezioni si legge dal contenuto, così il test non si rompe
+  // quando un corso cresce
   t('il checkpoint pesca 8 domande su tutte le lezioni',
-    cp.length === 8 && new Set(cp.map(x => x.lessonId)).size === 4);
+    cp.length === 8 && new Set(cp.map(x => x.lessonId)).size === Math.min(8, L.UNITS[0].lessons.length),
+    `${cp.length} domande su ${new Set(cp.map(x => x.lessonId)).size} lezioni di ${L.UNITS[0].lessons.length}`);
   // i salvagenti ora sono un fondo unico: al checkpoint non si danno vite in più,
   // gli si chiede un minimo per poter arrivare a un punteggio
   t('un checkpoint richiede un minimo di salvagenti', L.CHECK_MIN_LIVES >= 3, String(L.CHECK_MIN_LIVES));
@@ -198,7 +231,10 @@ const leggi = f => fs.readFileSync(DIR + '/' + f, 'utf8');
   t('le due misure hanno lo stesso rapporto', Math.abs(a.w / a.h - b.w / b.h) < 0.02);
   t('le icone dell\'app restano opache (a un\'icona serve il fondo)',
     !png('world-of-trade-premium-icon-192.png').alpha && !png('icon-maskable-512.png').alpha);
-  const land = leggi('index.html');
+  // la landing ha cambiato nome fra le versioni: si cerca, non si indovina
+  const nomeLanding = ['landing.html','index.html'].find(f => /logo-crest/.test(leggi(f)));
+  const land = nomeLanding ? leggi(nomeLanding) : '';
+  t('la landing con i loghi è stata trovata', !!nomeLanding, nomeLanding || 'nessuna');
   t('i loghi hanno un nome versionato',
     /logo-crest-\d+\.(webp|png)/.test(land) && !/premium-logo/.test(land));
 }

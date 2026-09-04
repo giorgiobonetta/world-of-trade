@@ -5,7 +5,7 @@ export const DIR = path.resolve(new URL('.', import.meta.url).pathname, '..');
 
 /* Carica la pagina eseguendo ESATTAMENTE gli script che dichiara, nel suo ordine.
    Elencarli a mano qui dentro nascose una volta un <script> dimenticato. */
-export async function boot({ seed, sessione, cloud = false, sb, hash = '', query = '', css = false, pagina = 'learn.html', readyState } = {}) {
+export async function boot({ seed, sessione, locale, cloud = false, sb, hash = '', query = '', css = false, pagina = 'learn.html', readyState } = {}) {
   const errors = [];
   const vc = new VirtualConsole();
   // jsdom segnala al virtual console anche le API che non implementa (canvas, ecc.).
@@ -33,9 +33,16 @@ export async function boot({ seed, sessione, cloud = false, sb, hash = '', query
     url: 'https://wot.test/' + pagina.replace('.html', '') + query + hash, virtualConsole: vc });
   const w = dom.window;
   w.confirm = () => true;
+  // jsdom non implementa matchMedia: senza stub ogni chiamata diretta esplode
+  // e il test riporta un errore che nel browser reale non esiste
+  if (!w.matchMedia) w.matchMedia = q => ({ matches: false, media: q,
+    addEventListener(){}, removeEventListener(){}, addListener(){}, removeListener(){}, onchange: null });
   w.scrollTo = () => {};
   if (sb) w.fetch = sb.fetch;
   if (seed !== undefined) w.localStorage.setItem('wot-learn-v1', JSON.stringify(seed));
+  // chiavi arbitrarie: servono a simulare un visitatore di ritorno, che è
+  // uno stato diverso dal primo avvio e va provato separatamente
+  if (locale) for (const [k, v] of Object.entries(locale)) w.localStorage.setItem(k, String(v));
   if (sessione !== undefined) w.localStorage.setItem('wot-cloud-session', JSON.stringify(sessione));
 
   // Per riprodurre davvero "il documento era già pronto quando lo script è partito"
@@ -51,7 +58,7 @@ export async function boot({ seed, sessione, cloud = false, sb, hash = '', query
     await pausa(20);
   }
   if (readyState) Object.defineProperty(w.document, 'readyState', { value: readyState, configurable: true });
-  const srcs = [...html.matchAll(/<script src="([^"]+)"><\/script>/g)].map(m => m[1]);
+  const srcs = [...html.matchAll(/<script(?: defer)? src="([^"]+)"><\/script>/g)].map(m => m[1]);
   if (!srcs.length) errors.push('nessuno script dichiarato in ' + pagina);
   for (const f of srcs) {
     if (f === 'pwa.js') continue;                       // testato a parte
@@ -84,7 +91,15 @@ export function solver(w, L) {
   const $ = s => w.document.querySelector(s);
   const $$ = s => [...w.document.querySelectorAll(s)];
   const click = e => e && e.dispatchEvent(new w.Event('click', { bubbles: true }));
+  /* Hélène presenta un concetto prima della domanda che lo introduce. Per
+     un test che vuole rispondere, quella scheda è un passaggio da superare,
+     non l'oggetto della prova: chi vuole verificarla la guarda apposta. */
+  const superaPresentazione = () => {
+    let giri = 0;
+    while (L && L.run && L.run.state === 'insegna' && giri++ < 5) L.onCheck();
+  };
   const giusto = ex => {
+    superaPresentazione();
     if (ex.type === 'choice') click($$('.opt')[ex.answer]);
     else if (ex.type === 'numeric') { const i = $('#numInput'); i.value = String(ex.answer); i.dispatchEvent(new w.Event('input', { bubbles: true })); }
     else if (ex.type === 'order') { for (let r = 0; r < 12; r++) for (let p = 0; p < L.run.order.length - 1; p++) if (L.run.order[p].i > L.run.order[p + 1].i) click($$('[data-mv="down"]')[p]); }
@@ -92,13 +107,19 @@ export function solver(w, L) {
     else if (ex.type === 'build') ex.sentence.slice(1).forEach(word => click($$('[data-add]').find(x => x.dataset.word === word)));
   };
   const sbagliato = ex => {
+    superaPresentazione();
     if (ex.type === 'choice') { click($$('.opt')[[0, 1, 2, 3].find(k => k !== ex.answer && $$('.opt')[k])]); return true; }
     if (ex.type === 'numeric') { const i = $('#numInput'); i.value = String((ex.answer || 0) + 7777); i.dispatchEvent(new w.Event('input', { bubbles: true })); return true; }
     return false;    // gli altri tipi non si sbagliano in modo deterministico
   };
   async function gioca(max = 90) {
+    // Se la lezione non si è aperta — perché è bloccata, o perché l'id non
+    // esiste — la schermata di fine della lezione PRECEDENTE è ancora attiva
+    // e il risultato sembrerebbe positivo. Va detto subito che non è partita.
+    if (!$('#lessonScreen').classList.contains('active')) return false;
     let g = 0;
     while ($('#lessonScreen').classList.contains('active') && g++ < max) {
+      superaPresentazione();
       const ex = L.run?.current?.ex; if (!ex) break;
       giusto(ex); await pausa(10);
       click($('#checkButton')); await pausa(10);
@@ -107,7 +128,7 @@ export function solver(w, L) {
     }
     return $('#doneScreen').classList.contains('active');
   }
-  return { $, $$, click, giusto, sbagliato, gioca };
+  return { $, $$, click, giusto, sbagliato, gioca, superaPresentazione };
 }
 
 /* Piccolo raccoglitore di asserzioni condiviso da tutte le suite. */
@@ -119,6 +140,10 @@ export function suite(nome) {
     ok.forEach(l => console.log('  ✓ ' + l));
     if (ko.length) { console.log(''); ko.forEach(l => console.log('  ✗ ' + l)); }
     process.exitCode = ko.length ? 1 : 0;
+    // L'app programma timer che in un browser devono restare vivi (la ricarica
+    // dei salvagenti). In un test tengono vivo il processo all'infinito, quindi
+    // si esce di proposito, ma solo dopo che l'output è stato scritto davvero.
+    process.stdout.write('', () => process.exit(process.exitCode));
     return ko.length;
   };
   return t;

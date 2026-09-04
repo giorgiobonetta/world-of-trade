@@ -1,7 +1,6 @@
-/* I salvagenti sono una risorsa persistente, non tre vite che ricominciano
-   ogni volta. Regole: spenderne uno lo toglie davvero; il Ripasso non ne
-   consuma ed è la via per riguadagnarli; dieci risposte giuste di fila ne
-   restituiscono uno. */
+/* I salvagenti sono una risorsa persistente. Spenderne uno lo toglie
+   davvero; Practice non ne consuma. Dal v0.5.1 tornano solo con il timer:
+   nessuno streak può rigenerarli istantaneamente. */
 import { boot, solver, suite, pausa, DIR } from './harness.mjs';
 import fs from 'fs';
 const t = suite('Salvagenti');
@@ -16,6 +15,8 @@ const base = { done: [], xp: 0, best: {}, badges: {}, misses: {}, doneAt: {},
   t('il contatore in alto lo mostra', S.$('#statLives').textContent === String(L.MAX_LIVES));
 
   L.startLesson('u1l1');
+
+  S.superaPresentazione();
   const ex = L.run.current.ex;
   S.sbagliato(ex); L.onCheck();
   t('sbagliare toglie un salvagente dal fondo', L.state.lives === L.MAX_LIVES - 1,
@@ -27,6 +28,7 @@ const base = { done: [], xp: 0, best: {}, badges: {}, misses: {}, doneAt: {},
   S.click(S.$('#quitButton'));
   t('uscire dalla lezione non le restituisce', L.state.lives === L.MAX_LIVES - 1);
   L.startLesson('u1l1');
+  S.superaPresentazione();
   t('e ricominciando si riparte da quelle che restano', L.run.hearts === L.MAX_LIVES - 1,
     'run: ' + L.run.hearts);
   t('nessun errore runtime', errors.length === 0, errors.slice(0, 2).join('|'));
@@ -51,6 +53,7 @@ const base = { done: [], xp: 0, best: {}, badges: {}, misses: {}, doneAt: {},
     done: ['u1l1','u1l2'], doneAt: { u1l1: now, u1l2: now } } });
   const L = w.__LEARN__, S = solver(w, L);
   L.startLesson('u1l3');
+  S.superaPresentazione();
   t('senza salvagenti la lezione non parte',
     !S.$('#lessonScreen').classList.contains('active'));
   t('e viene spiegato perché', !S.$('#lockedHint').hidden &&
@@ -69,37 +72,28 @@ const base = { done: [], xp: 0, best: {}, badges: {}, misses: {}, doneAt: {},
   t('nessun errore runtime', errors.length === 0, errors.slice(0, 2).join('|'));
 }
 
-/* ── dieci risposte giuste di fila ne restituiscono uno ── */
+/* ── gli streak non rigenerano più salvagenti ── */
 {
-  const { w, errors } = await boot({ seed: { ...base, lives: 2, streakNow: 9 } });
+  const { w, errors } = await boot({ seed: { ...base, lives: 2, livesAt: Date.now(), streakNow: 9 } });
   const L = w.__LEARN__, S = solver(w, L);
-  t('la soglia è dichiarata', L.STREAK_PER_LIFE === 10, String(L.STREAK_PER_LIFE));
+  t('la rigenerazione istantanea tramite serie è disattivata', L.STREAK_PER_LIFE === 0, String(L.STREAK_PER_LIFE));
   L.startLesson('u1l1');
+  S.superaPresentazione();
   S.giusto(L.run.current.ex); L.onCheck();
-  t('alla decima risposta giusta si riguadagna un salvagente',
-    L.state.lives === 3, `2 → ${L.state.lives}`);
-  t('il contatore lo mostra', S.$('#statLives').textContent === '3');
-  t('viene annunciato', !S.$('#streakToast').hidden &&
-    /Lifebuoy earned/.test(S.$('#streakToast').textContent),
-    S.$('#streakToast').textContent.replace(/\s+/g, ' ').trim().slice(0, 44));
-  t('l\'annuncio dice quanti ne hai', /3 of 5/.test(S.$('#streakToast').textContent));
-  t('il contatore dei recuperi cresce', L.state.livesEarned === 1);
+  t('alla decima risposta giusta il fondo resta invariato', L.state.lives === 2, `2 → ${L.state.lives}`);
+  t('non compare un premio lifebuoy', !/Lifebuoy earned/.test(S.$('#streakToast').textContent || ''));
+  t('la serie continua comunque a crescere', L.state.streakNow === 10, String(L.state.streakNow));
   t('nessun errore runtime', errors.length === 0, errors.slice(0, 2).join('|'));
-}
-{
-  const { w } = await boot({ seed: { ...base, lives: 5, streakNow: 9 } });
-  const L = w.__LEARN__, S = solver(w, L);
-  L.startLesson('u1l1');
-  S.giusto(L.run.current.ex); L.onCheck();
-  t('col fondo pieno non si supera il massimo', L.state.lives === L.MAX_LIVES);
-  t('e non viene annunciato nulla', !/Lifebuoy earned/.test(S.$('#streakToast').textContent || ''));
 }
 
 /* ── anche la soluzione rivelata paga dal fondo ── */
 {
   const { w } = await boot({ seed: { ...base, lives: 4 } });
-  const L = w.__LEARN__;
+  // il solver è legato alla finestra: senza ricrearlo qui `S` non esiste
+  // in questo blocco e la suite si interrompeva prima di ogni asserzione
+  const L = w.__LEARN__, S = solver(w, L);
   L.startLesson('u1l1');
+  S.superaPresentazione();
   L.rivela();
   t('rivelare la soluzione toglie un salvagente vero', L.state.lives === 3, `4 → ${L.state.lives}`);
 }
@@ -107,8 +101,10 @@ const base = { done: [], xp: 0, best: {}, badges: {}, misses: {}, doneAt: {},
 /* ── il checkpoint pretende abbastanza salvagenti per dare un punteggio ── */
 {
   const now = Date.now();
-  const fatte = ['u1l1','u1l2','u1l3','u1l4'];
-  const seedU1 = v => ({ ...base, lives: v, done: fatte,
+  // il primo desk del percorso ha sei livelli: il checkpoint compare solo
+  // quando sono tutti fatti, quindi l'elenco va letto dal contenuto
+  const fatte = ['u1l1','u1l2','u1l3','u1l4','u1l5','u1l6'];
+  const seedU1 = v => ({ ...base, rev: 2, lives: v, done: fatte,
     doneAt: Object.fromEntries(fatte.map(id => [id, now])) });
   {
     const { w } = await boot({ seed: seedU1(2) });
@@ -140,8 +136,27 @@ const base = { done: [], xp: 0, best: {}, badges: {}, misses: {}, doneAt: {},
   t('e il ruolo pure', /careerHero/.test(prof));
   t('il Path conserva il percorso dei livelli', /id="pathBody"/.test(path));
   t('e dice dove è finito il resto', /in Profile/.test(path));
-  const { w } = await boot({ seed: base });
-  t('la mappa viene comunque disegnata', w.document.querySelectorAll('#worldMapHost .world-card').length >= 8,
-    w.document.querySelectorAll('#worldMapHost .world-card').length + ' desk');
+  // La mappa segue la stessa regola del percorso: si vede il desk corrente e
+  // quelli gia' finiti, non quelli futuri. Chi comincia vede quindi una sola
+  // scheda, e cio' che va verificato non e' piu' "almeno otto" ma che la
+  // mappa cresca man mano invece di restare vuota.
+  {
+    const nuovo = await boot({ seed: base });
+    const primi = nuovo.w.document.querySelectorAll('#worldMapHost .world-card').length;
+    t('a inizio percorso la mappa mostra almeno il desk corrente', primi >= 1, primi + ' desk');
+
+    // i 16 desk del percorso sono un'unica scheda "Core Trading Path":
+    // per veder crescere la mappa bisogna arrivare ai desk specialistici.
+    // rev: gli id sono letti dal contenuto corrente, quindi il salvataggio
+    // va marcato come già migrato o la mappa li tradurrebbe di nuovo
+    const L2 = nuovo.w.__LEARN__;
+    const corsi = L2.UNITS.filter(u => /^u\d+$/.test(u.id));
+    const avanti = { ...base, rev: 2, done: corsi.flatMap(u => u.lessons.map(l => l.id)) };
+    const dopo = await boot({ seed: avanti });
+    const poi = dopo.w.document.querySelectorAll('#worldMapHost .world-card').length;
+    t('e cresce man mano che si avanza', poi > primi, `${primi} → ${poi} desk`);
+    t('senza mai mostrare desk non ancora raggiunti',
+      poi <= dopo.w.__LEARN__.UNITS.length, `${poi} su ${dopo.w.__LEARN__.UNITS.length}`);
+  }
 }
 t.fine();

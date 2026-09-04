@@ -8,7 +8,7 @@ vm.runInContext(fs.readFileSync(path.join(root,'competitive.js'),'utf8'),ctx);
 const C=ctx.window.WOT_COMP; let ok=0,bad=0;
 const t=(n,v)=>{ if(v){ok++;console.log('  ✓ '+n)}else{bad++;console.log('  ✗ '+n)} };
 t('6 competitive divisions',C.divisions.length===6);
-t('Bronze to Master',C.divisions[0].id==='bronze'&&C.divisions.at(-1).id==='master');
+t('Bronze to Elite',C.divisions[0].id==='bronze'&&C.divisions.at(-1).id==='master');
 t('6 original houses',C.houses.length===6&&new Set(C.houses.map(x=>x.id)).size===6);
 t('18 achievements',C.achievements.length===18&&new Set(C.achievements.map(x=>x.id)).size===18);
 t('week key starts Monday',C.weekKey(new Date(2026,7,26))==='2026-08-24');

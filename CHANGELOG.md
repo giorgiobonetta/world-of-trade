@@ -1,5 +1,24 @@
 # Changelog
 
+## v0.6.0 — Account & Social
+- Added Account & Settings from Profile with email verification state, password change, sign out, haptic preference and delete-account flow.
+- Added unique searchable `@TraderID` backed by `social_profiles.trader_tag`.
+- Reorganized League into League / Friends / Challenges.
+- Added trader search, real friend requests, request badges, friend profiles, Friends League and challenge history with W/L/D record.
+- Existing referral friendships and deterministic desk duels are preserved.
+- Added Supabase v0.6 migration SQL for trader IDs, friend requests and self-service account deletion.
+- PWA cache bumped to v52.
+
+## v0.5.5 — Reward & Progression Pass
+- Current Career assignment is highlighted more clearly and labelled CURRENT.
+- Level completion now shows promotion progress from the current role to the next role.
+- Newly unlocked achievements surface immediately on the completion screen.
+- New desks receive a full-screen milestone celebration with a direct Enter Desk action.
+- Career-rank promotions receive their own milestone celebration.
+- Reward overlays queue safely instead of stacking when several milestones unlock together.
+- Existing editable Profile and Practice-canvas fixes from v0.5.4 are preserved.
+- PWA cache bumped to v51 and core assets cache-busted to v0.5.5.
+
 ## v0.5.1 — Lifebuoy Economy
 - Lifebuoys no longer regenerate instantly after being spent.
 - Automatic regeneration is 1 lifebuoy every 6 minutes, up to 5.

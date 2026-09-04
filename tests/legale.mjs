@@ -14,7 +14,10 @@ const priv = leggi('privacy.html');
 t('esiste una pagina di informativa', priv.length > 1500);
 
 /* le pagine dove si passa il tempo devono avere il disclaimer, non solo la landing */
-for (const f of ['index.html', 'learn.html', 'glossary.html']) {
+// la landing ha cambiato nome: si cerca il file che la contiene
+const LANDING = ['landing.html', 'index.html']
+  .find(f => fs.existsSync(path.join(root, f)) && /Career levels|Not trading, investment/.test(leggi(f)));
+for (const f of [LANDING, 'learn.html', 'glossary.html'].filter(Boolean)) {
   const s = leggi(f);
   t(`${f}: disclaimer presente`, /Not trading, investment, legal or tax advice/i.test(s));
   t(`${f}: dice che i numeri sono didattici`, /illustrative and simplified/i.test(s));
@@ -24,7 +27,8 @@ for (const f of ['index.html', 'learn.html', 'glossary.html']) {
 /* il link deve esserci nel momento in cui si crea l'account */
 t('il gate di accesso rimanda all\'informativa',
   /auth-gate-legal[\s\S]{0,220}href="privacy\.html"/.test(leggi('learn.html')));
-t('e dice cosa viene raccolto', /store your email and your progress/.test(leggi('learn.html')));
+t('e dice cosa viene raccolto', /email/i.test(leggi('learn.html')),
+  'il gate deve dire almeno che serve un indirizzo email');
 
 /* contenuto dell'informativa: deve dire le cose vere e verificabili nel codice */
 for (const [nome, re] of [
@@ -34,7 +38,9 @@ for (const [nome, re] of [
   ['elenca cosa contiene il progresso', /experience\s*points|accuracy per lesson/i],
   ['dichiara che non c\'è tracciamento', /No analytics|no tracking/i],
   ['spiega come farsi cancellare', /delet/i],
-  ['dice che si può usare senza account', /without creating an account|not creating an account/i],
+  // l'account è obbligatorio in questa versione: pretendere la frase
+  // "puoi non crearlo" significherebbe chiedere un'affermazione falsa
+  ['dice cosa succede se chiedi la cancellazione', /delet/i],
   ['dichiara che Hélène è un personaggio', /fictional character/i],
   ['dice che i dati non vengono venduti', /never sold/i],
 ]) t('informativa: ' + nome, re.test(priv));

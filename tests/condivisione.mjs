@@ -98,7 +98,7 @@ const seed = n => ({ done: ['u1l1'], xp: 30, best: { u1l1: 100 }, badges: {}, mi
 {
   const html = fs.readFileSync(DIR + '/learn.html', 'utf8');
   const sw = fs.readFileSync(DIR + '/sw.js', 'utf8');
-  t('share.js è dichiarato nella pagina', /<script src="share\.js"><\/script>/.test(html));
+  t('share.js è dichiarato nella pagina', /<script(?: defer)? src="share\.js"><\/script>/.test(html));
   t('caricato dopo app.js (gli serve lo stato)', html.indexOf('app.js') < html.indexOf('share.js'));
   t('è nella shell offline', /'share\.js'/.test(sw));
   // il numero cresce a ogni rilascio: qui basta che il formato regga
