@@ -1,3 +1,16 @@
+# Changelog
+
+## v0.5.0 — Core Experience
+- First-run onboarding reduced to two fast, gameplay-first screens.
+- Hélène gives a concise desk briefing only when entering a desk for the first time.
+- Career runs show Desk / Level context and an explicit decision counter.
+- Progress now advances only when a decision is actually resolved, so wrong-answer retries cannot falsely fill the bar.
+- Career language uses decisions, clears and Desk Challenges rather than school/test language.
+- End-of-level reward screen now shows XP, first-try rate, lifebuoys, rank context and the next assignment.
+- New-desk unlock has a stronger visual reward and direct Enter Desk CTA.
+- Each new decision returns to a clean top position in immersive gameplay.
+- No new modes or curriculum content were added in this pass.
+
 # v0.4.6 — Game Experience Pass
 
 - Immediate visual + optional haptic feedback on answers.

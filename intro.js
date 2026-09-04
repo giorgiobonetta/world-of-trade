@@ -1,9 +1,6 @@
-/* World of Trade — introduzione al primo avvio.
-   Tre schermate, saltabili, mostrate una volta sola. Esistono perché chi
-   apre l'app la prima volta non ha modo di sapere cosa sono i salvagenti,
-   perché Practice è gratis, o che sotto al percorso ci sono altre quattro
-   modalità. Chi valuta l'app la apre una volta: se non capisce in venti
-   secondi cosa ha davanti, non lo capirà mai. */
+/* World of Trade — first-run onboarding.
+   v0.5 deliberately teaches only what the player needs to make the first
+   decision. The rest of the product is discovered by playing. */
 (function () {
   'use strict';
 
@@ -11,21 +8,15 @@
 
   const PASSI = [
     {
-      titolo: 'Physical commodity trading, one level at a time',
-      copia: 'Not theory for its own sake: the mechanics a desk actually uses — buying a cargo, moving it, financing it, and keeping the margin once costs and risk have taken their share.',
-      punti: ['34 desks, 219 levels', 'Every answer comes with the reasoning behind it', 'Complete each desk to reveal the next one'],
+      titolo: 'Welcome to the trading floor',
+      copia: 'I’m Hélène. Your first assignment starts on Desk 1. Each level is a short set of real trading decisions; make the call, see the desk logic, then move straight on.',
+      punti: ['Start at Desk 1', 'Short levels built around real trade mechanics', 'Every answer explains why the desk would make that call'],
       faccia: 'teach',
     },
     {
-      titolo: 'Lifebuoys are the cost of a wrong answer',
-      copia: 'You hold five. A wrong answer costs one, and revealing an answer costs one too. They come back on their own — one every twenty minutes, even with the app closed — or immediately with ten correct answers in a row.',
-      punti: ['Five lifebuoys', 'One back every 20 minutes', 'Practice never costs one'],
-      faccia: 'oops',
-    },
-    {
-      titolo: 'The career path is not the whole app',
-      copia: 'Path is your career progression. Trading Floor holds the shorter game formats, Practice returns the questions you got wrong, and League puts your week against everyone else’s.',
-      punti: ['Play · Flash, Deal of the Day, Boss Deals, Floor Run', 'Practice · weighted towards your mistakes', 'League · six divisions, weekly'],
+      titolo: 'Protect the book. Keep moving.',
+      copia: 'A wrong answer costs one lifebuoy. Good runs build your streak and XP. Clear every level in the desk and the next desk opens automatically.',
+      punti: ['5 lifebuoys', 'Correct streaks can earn one back', 'Clear the desk to unlock your next assignment'],
       faccia: 'happy',
     },
   ];
@@ -49,39 +40,52 @@
     $('#introTitle').textContent = p.titolo;
     $('#introCopy').textContent = p.copia;
     $('#introStepNow').textContent = String(i + 1);
+    const total = document.querySelector('#introDialog .intro-step');
+    if (total) total.lastChild.textContent = ` of ${PASSI.length}`;
     $('#introList').innerHTML = p.punti
       .map(x => '<li>' + x.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])) + '</li>')
       .join('');
     const art = $('#introArt');
     if (art) art.innerHTML = window.MASCOT ? window.MASCOT.svg(p.faccia, 84) : '';
-    document.querySelectorAll('.intro-dots i').forEach((d, k) => d.classList.toggle('on', k === i));
-    $('#introNext').textContent = i === PASSI.length - 1 ? 'Start' : 'Next';
+    document.querySelectorAll('.intro-dots i').forEach((d, k) => {
+      d.hidden = k >= PASSI.length;
+      d.classList.toggle('on', k === i);
+    });
+    $('#introNext').textContent = i === PASSI.length - 1 ? 'Go to Desk 1' : 'Next';
     $('#introSkip').hidden = i === PASSI.length - 1;
   }
 
   function avanti() {
     if (i < PASSI.length - 1) { i += 1; disegna(); $('#introNext').focus(); return; }
-    chiudi();
+    chiudi(true);
   }
 
-  function chiudi() {
+  function chiudi(portaAlPrimoLivello = false) {
     segnaVisto();
     const d = dlg();
     if (d) d.hidden = true;
     document.removeEventListener('keydown', tasti, true);
-    // il focus torna dove stava, altrimenti chi naviga da tastiera si perde
-    try { (ultimoFocus || document.querySelector('.node.next') || document.body).focus(); } catch (e) {}
+    const first = document.querySelector('.node.next');
+    if (portaAlPrimoLivello && first) {
+      try { first.scrollIntoView({ block:'center', behavior:'smooth' }); } catch (e) {}
+      first.classList.remove('first-callout');
+      void first.offsetWidth;
+      first.classList.add('first-callout');
+      setTimeout(() => first.classList.remove('first-callout'), 1800);
+      try { first.focus(); } catch (e) {}
+      return;
+    }
+    try { (ultimoFocus || first || document.body).focus(); } catch (e) {}
   }
 
   function tasti(e) {
     const d = dlg();
     if (!d || d.hidden) return;
-    if (e.key === 'Escape') { e.preventDefault(); chiudi(); return; }
+    if (e.key === 'Escape') { e.preventDefault(); chiudi(false); return; }
     if (e.key === 'Enter' || e.key === ' ') {
       if (document.activeElement === $('#introSkip')) return;
       e.preventDefault(); avanti(); return;
     }
-    // il fuoco non deve poter uscire dalla finestra
     if (e.key !== 'Tab') return;
     const dentro = [...d.querySelectorAll('button')].filter(b => !b.hidden && !b.disabled);
     if (!dentro.length) return;
@@ -107,17 +111,14 @@
     const d = dlg();
     if (!d) return;
     $('#introNext').addEventListener('click', avanti);
-    $('#introSkip').addEventListener('click', chiudi);
-    // il fondo scuro chiude: è quello che ci si aspetta da una finestra così
-    d.addEventListener('click', e => { if (e.target === d) chiudi(); });
+    $('#introSkip').addEventListener('click', () => chiudi(false));
+    d.addEventListener('click', e => { if (e.target === d) chiudi(false); });
     const replay = $('#introReplay');
     if (replay) replay.addEventListener('click', () => apri(true));
-    // l'app è già visibile dietro: si apre solo se non è mai stata vista
     apri(false);
   }
 
-  // esposta per il Profilo ("rivedi l'introduzione") e per i test
-  window.INTRO = { apri: () => apri(true), chiudi, visto, CHIAVE, passi: () => PASSI.length,
+  window.INTRO = { apri: () => apri(true), chiudi: () => chiudi(false), visto, CHIAVE, passi: () => PASSI.length,
                    get indice() { return i; } };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', collega);

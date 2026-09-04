@@ -684,13 +684,13 @@
         const weak = l.exercises.reduce((n, _, i) => n + (state.misses[exKey(l.id, i)] > 0 ? 1 : 0), 0);
         return `${li ? '<div class="connector"></div>' : ''}
           <button class="node ${cls}${done && weak ? ' weak' : ''}" data-lesson="${esc(l.id)}" ${locked ? 'disabled aria-disabled="true"' : ''}>
-            ${isNext ? '<span class="tag">Start</span>' : ''}
+            ${isNext ? '<span class="tag">Next</span>' : ''}
             <span class="medal" aria-hidden="true">${medal}</span>
             <span><strong>${esc(l.title)}</strong>
               <small>${done
-                ? (weak ? `${weak} to review` : `Completed · ${acc != null ? acc + '% accuracy' : 'done'}`)
-                : locked ? 'Complete the subsection above first'
-                : `${l.exercises.length} questions`}</small></span>
+                ? (weak ? `${weak} to review` : `Cleared · ${acc != null ? acc + '% first try' : 'done'}`)
+                : locked ? 'Clear the level above first'
+                : `${l.exercises.length} decisions · ready`}</small></span>
           </button>`;
       }).join('');
       const badge = state.badges[u.id];
@@ -708,14 +708,14 @@
         <div class="unit-head">
           ${scena ? `<div class="unit-scene" aria-hidden="true">${scena}</div>` : ''}
           <span class="n">Desk ${ui + 1} · ${esc(meta.division || 'Foundations')}</span>
-          ${badge ? `<span class="unit-badge" title="Checkpoint passed">★ ${badge}%</span>` : ''}
+          ${badge ? `<span class="unit-badge" title="Desk Challenge cleared">★ ${badge}%</span>` : ''}
           <h2>${esc(u.title)}</h2>
           <p>${esc(u.subtitle)}</p>
         </div>
         <div class="nodes">${nodes}</div>
         ${ready ? `<button class="checkpoint" data-check="${esc(u.id)}">
-          ${badge ? 'Retake the checkpoint' : 'Take the checkpoint'}
-          <small>${CHECK_SIZE} questions across the unit · needs ${CHECK_MIN_LIVES} lifebuoys · ${CHECK_PASS}% to pass</small>
+          ${badge ? 'Replay Desk Challenge' : 'Take the Desk Challenge'}
+          <small>${CHECK_SIZE} decisions across the desk · needs ${CHECK_MIN_LIVES} lifebuoys · ${CHECK_PASS}% to clear</small>
         </button>` : ''}
       </section>`;
     }).join('');
@@ -739,6 +739,7 @@
 
   /* ── esecuzione della lezione ────────────────────────────────────── */
   let run = null;
+  const deskBriefSeen = new Set();
 
   // un unico motore per lezione, ripasso e checkpoint
   function startRun(cfg) {
@@ -758,6 +759,8 @@
       answered: 0,
       correct: 0,
       firstTry: 0,
+      progressDone: 0,
+      briefing: cfg.briefing || null,
       // le vite non sono del run: sono il fondo dell'utente. Il ripasso è
       // l'unica modalità che non ne consuma, così non ci si blocca mai.
       gratis: cfg.mode === 'review',
@@ -773,7 +776,10 @@
     if (b) { b.textContent = run.banner; b.hidden = !run.banner; }
     show('lessonScreen');
     renderStreak(false);
-    nextExercise();
+    if (run.briefing) {
+      run.state = 'briefing';
+      disegnaDeskBrief(run.briefing);
+    } else nextExercise();
   }
 
   /* Career progression is intentionally strict: only completed lessons and
@@ -788,8 +794,21 @@
     // il controllo sta qui e non nel chiamante: un link diretto, la console
     // o un futuro pulsante non devono poter scavalcare la progressione
     if (!isUnlocked(lessonId)) return;
+    const unit = UNITS.find(u => u.id === lesson.unitId) || UNITS.find(u => u.lessons.some(l => l.id === lesson.id));
+    const unitIndex = Math.max(0, UNITS.indexOf(unit));
+    const lessonIndex = unit ? Math.max(0, unit.lessons.findIndex(l => l.id === lesson.id)) : 0;
+    const meta = unit ? (GAME.unitMeta[unit.id] || {}) : {};
+    const skill = GAME.skills?.[meta.skill] || null;
+    const firstDeskEntry = !!(unit && lessonIndex === 0 && !isDone(lesson.id) && !deskBriefSeen.has(unit.id));
+    if (firstDeskEntry) deskBriefSeen.add(unit.id);
     startRun({
       mode: 'lesson', lesson,
+      banner: `Desk ${unitIndex + 1} · Level ${lessonIndex + 1}`,
+      briefing: firstDeskEntry ? {
+        desk:`Desk ${unitIndex + 1}`, title:unit.title, subtitle:unit.subtitle,
+        assignment:lesson.title, goal:lesson.goal || '', decisions:lesson.exercises.length,
+        skill:skill?.short || skill?.name || meta.division || 'Trading'
+      } : null,
       items: lesson.exercises.map((e, i) => ({ ex: e, i, lessonId: lesson.id })),
     });
   }
@@ -822,7 +841,34 @@
     const items = checkpointItems(unit);
     if (!items.length) return;
     startRun({ mode: 'checkpoint', unit, items, hearts: CHECK_HEARTS,
-      banner: `Checkpoint · ${unit.title} · ${CHECK_PASS}% to pass` });
+      banner: `Desk Challenge · ${unit.title} · ${CHECK_PASS}% to clear` });
+  }
+
+
+  function disegnaDeskBrief(info) {
+    renderHearts();
+    renderProgress();
+    const M = window.MASCOT;
+    const host = $('#exerciseArea');
+    if (!host) return;
+    host.innerHTML = `<section class="desk-brief-card">
+      <div class="desk-brief-top">
+        <div class="desk-brief-face" aria-hidden="true">${M ? M.svg('teach', 92) : ''}</div>
+        <div><span class="desk-brief-kicker">${esc(M ? M.name : 'Hélène')} · desk brief</span>
+          <small>${esc(info.desk || '')}</small></div>
+      </div>
+      <h2>${esc(info.title || 'Your next desk')}</h2>
+      <p class="desk-brief-sub">${esc(info.subtitle || '')}</p>
+      <div class="desk-brief-assignment"><span>FIRST ASSIGNMENT</span><strong>${esc(info.assignment || '')}</strong><p>${esc(info.goal || '')}</p></div>
+      <div class="desk-brief-facts"><span><b>${Number(info.decisions)||0}</b> decisions</span><span><b>${esc(info.skill || 'Trading')}</b> focus</span><span><b>XP</b> on clear</span></div>
+    </section>`;
+    const btn = $('#checkButton');
+    btn.className = 'btn primary';
+    btn.textContent = 'Enter the desk';
+    btn.disabled = false;
+    const rev = $('#revealButton');
+    if (rev) rev.hidden = true;
+    requestAnimationFrame(() => window.scrollTo({ top:0, left:0, behavior:'auto' }));
   }
 
 
@@ -924,7 +970,7 @@
     if (piede0) piede0.className = 'lesson-foot';
     const btn = $('#checkButton');
     btn.className = 'btn primary';
-    btn.textContent = 'Check';
+    btn.textContent = 'Submit';
     btn.disabled = true;
     /* Se questa domanda usa una parola mai incontrata, prima la presentiamo:
        l'esercizio resta in canna e parte appena l'utente ha letto.
@@ -942,6 +988,7 @@
     }
     renderRivela();
     renderExercise(run.current.ex);
+    requestAnimationFrame(() => window.scrollTo({ top:0, left:0, behavior:'auto' }));
   }
 
   function renderStreak(appenaGiusta) {
@@ -973,13 +1020,24 @@
   }
 
   function renderProgress() {
-    const pct = run.total ? (run.answered / run.total) * 100 : 0;
+    const done = Math.max(0, Math.min(run.total || 0, Number(run.progressDone) || 0));
+    const pct = run.total ? (done / run.total) * 100 : 0;
     const v = Math.min(100, Math.round(pct));
     $('#lessonProgress').style.width = `${v}%`;
     const bar = $('#lessonProgressBar');
     if (bar) {
       bar.setAttribute('aria-valuenow', String(v));
-      bar.setAttribute('aria-valuetext', `${run.answered} of ${run.total} answered`);
+      bar.setAttribute('aria-valuetext', `${done} of ${run.total} decisions cleared`);
+    }
+    const step = $('#lessonStep');
+    if (step) {
+      if (run.state === 'briefing') step.textContent = 'BRIEF';
+      else {
+        const current = run.state === 'feedback'
+          ? Math.max(1, Math.min(run.total, done || 1))
+          : Math.min(run.total, done + (done < run.total ? 1 : 0));
+        step.textContent = `${current || run.total} / ${run.total}`;
+      }
     }
   }
   /* Una vita è un salvagente: il solo simbolo che vuol dire salvare una vita
@@ -1066,7 +1124,7 @@
     const el = $('#lockedHint');
     if (!el) return;
     el.hidden = false;
-    el.textContent = `A checkpoint needs at least ${CHECK_MIN_LIVES} lifebuoys — with fewer it would end before giving you a score. You have ${livesNow()}.`;
+    el.textContent = `The Desk Challenge needs at least ${CHECK_MIN_LIVES} lifebuoys — with fewer it could end before giving you a result. You have ${livesNow()}.`;
     try { el.scrollIntoView({ block: 'center', behavior: motionOK() ? 'smooth' : 'auto' }); } catch (e) {}
   }
 
@@ -1137,12 +1195,12 @@
   }
 
   /* ── i cinque tipi di esercizio ──────────────────────────────────── */
-  const KICKER = { choice:'Choose the answer', numeric:'Work it out', order:'Put them in order',
-                   pairs:'Match the pairs', build:'Complete the sentence' };
+  const KICKER = { choice:'Make the call', numeric:'Run the numbers', order:'Sequence the trade',
+                   pairs:'Match the flow', build:'Build the logic' };
 
   function renderExercise(ex) {
     const area = $('#exerciseArea');
-    area.innerHTML = `<span class="q-kicker">${KICKER[ex.type] || 'Question'}</span>
+    area.innerHTML = `<span class="q-kicker">${KICKER[ex.type] || 'Decision'}</span>
       <div class="q-prompt">${esc(ex.prompt)}</div><div id="exBody"></div>`;
     ({ choice: renderChoice, numeric: renderNumeric, order: renderOrder,
        pairs: renderPairs, build: renderBuild }[ex.type] || renderChoice)(ex, $('#exBody'));
@@ -1292,12 +1350,17 @@
 
   function onCheck() {
     if (!run) return;
+    if (run.state === 'briefing') {
+      run.briefing = null;
+      nextExercise();
+      return;
+    }
     if (run.state === 'insegna') {
       segnaVisto(run.presentando);
       run.presentando = null;
       run.state = 'answering';
       const btn = $('#checkButton');
-      btn.textContent = 'Check';
+      btn.textContent = 'Submit';
       btn.disabled = true;
       renderRivela();
       renderExercise(run.current.ex);
@@ -1321,6 +1384,10 @@
     }
     if (ok) {
       run.correct++;
+      if (!run.current.progressCounted) {
+        run.current.progressCounted = true;
+        run.progressDone = Math.min(run.total, (Number(run.progressDone)||0) + 1);
+      }
       if (!run.current.retry) {
         run.firstTry++;
         const sid = run.current.skill || skillIdForLesson(run.current.lessonId);
@@ -1381,7 +1448,7 @@
     const btn = $('#checkButton');
     btn.disabled = false;
     btn.className = `btn ${buono ? 'go' : 'stop'}`;
-    btn.textContent = (run.hearts <= 0 && !run.gratis) ? 'Out of lifebuoys' : (run.queue.length ? 'Continue' : 'Finish');
+    btn.textContent = (run.hearts <= 0 && !run.gratis) ? 'Out of lifebuoys' : (run.queue.length ? 'Next decision' : 'Clear level');
   }
 
   /* ── spendere una vita per vedere la soluzione ──────────────────────
@@ -1519,10 +1586,10 @@
       const prev = state.badges[unit.id] || 0;
       if (passed) state.badges[unit.id] = Math.max(prev, acc);
       gained = passed ? XP_PER * 3 : XP_PER;
-      title = passed ? `${unit.title} — passed` : `${unit.title} — not yet`;
+      title = passed ? `${unit.title} — challenge cleared` : `${unit.title} — challenge not cleared`;
       goal = passed
-        ? 'Badge earned. Come back to it later and see if it holds.'
-        : `You need ${CHECK_PASS}% first time round. Practice the weak spots and try again.`;
+        ? 'Desk badge earned. Run it again later and see if the result holds.'
+        : `You need ${CHECK_PASS}% first try. Train the weak spots and take the Desk Challenge again.`;
     }
 
     state.xp = (state.xp || 0) + gained;
@@ -1539,12 +1606,18 @@
 
     $('#doneTitle').textContent = title;
     $('#doneGoal').textContent = goal;
+    const doneKicker = $('#doneKicker');
+    if (doneKicker) doneKicker.textContent = mode === 'lesson' ? 'LEVEL CLEARED'
+      : mode === 'review' ? 'PRACTICE COMPLETE'
+      : mode === 'frontier' ? 'FLOOR RUN COMPLETE'
+      : (acc >= CHECK_PASS ? 'DESK CHALLENGE CLEARED' : 'DESK CHALLENGE');
     if (crest && window.MASCOT) {
       const good = mode !== 'checkpoint' || acc >= CHECK_PASS;
       crest.innerHTML = window.MASCOT.svg(good ? 'happy' : 'oops', 128);
     }
     countUp($('#doneXp'), gained, '+');
     countUp($('#doneAcc'), acc, '', '%');
+    const doneLives = $('#doneLives'); if (doneLives) doneLives.textContent = String(livesNow());
 
     // Career progress is visible immediately: rewards should answer “what changed?”
     const levelNow = careerLevel();
@@ -1555,7 +1628,15 @@
     const lv = $('#doneCareerLevel'), fill = $('#doneLevelFill'), note = $('#doneLevelNote');
     if (lv) lv.textContent = `LV ${levelNow}`;
     if (fill) fill.style.width = `${levelPct}%`;
-    if (note) note.textContent = toNextLevel ? `${toNextLevel} XP to LV ${levelNow + 1}` : 'Level ready';
+    if (note) {
+      const rank = careerRank();
+      if (mode === 'lesson' && rank.next) {
+        const doneN = state.done.filter(id => allLessons.some(l => l.id === id)).length;
+        const needLevels = Math.max(0, rank.next.lessons - doneN);
+        const needXp = Math.max(0, rank.next.xp - (Number(state.xp)||0));
+        note.textContent = `${rank.current.name} · ${needLevels} level${needLevels === 1 ? '' : 's'} and ${needXp} XP to ${rank.next.name}`;
+      } else note.textContent = toNextLevel ? `${toNextLevel} XP to LV ${levelNow + 1}` : 'Level ready';
+    }
 
     const unlock = $('#doneUnlock');
     if (unlock) {
@@ -1573,11 +1654,19 @@
       }
     }
 
+    const nextPreview = $('#doneNextPreview');
+    if (nextPreview) {
+      if (mode === 'lesson' && nextLesson) {
+        nextPreview.hidden = false;
+        nextPreview.innerHTML = `<small>NEXT ASSIGNMENT</small><strong>${esc(nextLesson.title)}</strong><span>${newDeskUnlocked ? `Desk ${UNITS.indexOf(nextUnit) + 1} · ${esc(nextUnit.title)}` : `${nextLesson.exercises.length} decisions · keep the desk moving`}</span>`;
+      } else { nextPreview.hidden = true; nextPreview.innerHTML = ''; }
+    }
+
     doneNextLessonId = null;
     const cta = $('#continueButton');
     if (mode === 'lesson' && nextId) {
       doneNextLessonId = nextId;
-      cta.textContent = newDeskUnlocked ? `Enter ${nextUnit.title}` : 'Next level';
+      cta.textContent = newDeskUnlocked ? `Enter Desk ${UNITS.indexOf(nextUnit) + 1}` : 'Start next level';
       doneReturnScreen = 'pathScreen';
     } else if (mode === 'review') {
       cta.textContent = 'Back to Practice';
@@ -2213,7 +2302,7 @@
       hint.textContent = u
         ? `“${lez.title}” is in ${u.title}`
           + (quante > 0 ? `, ${quante} course${quante === 1 ? '' : 's'} further along the path.` : ', further along the path.')
-          + ' It opens once you reach that course.'
+          + ' It opens once you reach that desk.'
         : 'That lesson is not available yet.';
       try { hint.scrollIntoView({ block: 'center', behavior: motionOK() ? 'smooth' : 'auto' }); } catch (e) {}
     }

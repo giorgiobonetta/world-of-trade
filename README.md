@@ -101,3 +101,7 @@ sync.
 ## Licence
 
 All rights reserved.
+
+
+## Core Experience v0.5
+This build focuses on the first ten minutes: fast onboarding, desk-entry briefing, decision-by-decision progress, stronger level rewards, direct next-level flow and a more game-like Desk Challenge vocabulary.

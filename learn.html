@@ -326,7 +326,7 @@
     <div class="mode-grid">
       <article class="mode-card daily-teaser" id="dailyCard"><span>DAILY</span><h3>Deal of the Day</h3><p id="dailyCardCopy">One complete trade scenario, refreshed every day.</p><ul class="mode-facts"><li>4 decisions · a few minutes</li><li>Same deal for everybody today</li></ul><button id="dailyStart" class="mini-action">Open today’s deal</button></article>
       <article class="mode-card boss-teaser"><span>BOSS</span><h3>Boss Deals</h3><p>Multi-step cases where your decisions change the economics of the trade.</p><ul class="mode-facts"><li>The longest format</li><li>One named scenario at a time</li><li>The hardest of the four</li></ul><button id="bossBrowse" class="mini-action">Open dealing room</button></article>
-      <article class="mode-card frontier-teaser"><span>ENDLESS</span><h3>Trading Floor Run</h3><p id="frontierCopy">10 fresh questions across unlocked desks. No final level: every run is regenerated.</p><ul class="mode-facts"><li>10 questions, mixed desks</li><li>Tests what you already know</li><li>Costs lifebuoys, like a lesson</li></ul><div class="frontier-meta"><small>Best <b id="frontierBest">0%</b></small><small>Runs <b id="frontierRuns">0</b></small></div><button id="frontierStart" class="mini-action">Start desk run</button></article>
+      <article class="mode-card frontier-teaser"><span>ENDLESS</span><h3>Trading Floor Run</h3><p id="frontierCopy">10 fresh questions across unlocked desks. No final level: every run is regenerated.</p><ul class="mode-facts"><li>10 questions, mixed desks</li><li>Tests what you already know</li><li>Costs lifebuoys, like a Career level</li></ul><div class="frontier-meta"><small>Best <b id="frontierBest">0%</b></small><small>Runs <b id="frontierRuns">0</b></small></div><button id="frontierStart" class="mini-action">Start desk run</button></article>
     </div>
     <section class="daily-quests" id="dailyQuestShelf">
       <div class="card-title"><div><span class="eyebrow">Daily objectives</span><h2>Desk Quests</h2></div><small id="dailyQuestRecord">0 / 3 claimed</small></div>
@@ -411,9 +411,10 @@
 <!-- LEZIONE -->
 <main id="lessonScreen" class="screen">
   <header class="lesson-top">
-    <button id="quitButton" class="icon-btn" aria-label="Leave lesson">✕</button>
-    <div class="progress" id="lessonProgressBar" role="progressbar" aria-label="Lesson progress"
+    <button id="quitButton" class="icon-btn" aria-label="Leave level">✕</button>
+    <div class="progress" id="lessonProgressBar" role="progressbar" aria-label="Level progress"
          aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="lessonProgress"></span></div>
+    <span id="lessonStep" class="lesson-step" aria-live="polite">1 / 5</span>
     <div class="streak-chip" id="streakChip" hidden aria-live="polite">
       <span aria-hidden="true">🔥</span><b id="streakNum">0</b>
       <span class="sr-only">correct answers in a row</span>
@@ -439,11 +440,13 @@
 <main id="doneScreen" class="screen">
   <div class="wrap done-wrap">
     <div class="done-crest"></div>
-    <h2 id="doneTitle">Lesson complete</h2>
+    <p id="doneKicker" class="done-kicker">LEVEL CLEARED</p>
+    <h2 id="doneTitle">Level complete</h2>
     <p id="doneGoal" class="done-goal"></p>
     <div class="done-stats">
       <div><span>XP earned</span><strong id="doneXp">0</strong></div>
-      <div><span>Accuracy</span><strong id="doneAcc">0%</strong></div>
+      <div><span>First try</span><strong id="doneAcc">0%</strong></div>
+      <div><span>Lifebuoys</span><strong id="doneLives">5</strong></div>
     </div>
     <section class="done-career-progress" aria-label="Career level progress">
       <div><span>Career progress</span><strong id="doneCareerLevel">LV 1</strong></div>
@@ -451,6 +454,7 @@
       <small id="doneLevelNote">50 XP to LV 2</small>
     </section>
     <section id="doneUnlock" class="done-unlock" hidden></section>
+    <section id="doneNextPreview" class="done-next-preview" hidden></section>
     <div class="share-host"></div>
     <button id="continueButton" class="btn primary wide">Continue</button>
   </div>
@@ -475,7 +479,7 @@
   <div class="cloud-panel intro-panel">
     <button id="introSkip" class="intro-skip" type="button">Skip</button>
     <div id="introArt" class="intro-art" aria-hidden="true"></div>
-    <p class="intro-step"><span id="introStepNow">1</span> of 3</p>
+    <p class="intro-step"><span id="introStepNow">1</span> of 2</p>
     <h2 id="introTitle">What this is</h2>
     <p id="introCopy"></p>
     <ul id="introList" class="intro-list"></ul>
