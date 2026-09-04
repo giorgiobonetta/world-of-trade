@@ -25,6 +25,11 @@
   function uid() { return api().idUtente?.() || null; }
   function week() { return comp().weekKey?.(new Date()) || new Date().toISOString().slice(0,10); }
   function cleanAlias(v) { return String(v||'Trader').trim().replace(/\s+/g,' ').slice(0,24) || 'Trader'; }
+  function defaultTraderTag(alias, userId) {
+    const base=String(alias||'trader').toLowerCase().normalize?.('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'').slice(0,12) || 'trader';
+    const suffix=String(userId||'').replace(/-/g,'').slice(-5).toLowerCase() || Math.random().toString(36).slice(2,7);
+    return `${base}_${suffix}`.slice(0,20);
+  }
   function randomCode() {
     const alphabet='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     let out='WOT-';
@@ -84,11 +89,12 @@
     if (!A.enabled || !me || !L) return null;
     let existing = null;
     try { existing = await A.socialProfileByUser?.(me); } catch(e) { return null; }
-    const alias = cleanAlias(L.state?.competitive?.alias || existing?.alias || 'Trader');
+    const alias = cleanAlias(L.state?.profile?.name || L.state?.competitive?.alias || existing?.alias || 'Trader');
     const house = L.state?.competitive?.house || existing?.house || null;
     const code = existing?.referral_code || randomCode();
+    const trader_tag = existing?.trader_tag || defaultTraderTag(alias, me);
     try {
-      profile = await A.upsertSocialProfile?.({ alias, house, referral_code:code }) || {user_id:me,alias,house,referral_code:code};
+      profile = await A.upsertSocialProfile?.({ alias, house, referral_code:code, trader_tag }) || {user_id:me,alias,house,referral_code:code,trader_tag};
     } catch(e) { profile = existing; }
     return profile;
   }
@@ -385,5 +391,5 @@
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 
-  window.WOT_SOCIAL={get profile(){return profile;},get friends(){return friends;},referralUrl,renderPanel,refresh:refreshIfLeague,pendingIncomingCount};
+  window.WOT_SOCIAL={get profile(){return profile;},get friends(){return friends;},get friendProfiles(){return friendProfiles;},get challenges(){return challenges;},get challengeScores(){return challengeScores;},referralUrl,renderPanel,refresh:refreshIfLeague,loadSocial,friendIds,friendStandings,weeklyRivalId,pendingIncomingCount,openChallengeCreator,startChallenge,scoreFor,profileName,defaultTraderTag};
 })();

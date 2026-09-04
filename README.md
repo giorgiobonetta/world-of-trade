@@ -114,3 +114,11 @@ This build focuses on the first ten minutes: fast onboarding, desk-entry briefin
 - Streaks do not regenerate lifebuoys instantly.
 - Refill progress persists across app closes and cloud sync.
 
+
+
+## Reward & Progression v0.5.5
+This pass strengthens the core Career loop without adding new game modes: clearer current assignments, animated promotion progress, visible new achievements, full-screen desk unlocks and career-promotion milestones.
+
+
+## v0.6 Account & Social
+Profile now contains Account & Settings. League is split into League, Friends and Challenges, with searchable Trader IDs, real friend requests and the existing deterministic desk-duel engine. Run the v0.6 SQL block in `SUPABASE-SETUP.md` before enabling trader search/friend requests/delete account.

@@ -1,7 +1,7 @@
 {
   "name": "world-of-trade-mobile",
   "private": true,
-  "version": "0.5.1-lifebuoy-economy",
+  "version": "0.6.0-account-social",
   "description": "World of Trade installable mobile app preview (PWA + Capacitor-ready)",
   "scripts": {
     "cap:sync": "npx cap sync",
