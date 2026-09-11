@@ -27,8 +27,6 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" />
 <link rel="stylesheet" href="site.css" />
 <link rel="canonical" href="https://world-of-trade.vercel.app/" />
-<script defer src="supporters.js"></script>
-<script defer src="donations.js"></script>
 <script defer src="site.js"></script>
 <style>
 :root{
@@ -386,20 +384,6 @@ h2{font-size:clamp(24px,3.6vw,34px);margin-bottom:14px}
 ul.plain{margin:0;padding-left:22px;color:#d6e5ff;font-size:16px}
 ul.plain li{margin-bottom:9px}
 ul.plain strong{color:#fff8e6}
-
-/* ── Support World of Trade ───────────────────────────────────────── */
-.support-shell{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(280px,.95fr);gap:18px;align-items:stretch}
-.support-card{padding:26px;border-radius:var(--r-lg);background:linear-gradient(155deg,rgba(35,78,151,.82),rgba(7,27,68,.94));border:1px solid rgba(255,212,92,.24);box-shadow:0 12px 36px rgba(0,0,0,.25)}
-.support-card h3{font-size:22px;color:#fff8e6;margin-bottom:9px}.support-card p{margin:0;color:#d6e5ff;font-size:15.5px;line-height:1.65}
-.support-amount{display:flex;align-items:flex-end;gap:9px;margin:22px 0 4px}.support-amount strong{font-size:46px;line-height:1;color:var(--gold);letter-spacing:-.04em;text-shadow:0 2px 0 rgba(5,16,45,.45)}.support-amount span{color:#b9cdf0;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding-bottom:5px}
-.support-paypal{display:inline-flex;align-items:center;justify-content:center;gap:10px;width:100%;margin-top:18px}.support-paypal svg{width:22px;height:22px;flex:0 0 auto}
-.support-fine{margin-top:13px!important;color:#9fb7db!important;font-size:13px!important}
-.supporters-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:16px}.supporters-head span{padding:5px 9px;border-radius:999px;background:rgba(255,212,92,.12);color:var(--gold-hi);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
-.supporters-list{display:flex;flex-wrap:wrap;gap:8px;min-height:44px}.supporter-chip{padding:8px 12px;border-radius:999px;background:rgba(3,12,34,.5);border:1px solid rgba(173,205,255,.16);color:#e7f0ff;font-size:13.5px;font-weight:600}.supporters-empty{padding:13px 14px;border-radius:14px;border:1px dashed rgba(173,205,255,.2);color:#9fb7db;font-size:13.5px;line-height:1.5;width:100%}
-.supporter-request{margin-top:19px;padding-top:18px;border-top:1px solid rgba(255,255,255,.09)}.supporter-request label{display:block;margin-bottom:8px;color:#dbe8ff;font-size:13px;font-weight:700}.supporter-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:9px}.supporter-row input{min-width:0;width:100%;border:1px solid rgba(173,205,255,.24);border-radius:13px;padding:12px 13px;background:rgba(3,12,34,.48);color:#fff;font:inherit;font-size:14px;outline:none}.supporter-row input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(255,212,92,.12)}.supporter-row button{border:1px solid rgba(255,212,92,.3);border-radius:13px;padding:11px 14px;background:rgba(255,212,92,.13);color:var(--gold-hi);font:inherit;font-size:13px;font-weight:700;cursor:pointer}.supporter-row button:hover{background:rgba(255,212,92,.2)}
-.supporter-status{min-height:20px;margin-top:7px!important;color:#a9c2e8!important;font-size:12.5px!important}
-@media(max-width:720px){.support-shell{grid-template-columns:1fr}.supporter-row{grid-template-columns:1fr}.supporter-row button{min-height:46px}}
-
 footer{padding:46px 0 64px;text-align:center;color:var(--muted-2);font-size:15px;
   border-top:2px solid rgba(255,212,92,.16);margin-top:34px}
 @media (max-width:560px){
@@ -433,7 +417,6 @@ footer{padding:46px 0 64px;text-align:center;color:var(--muted-2);font-size:15px
       <li><a href="#curriculum">Curriculum</a></li>
       <li><a href="#compete">Compete</a></li>
       <li><a href="glossary.html">Glossary</a></li>
-      <li><a href="#support">Support</a></li>
     </ul>
     <a class="site-cta" href="learn.html">Start trading</a>
   </div>
@@ -710,38 +693,6 @@ footer{padding:46px 0 64px;text-align:center;color:var(--muted-2);font-size:15px
   </div>
 </section>
 
-<section id="support">
-  <div class="wrap">
-    <span class="eyebrow">Support the project</span>
-    <h2>Help build the next desk.</h2>
-    <p class="sub">World of Trade is free to play. If it has helped you learn, you can support continued development with a one-off donation. A donation never unlocks content, XP, levels or account features.</p>
-    <div class="support-shell">
-      <div class="support-card">
-        <h3>One-off donation</h3>
-        <p>Help fund new lessons, trading cases, polish and maintenance while keeping the game open to everyone.</p>
-        <div class="support-amount"><strong>$4.99</strong><span>USD · one time</span></div>
-        <a id="paypalDonateBtn" class="btn support-paypal" href="#" target="_blank" rel="noopener noreferrer">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7.6 3h7.1c3.5 0 5.1 1.8 4.6 4.7-.6 3.5-2.9 5.3-6.3 5.3h-2l-.9 5.4H6.4L7.6 3Zm3.9 3-.6 4h1.7c1.7 0 2.6-.8 2.9-2.2.2-1.2-.5-1.8-2.1-1.8h-1.9Z"/><path fill="currentColor" opacity=".72" d="M5.3 6.1h5.5L8.7 21H5l.7-4.8H3.3L5.3 6.1Z"/></svg>
-          Donate $4.99 with PayPal
-        </a>
-        <p class="support-fine">Pure support: no in-game advantage, premium content or purchase is attached to the donation.</p>
-      </div>
-      <div class="support-card">
-        <div class="supporters-head"><div><h3>Supporters</h3><p>People helping World of Trade keep growing.</p></div><span id="supporterCount">0 names</span></div>
-        <div id="supportersList" class="supporters-list" aria-live="polite"></div>
-        <div class="supporter-request">
-          <label for="supporterName">Already donated? Tell us the name you want shown.</label>
-          <div class="supporter-row">
-            <input id="supporterName" type="text" maxlength="36" autocomplete="nickname" placeholder="Your name or trader alias" />
-            <button id="supporterRequestBtn" type="button">Request listing</button>
-          </div>
-          <p id="supporterStatus" class="supporter-status">Names are added after the donation is checked.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
 <section>
   <div class="wrap" style="text-align:center">
     <h2>Unit 1, Lesson 1 takes four minutes.</h2>
@@ -783,7 +734,6 @@ footer{padding:46px 0 64px;text-align:center;color:var(--muted-2);font-size:15px
       <div class="site-footer-col">
         <h3>About</h3>
         <ul>
-          <li><a href="#support">Support the project</a></li>
           <li><a href="privacy.html">Privacy and terms</a></li>
           <li><a href="selftest.html">Self-check</a></li>
         </ul>

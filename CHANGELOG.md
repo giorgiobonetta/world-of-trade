@@ -1,10 +1,3 @@
-# 0.7.1 — voluntary support
-
-- Added a dedicated landing-page donation section with a fixed $4.99 USD PayPal contribution.
-- Donations do not unlock any game content or features.
-- Added a manually verified public supporter wall and post-donation listing request flow.
-- Added `DONATIONS.md`, `donations.js` and `supporters.js` for simple static-site maintenance.
-
 # Changelog
 
 ## v0.8.0 — One Site
