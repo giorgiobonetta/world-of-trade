@@ -2,7 +2,7 @@
    Regola: l'HTML si prende dalla rete quando c'è (così un aggiornamento
    arriva subito), tutto il resto dalla cache (così l'app parte offline).
    La versione nel nome della cache è ciò che manda via una shell vecchia. */
-const VERSION = 'v53';
+const VERSION = 'v61';
 const CACHE = `wot-learn-${VERSION}`;
 
 const SHELL = [
@@ -12,15 +12,21 @@ const SHELL = [
   'learn.html',
   'glossary.html',
   'privacy.html',
+  '404.html',
   'glossary.js',
   'glossary-page.js',
   'styles.css',
+  'site.css',
+  'site.js',
+  'mobile-native.css',
+  'native-runtime.js',
   'app.js',
   'pwa.js',
   'cloud.js',
   'share.js',
   'experience.js', 'ui-polish.js', 'game-feel.js',
   'social.js', 'account-social.js',
+  'sound.js',
   // supabase-config.js non è nel precache: è l'unico file che vive solo
   // sul repository e non deve essere servito da una copia in cache
   'curriculum.js',

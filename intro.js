@@ -115,6 +115,13 @@
     d.addEventListener('click', e => { if (e.target === d) chiudi(false); });
     const replay = $('#introReplay');
     if (replay) replay.addEventListener('click', () => apri(true));
+    // L'introduzione non deve mai comparire sopra la porta d'ingresso:
+    // chi non è ancora entrato la vedrebbe prima di aver scelto di giocare,
+    // e la troverebbe di nuovo appena entrato.
+    if (document.body.classList.contains('auth-locked')) {
+      window.addEventListener('wot:unlocked', () => setTimeout(() => apri(false), 220), { once: true });
+      return;
+    }
     apri(false);
   }
 

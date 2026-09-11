@@ -99,6 +99,7 @@
     livesAt: 0,    // da quando matura il prossimo salvagente: 0 = fondo pieno
     visti: [],     // termini che Hélène ha già presentato: mai due volte
     skillXp: {},    // pratica oltre al progresso base: skill -> punti
+    today: null,    // { day, xp, hit } — obiettivo giornaliero, vive un giorno solo
     flash: { best:0, plays:0, correct:0, total:0 },
     frontier: { best:0, plays:0, cleared:0, correct:0, total:0 },
     boss: { plays:0, cleared:0, best:0, completed:{} },
@@ -207,6 +208,8 @@
       visti: Array.isArray(next.visti) ? next.visti.map(String) : [],
       best: obj(next.best), misses: obj(next.misses), doneAt: obj(next.doneAt), badges: obj(next.badges),
       skillXp: obj(next.skillXp),
+      today: (() => { const td = obj(next.today);
+        return td.day ? { day: String(td.day), xp: Number(td.xp) || 0, hit: !!td.hit } : null; })(),
       flash: { best:Number(f.best)||0, plays:Number(f.plays)||0, correct:Number(f.correct)||0, total:Number(f.total)||0 },
       frontier: { best:Number(fr.best)||0, plays:Number(fr.plays)||0, cleared:Number(fr.cleared)||0, correct:Number(fr.correct)||0, total:Number(fr.total)||0 },
       boss: { plays:Number(b.plays)||0, cleared:Math.max(Number(b.cleared)||0, Object.values(obj(b.completed)).filter(v => Number(v) >= 60).length), best:Number(b.best)||0, completed:obj(b.completed) },
@@ -242,6 +245,45 @@
     for (const ch of String(str)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); }
     return h >>> 0;
   };
+  /* ── obiettivo del giorno ───────────────────────────────────────────
+     La serie diceva solo "sei venuto". Quanto basta per tenerla viva non era
+     scritto da nessuna parte, e l'unica traccia di quel che si era fatto oggi
+     stava dentro una scheda del Trading Floor. L'obiettivo è un numero solo,
+     visibile da ogni schermata: gli XP di oggi contro il traguardo. */
+  const DAILY_GOAL = 50;            // un livello di Career pieno
+
+  function ensureToday() {
+    const day = localDayKey();
+    if (!state.today || state.today.day !== day) state.today = { day, xp: 0, hit: false };
+    return state.today;
+  }
+
+  /* Tutti gli XP passano di qui: sommarli in cinque punti diversi è il modo
+     sicuro per avere un contatore giornaliero che manca sempre qualcosa. */
+  function addXp(n) {
+    const punti = Math.max(0, Math.round(Number(n) || 0));
+    if (!punti) return 0;
+    state.xp = (state.xp || 0) + punti;
+    const oggi = ensureToday();
+    oggi.xp += punti;
+    if (!oggi.hit && oggi.xp >= DAILY_GOAL) {
+      oggi.hit = true;
+      touchStreak();
+      festeggiaObiettivo();
+    }
+    return punti;
+  }
+
+  function festeggiaObiettivo() {
+    confetti(50);
+    const el = $('#streakToast');
+    if (!el) return;
+    el.textContent = `Daily goal cleared — ${DAILY_GOAL} XP today.`;
+    el.hidden = false;
+    clearTimeout(festeggiaObiettivo._t);
+    festeggiaObiettivo._t = setTimeout(() => { el.hidden = true; }, 3400);
+  }
+
   function ensureDaily() {
     const day = localDayKey();
     if (!state.daily || state.daily.day !== day) {
@@ -272,14 +314,14 @@
     const q = dailyQuests().find(x => x.id === id);
     if (!q || !q.done || state.daily.claimed[id]) return;
     state.daily.claimed[id] = true;
-    state.xp = (state.xp || 0) + q.reward;
+    addXp(q.reward);
     touchStreak();
     const allClaimed = dailyQuests().every(x => state.daily.claimed[x.id]);
     if (allClaimed && !state.daily.bonusClaimed) {
       state.daily.bonusClaimed = true;
       state.dailyStats.perfectDays = (state.dailyStats.perfectDays || 0) + 1;
       state.dailyHistory.perfect[state.daily.day] = 1;
-      state.xp += 25;
+      addXp(25);
       confetti(60);
     }
     save(); renderMetaScreens();
@@ -355,6 +397,47 @@
       if (out.length === n) break;
     }
     return out;
+  }
+
+  /* Lo stesso pescaggio del ripasso, ristretto alle lezioni di una sola
+     competenza. Serve a rispondere alla domanda che il ripasso generale non
+     risponde: "sono debole in shipping, dammi shipping". */
+  function reviewItemsForSkill(skillId, n = REVIEW_SIZE) {
+    const unitIds = new Set(UNITS.filter(u => GAME.unitMeta[u.id]?.skill === skillId).map(u => u.id));
+    if (!unitIds.size) return [];
+    const pool = [];
+    state.done.forEach(id => {
+      const l = allLessons.find(x => x.id === id);
+      if (!l || !unitIds.has(l.unitId)) return;
+      const age = Math.min(ageDays(id), 30);
+      l.exercises.forEach((ex, i) => {
+        pool.push({ ex, i, lessonId: id, w: 1 + (state.misses[exKey(id, i)] || 0) * 4 + age / 10 });
+      });
+    });
+    pool.sort((a, b) => b.w - a.w || a.lessonId.localeCompare(b.lessonId) || a.i - b.i);
+    return pool.slice(0, n);
+  }
+
+  function startSkillReview(skillId) {
+    const items = reviewItemsForSkill(skillId);
+    if (!items.length) return;
+    const sk = GAME.skills?.[skillId];
+    startRun({ mode: 'review', items,
+      banner: `Practice · ${sk?.name || 'Targeted drill'} · never costs a lifebuoy` });
+  }
+
+  /* Quante lezioni finite ha ciascuna competenza: una competenza mai toccata
+     non si può ripassare, e offrirla sarebbe un pulsante che non fa niente. */
+  function skillsAllenabili() {
+    return Object.entries(GAME.skills || {})
+      .map(([id, sk]) => ({
+        id, sk,
+        score: skillScore(id),
+        fatte: UNITS.filter(u => GAME.unitMeta[u.id]?.skill === id)
+          .flatMap(u => u.lessons).filter(l => isDone(l.id)).length,
+      }))
+      .filter(x => x.fatte > 0)
+      .sort((a, b) => a.score - b.score || a.sk.short.localeCompare(b.sk.short));
   }
 
   const unitDone = u => u.lessons.every(l => isDone(l.id));
@@ -488,7 +571,11 @@
     const points = leagueScore();
     const nextTarget = Number.isFinite(d.promote) ? d.promote : null;
     const pct = nextTarget ? Math.min(100, Math.round(points / nextTarget * 100)) : 100;
-    $('#leagueXp').textContent = state.xp || 0;
+    // #leagueXp è stato tolto dall'HTML in una revisione precedente: senza
+    // guardia questa riga lanciava, e con lei moriva TUTTO il resto della
+    // funzione — emblema, case, trofei e classifica non venivano mai disegnati.
+    const xpOut = $('#leagueXp');
+    if (xpOut) xpOut.textContent = state.xp || 0;
     const seasonNote = c.lastSeason && c.lastSeason.to && c.lastSeason.from !== c.lastSeason.to
       ? `<small class="season-note">Last season · ${esc(COMP.division?.(c.lastSeason.from)?.name || c.lastSeason.from)} → ${esc(COMP.division?.(c.lastSeason.to)?.name || c.lastSeason.to)}</small>` : '';
     host.innerHTML = `<div class="league-emblem"><span>${esc(d.icon || 'III')}</span></div><div class="league-hero-copy"><span class="eyebrow">${esc(COMP.weekRange?.(c.week) || c.week)}</span><h2>${esc(d.name)} League</h2><p>${nextTarget ? `${Math.max(0,nextTarget-points)} weekly XP to the promotion target.` : 'You are competing in the top division.'}</p>${seasonNote}<div class="league-progress"><i style="width:${pct}%"></i></div><div class="league-hero-stats"><span><b>${points}</b> weekly XP</span><span><b>${c.seasons||0}</b> seasons</span></div></div>
@@ -612,43 +699,34 @@
   }
 
 
-  /* ── fascia di unità ─────────────────────────────────────────────────
-     In un percorso da 173 livelli è facile perdere il filo di dove si è.
-     La fascia resta in cima e dice desk e sezione della parte di percorso
-     che si sta guardando, cambiando colore a ogni sezione. */
+  /* La fascia appiccicata in cima al percorso è stata tolta dalla pagina in
+     una revisione precedente: restavano le sue funzioni ridotte a no-op, un
+     listener di scorrimento che a ogni frame chiamava il nulla e tre variabili
+     calcolate e buttate via. A dire a che punto si è ora è la barra del corso
+     in cima al percorso. */
 
-  const SEZIONI = ['Core Trading Path', 'Desk Academy I', 'Desk Academy II',
-                   'Commodity Desks', 'Trading House Functions', 'Assets & Infrastructure'];
-
-  function fasediUnita(id) {
-    const m = GAME.unitMeta[id] || {};
-    return m.phase || m.chapter || SEZIONI[0];
+  /* L'anello attorno alla fiamma: quanto manca oggi, letto senza aprire nulla.
+     È un solo attributo CSS, non un disegno: l'anello è un conic-gradient. */
+  function renderDailyGoal() {
+    const host = $('#statStreakHost');
+    if (!host) return;
+    const oggi = ensureToday();
+    const pct = Math.max(0, Math.min(100, Math.round(oggi.xp / DAILY_GOAL * 100)));
+    host.style.setProperty('--goal', pct + '%');
+    host.classList.toggle('goal-hit', pct >= 100);
+    host.title = pct >= 100
+      ? `Daily goal cleared — ${oggi.xp} XP today. Day streak: ${state.streak || 0}.`
+      : `${oggi.xp} of ${DAILY_GOAL} XP today. Day streak: ${state.streak || 0}.`;
+    const sr = $('#statStreakNote');
+    if (sr) sr.textContent = host.title;
   }
-
-  /* Quale unità deve comparire nella fascia: l'ultima il cui inizio è già
-     passato sotto la fascia stessa. Presa a parte dallo scorrimento perché
-     è l'unica parte con una logica, e così si può provare davvero. */
-  function unitaInFascia(cime, soglia) {
-    let scelta = null;
-    for (const c of cime) {
-      if (c.top <= soglia) scelta = c.id;
-      else break;
-    }
-    return scelta || (cime[0] ? cime[0].id : null);
-  }
-
-  function disegnaFascia() {
-    // The Career Path is intentionally levels-only. No sticky desk counter/banner.
-    return;
-  }
-
-  function aggiornaFascia() { return; }
 
   /* ── schermata percorso ──────────────────────────────────────────── */
   let _lastXp = null;
   function renderTopStats() {
     const xpEl = $('#statXp'), stEl = $('#statStreak'), lvEl = $('#statLevel');
     if (stEl) stEl.textContent = state.streak || 0;
+    renderDailyGoal();
     if (lvEl) lvEl.textContent = careerLevel();
     if (xpEl) {
       if (_lastXp !== null && state.xp > _lastXp) { countUp(xpEl, state.xp); bump(xpEl.parentElement); }
@@ -666,32 +744,11 @@
     const next = nextLessonId();
     renderCareerHero();
     renderWorldMap();
-    const greetHost = $('#pathGreet');
-    if (greetHost && window.MASCOT) {
-      const done = state.done.length;
-      const line = done === 0
-        ? 'I’m Hélène. I ran a metals desk for eleven years. Let’s start with what a trade actually is.'
-        : done < allLessons.length
-          ? `${done} lesson${done === 1 ? '' : 's'} down. The next one builds on the last, so keep going.`
-          : 'Trading House Academy complete. The Trading Floor stays open forever — run generated desk challenges, Flash Trading and Boss Deals.';
-      greetHost.innerHTML = `<div class="greet">
-        <div class="greet-face">${window.MASCOT.svg('teach', 78)}</div>
-        <div class="greet-copy"><strong>${esc(window.MASCOT.name)}</strong><p>${esc(line)}</p></div>
-      </div>`;
-    }
-    const rev = $('#reviewHost');
-    if (rev) {
-      const due = dueCount();
-      if (state.done.length < 2) rev.innerHTML = '';
-      else rev.innerHTML = `<button id="reviewButton" class="review-card${due ? ' due' : ''}">
-        <span class="review-icon" aria-hidden="true">↻</span>
-        <span class="review-copy"><strong>Practice</strong>
-          <small>${due ? `${due} thing${due === 1 ? '' : 's'} to go back over` : 'Keep the earlier units warm'}</small></span>
-        ${due ? `<span class="review-badge">${due > 99 ? '99+' : due}</span>` : ''}
-      </button>`;
-      const rb = $('#reviewButton');
-      if (rb) rb.addEventListener('click', startReview);
-    }
+    /* Il saluto di Hélène e la scheda di ripasso vivevano in due contenitori
+       marcati hidden: markup costruito a ogni ridisegno — dueCount() scorre
+       ogni esercizio di ogni lezione fatta — e mai mostrato a nessuno. Sul
+       percorso Hélène si chiama col pulsante in basso a destra, e il ripasso
+       ha la sua scheda con il contatore sulla barra in fondo. */
 
     const bar = $('#pathProgress');
     if (bar) {
@@ -712,6 +769,10 @@
     const visibleUnits = visibleCareerUnits();
     $('#pathBody').innerHTML = visibleUnits.map((u) => {
       const ui = UNITS.indexOf(u);
+      // Il percorso serpeggia come una rotta sulla carta: i nodi si scostano
+      // dall'asse seguendo un'onda fissa, così due livelli vicini non sono mai
+      // in colonna e la risalita dello schermo ha un ritmo invece di una lista.
+      const ONDA = [0, 52, 78, 52, 0, -52, -78, -52];
       const nodes = u.lessons.map((l, li) => {
         const done = isDone(l.id);
         const isNext = l.id === next;
@@ -720,29 +781,29 @@
         const medal = done ? '✓' : locked ? '🔒' : String(li + 1);
         const acc = state.best[l.id];
         const weak = l.exercises.reduce((n, _, i) => n + (state.misses[exKey(l.id, i)] > 0 ? 1 : 0), 0);
-        return `${li ? '<div class="connector"></div>' : ''}
-          <button class="node ${cls}${done && weak ? ' weak' : ''}" data-lesson="${esc(l.id)}" ${locked ? 'disabled aria-disabled="true"' : ''}>
-            ${isNext ? '<span class="tag">Next</span>' : ''}
+        // Sotto un lucchetto "clear the level above first" ripetuto sei volte
+        // non informa nessuno: lo stato è già nell'icona.
+        const sotto = done
+          ? (weak ? `${weak} to review` : (acc != null ? `${acc}% first try` : 'Cleared'))
+          : locked ? ''
+          : `${l.exercises.length} decisions`;
+        return `${li ? '<div class="connector" aria-hidden="true"></div>' : ''}
+          <button class="node ${cls}${done && weak ? ' weak' : ''}" data-lesson="${esc(l.id)}"
+                  style="--dx:${ONDA[li % ONDA.length]}px" ${locked ? 'disabled aria-disabled="true"' : ''}>
+            ${isNext ? '<span class="tag">Start</span>' : ''}
             <span class="medal" aria-hidden="true">${medal}</span>
-            <span><strong>${esc(l.title)}</strong>
-              <small>${done
-                ? (weak ? `${weak} to review` : `Cleared · ${acc != null ? acc + '% first try' : 'done'}`)
-                : locked ? 'Clear the level above first'
-                : `${l.exercises.length} decisions · ready`}</small></span>
+            <span class="node-copy"><strong>${esc(l.title)}</strong>
+              ${sotto ? `<small>${sotto}</small>` : ''}</span>
           </button>`;
       }).join('');
       const badge = state.badges[u.id];
       const ready = unitDone(u);
       const meta = GAME.unitMeta[u.id] || {};
-      const phase = meta.phase || meta.chapter || SEZIONI[0];
-      const prevMeta = ui > 0 ? (GAME.unitMeta[UNITS[ui-1].id] || {}) : {};
-      const prevPhase = prevMeta.phase || prevMeta.chapter || SEZIONI[0];
-      const phaseHead = ''; // Career Path shows desks and levels only; no academic/phase dividers.
       // lo sfondo tematico del corso: decorativo, quindi fuori dal flusso
       // di lettura e senza testo. Se la scena manca, la sezione resta
       // semplicemente col fondo di default.
       const scena = SCENES[u.scene] || '';
-      return `${phaseHead}<section class="unit" id="unit-${esc(u.id)}"${u.scene ? ` data-scene="${esc(u.scene)}"` : ''}>
+      return `<section class="unit" id="unit-${esc(u.id)}"${u.scene ? ` data-scene="${esc(u.scene)}"` : ''}>
         <div class="unit-head">
           ${scena ? `<div class="unit-scene" aria-hidden="true">${scena}</div>` : ''}
           <span class="n">Desk ${ui + 1} · ${esc(meta.division || 'Foundations')}</span>
@@ -752,11 +813,36 @@
         </div>
         <div class="nodes">${nodes}</div>
         ${ready ? `<button class="checkpoint" data-check="${esc(u.id)}">
-          ${badge ? 'Replay Desk Challenge' : 'Take the Desk Challenge'}
-          <small>${CHECK_SIZE} decisions across the desk · needs ${CHECK_MIN_LIVES} lifebuoys · ${CHECK_PASS}% to clear</small>
+          <span class="checkpoint-badge" aria-hidden="true">${badge ? '★' : '🏆'}</span>
+          <strong>${badge ? 'Replay Desk Challenge' : 'Desk Challenge'}</strong>
+          <small>${CHECK_SIZE} decisions across the desk · ${CHECK_MIN_LIVES} lifebuoys · ${CHECK_PASS}% to clear</small>
         </button>` : ''}
       </section>`;
     }).join('');
+    // La rotta non deve finire nel vuoto: o si vede il desk successivo
+    // chiuso, o si vede che l'accademia è finita e dove si continua.
+    const prossimo = UNITS[visibleUnits.length] || null;
+    if (prossimo) {
+      const pm = GAME.unitMeta[prossimo.id] || {};
+      const restanti = visibleUnits.length
+        ? visibleUnits[visibleUnits.length - 1].lessons.filter(l => !isDone(l.id)).length
+        : 0;
+      $('#pathBody').insertAdjacentHTML('beforeend', `<section class="desk-next" aria-label="Next desk, locked">
+        <span class="desk-next-lock" aria-hidden="true">🔒</span>
+        <span class="n">Desk ${visibleUnits.length + 1} · ${esc(pm.division || 'Foundations')}</span>
+        <h2>${esc(prossimo.title)}</h2>
+        <p>${restanti
+          ? `${restanti} level${restanti === 1 ? '' : 's'} left on this desk and it opens.`
+          : 'Finish this desk and it opens.'}</p>
+      </section>`);
+    } else if (visibleUnits.length) {
+      $('#pathBody').insertAdjacentHTML('beforeend', `<section class="desk-next done" aria-label="Career path complete">
+        <span class="desk-next-lock" aria-hidden="true">🏛</span>
+        <span class="n">Trading House Academy</span>
+        <h2>Every desk is open</h2>
+        <p>The Trading Floor keeps generating fresh desk runs, Flash Trading and Boss Deals.</p>
+      </section>`);
+    }
     $$('[data-lesson]').forEach(b => b.addEventListener('click', () => {
       if (!b.disabled) startLesson(b.dataset.lesson);
     }));
@@ -772,7 +858,6 @@
       }
     }
 
-    aggiornaFascia();
   }
 
   /* ── esecuzione della lezione ────────────────────────────────────── */
@@ -898,7 +983,7 @@
       <h2>${esc(info.title || 'Your next desk')}</h2>
       <p class="desk-brief-sub">${esc(info.subtitle || '')}</p>
       <div class="desk-brief-assignment"><span>FIRST ASSIGNMENT</span><strong>${esc(info.assignment || '')}</strong><p>${esc(info.goal || '')}</p></div>
-      <div class="desk-brief-facts"><span><b>${Number(info.decisions)||0}</b> decisions</span><span><b>${esc(info.skill || 'Trading')}</b> focus</span><span><b>XP</b> on clear</span></div>
+      <div class="desk-brief-facts"><span><b>${Number(info.decisions)||0}</b> decisions</span><span><b>${esc(info.skill || 'Trading')}</b> focus</span><span><b>+${(Number(info.decisions)||0) * XP_PER}</b> XP on clear</span></div>
     </section>`;
     const btn = $('#checkButton');
     btn.className = 'btn primary';
@@ -1008,7 +1093,7 @@
     if (piede0) piede0.className = 'lesson-foot';
     const btn = $('#checkButton');
     btn.className = 'btn primary';
-    btn.textContent = 'Submit';
+    btn.textContent = 'Check';
     btn.disabled = true;
     /* Se questa domanda usa una parola mai incontrata, prima la presentiamo:
        l'esercizio resta in canna e parte appena l'utente ha letto.
@@ -1144,7 +1229,7 @@
     const el = $('#lockedHint');
     if (!el) return;
     el.hidden = false;
-    el.textContent = `The Desk Challenge needs at least ${CHECK_MIN_LIVES} lifebuoys — with fewer it could end before giving you a result. You have ${livesNow()}.`;
+    el.textContent = `The Desk Challenge needs at least ${CHECK_MIN_LIVES} lifebuoys — with fewer it would end before giving you a score. You have ${livesNow()}.`;
     try { el.scrollIntoView({ block: 'center', behavior: motionOK() ? 'smooth' : 'auto' }); } catch (e) {}
   }
 
@@ -1154,7 +1239,7 @@
     el.hidden = false;
     const fra = attesaVita();
     el.textContent = `No lifebuoys left. One comes back in ${testoAttesa(fra || LIFE_REGEN_MS)}`
-      + ` and the full 5/5 refill takes ${testoAttesa(FULL_REFILL_MS)}. Practice never costs a lifebuoy.`;
+      + ` and the full 5/5 refill takes ${testoAttesa(FULL_REFILL_MS)}. Practice never costs one.`;
     try { el.scrollIntoView({ block: 'center', behavior: motionOK() ? 'smooth' : 'auto' }); } catch (e) {}
   }
 
@@ -1383,7 +1468,7 @@
       run.presentando = null;
       run.state = 'answering';
       const btn = $('#checkButton');
-      btn.textContent = 'Submit';
+      btn.textContent = 'Check';
       btn.disabled = true;
       renderRivela();
       renderExercise(run.current.ex);
@@ -1615,7 +1700,7 @@
         : `You need ${CHECK_PASS}% first try. Train the weak spots and take the Desk Challenge again.`;
     }
 
-    state.xp = (state.xp || 0) + gained;
+    addXp(gained);
     if (mode === 'lesson' || mode === 'review' || mode === 'frontier') { ensureDaily(); state.daily.trainingRuns = (state.daily.trainingRuns || 0) + 1; }
     touchStreak();
     save();
@@ -1785,10 +1870,14 @@
       const xpPct = next.xp ? Math.min(1, xp / next.xp) : 1;
       const lessonPct = next.lessons ? Math.min(1, doneN / next.lessons) : 1;
       pct = Math.round(Math.min(xpPct, lessonPct) * 100);
+      /* "120 XP + 6 levels to Graduate Analyst" si legge come una formula.
+         Il ruolo che arriva viene prima, e quel che manca dopo. */
       const needs = [];
       if (xp < next.xp) needs.push(`${next.xp - xp} XP`);
       if (doneN < next.lessons) needs.push(`${next.lessons - doneN} level${next.lessons - doneN === 1 ? '' : 's'}`);
-      copy = needs.length ? `${needs.join(' + ')} to ${next.name}` : `Ready for ${next.name}`;
+      copy = needs.length
+        ? `Next: ${next.name} — ${needs.join(' and ')} to go`
+        : `Ready for ${next.name}`;
     }
     host.innerHTML = `<section class="career-hero">
       <div class="career-badge"><span>LEVEL</span><b>${careerLevel()}</b></div>
@@ -1874,13 +1963,39 @@
     const host = $('#practiceHub'); if (!host) return;
     const due = dueCount();
     const available = state.done.length > 0;
-    host.innerHTML = `<section class="practice-card">
-      <div class="practice-orb">↻</div><span class="eyebrow">Personalised queue</span>
-      <h2>${available ? (due ? `${due} item${due === 1 ? '' : 's'} need attention` : 'Keep your earlier skills warm') : 'Complete your first level to unlock Practice'}</h2>
-      <p>${available ? 'World of Trade weights mistakes and older material more heavily, so weak concepts return before strong ones.' : 'Practice is built from questions you have already encountered.'}</p>
-      <button id="practiceStart" class="btn primary wide" ${available ? '' : 'disabled'}>${due ? 'Train weak skills' : 'Start practice'}</button>
+    /* Un pulsante disattivato su una scheda vuota lascia il giocatore fermo
+       dov'è. Se non c'è ancora niente da ripassare, la scheda lo riporta
+       dove il ripasso si guadagna: il primo livello. */
+    const queue = `<section class="practice-card">
+      <div class="practice-orb" aria-hidden="true">↻</div><span class="eyebrow">Personalised queue</span>
+      <h2>${available ? (due ? `${due} item${due === 1 ? '' : 's'} need attention` : 'Keep your earlier skills warm') : 'Practice opens with your first cleared level'}</h2>
+      <p>${available
+        ? 'Mistakes and older material weigh more, so weak concepts come back before strong ones. Practice never costs a lifebuoy.'
+        : 'Practice is built from questions you have already answered on the Career Path — clear a level and it fills up.'}</p>
+      <button id="practiceStart" class="btn primary wide">${available ? (due ? 'Train weak skills' : 'Start practice') : 'Go to your first level'}</button>
     </section>`;
-    $('#practiceStart')?.addEventListener('click', startReview);
+
+    const skills = available ? skillsAllenabili() : [];
+    const drills = skills.length ? `<section class="practice-skills">
+      <div class="card-title"><div><span class="eyebrow">Targeted drills</span><h2>Train one skill</h2></div>
+        <small>${skills.length} open</small></div>
+      <p class="practice-skills-note">Weakest first. Every drill is free: it pulls only from material you have already seen.</p>
+      <div class="skill-drills">${skills.map(({ id, sk, score }) => `
+        <button class="skill-drill" data-skill="${esc(id)}">
+          <i aria-hidden="true">${esc(sk.icon)}</i>
+          <span class="skill-drill-copy"><b>${esc(sk.short)}</b><small>${esc(sk.description || sk.name)}</small>
+            <span class="skill-track" role="progressbar" aria-label="${esc(sk.name)} mastery"
+                  aria-valuemin="0" aria-valuemax="100" aria-valuenow="${score}"><i style="width:${score}%"></i></span></span>
+          <b class="skill-drill-score">${score}</b>
+        </button>`).join('')}</div>
+    </section>` : '';
+
+    host.innerHTML = queue + drills;
+    $('#practiceStart')?.addEventListener('click', () => {
+      if (available) startReview(); else show('pathScreen');
+    });
+    $$('[data-skill]', host).forEach(b =>
+      b.addEventListener('click', () => startSkillReview(b.dataset.skill)));
   }
 
   function profileInitial(name) {
@@ -1977,6 +2092,31 @@
     });
   }
 
+  /* Preferenze del dispositivo, condivise con il pannello dell'account.
+     Stanno in localStorage e non nella carriera: seguono il telefono, non la
+     persona, e un ospite senza account deve poterle cambiare lo stesso. */
+  const SETTINGS_KEY = 'wot-settings-v1';
+  function impostazioni() {
+    try { return { haptics: true, sound: false, ...(JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}') || {}) }; }
+    catch (e) { return { haptics: true, sound: false }; }
+  }
+  function salvaImpostazioni(patch) {
+    const next = { ...impostazioni(), ...patch };
+    try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(next)); } catch (e) {}
+    try { window.dispatchEvent(new CustomEvent('wot:settings', { detail: next })); } catch (e) {}
+    return next;
+  }
+  function bindDeviceSettings() {
+    const s = $('#setSound');
+    if (s) s.addEventListener('change', e => {
+      salvaImpostazioni({ sound: !!e.target.checked });
+      // una prova immediata: un interruttore del suono che non suona non dice
+      // se ha funzionato
+      if (e.target.checked) window.WOT_SOUND?.suona?.('good');
+    });
+    $('#setHaptics')?.addEventListener('change', e => salvaImpostazioni({ haptics: !!e.target.checked }));
+  }
+
   function renderProfile() {
     const host = $('#profileBody'); if (!host) return;
     state.profile ||= { name:'', avatar:'', updatedAt:0 };
@@ -2007,8 +2147,16 @@
     <section class="flash-record"><span class="eyebrow">Flash Trading record</span><div class="profile-numbers"><div><b>${state.flash.best || 0}</b><span>Best score</span></div><div><b>${state.flash.plays || 0}</b><span>Runs</span></div><div><b>${accuracy}%</b><span>Accuracy</span></div></div></section>
     <section class="flash-record"><span class="eyebrow">Trading Floor Run</span><div class="profile-numbers"><div><b>${state.frontier.best || 0}%</b><span>Best result</span></div><div><b>${state.frontier.plays || 0}</b><span>Runs</span></div><div><b>${state.frontier.cleared || 0}</b><span>Cleared</span></div></div></section>
     <section class="flash-record"><span class="eyebrow">Boss Deal record</span><div class="profile-numbers"><div><b>${state.boss.best || 0}%</b><span>Best result</span></div><div><b>${state.boss.cleared || 0}</b><span>Deals cleared</span></div><div><b>${state.boss.plays || 0}</b><span>Runs</span></div></div></section>
-    <section class="flash-record"><span class="eyebrow">Daily desk record</span><div class="profile-numbers"><div><b>${dailyDealCount()}</b><span>Daily deals</span></div><div><b>${perfectDayCount()}</b><span>Perfect days</span></div><div><b>${dailyQuests().filter(q => state.daily.claimed[q.id]).length}/3</b><span>Today</span></div></div></section>`;
+    <section class="flash-record"><span class="eyebrow">Daily desk record</span><div class="profile-numbers"><div><b>${dailyDealCount()}</b><span>Daily deals</span></div><div><b>${perfectDayCount()}</b><span>Perfect days</span></div><div><b>${dailyQuests().filter(q => state.daily.claimed[q.id]).length}/3</b><span>Today</span></div></div></section>
+    <section class="device-settings">
+      <div class="card-title"><div><span class="eyebrow">On this device</span><h2>Sound and feel</h2></div></div>
+      <label class="device-toggle"><span><b>Sound</b><small>Short tones on answers, level clears and rewards.</small></span>
+        <input id="setSound" type="checkbox" ${impostazioni().sound === true ? 'checked' : ''}><i></i></label>
+      <label class="device-toggle"><span><b>Haptic feedback</b><small>A short vibration on answers and rewards, where the device supports it.</small></span>
+        <input id="setHaptics" type="checkbox" ${impostazioni().haptics !== false ? 'checked' : ''}><i></i></label>
+    </section>`;
     bindProfileEditor();
+    bindDeviceSettings();
   }
 
   function renderMetaScreens() {
@@ -2158,7 +2306,7 @@
       state.boss.best = Math.max(Number(state.boss.best)||0, acc);
       ensureDaily(); state.daily.bossRuns = (state.daily.bossRuns || 0) + 1;
     }
-    state.xp = (state.xp || 0) + gained;
+    addXp(gained);
     touchStreak(); save();
 
     const bySkill = {};
@@ -2270,7 +2418,7 @@
       state.flash.correct = (state.flash.correct || 0) + result.correct;
       state.flash.total = (state.flash.total || 0) + result.total;
       state.flash.best = Math.max(state.flash.best || 0, result.score);
-      state.xp = (state.xp || 0) + gained;
+      addXp(gained);
       ensureDaily();
       state.daily.flashBest = Math.max(Number(state.daily.flashBest)||0, result.score);
       state.daily.flashCorrect = (Number(state.daily.flashCorrect)||0) + result.correct;
@@ -2360,39 +2508,33 @@
       if (document.activeElement?.tagName !== 'INPUT') { e.preventDefault(); onCheck(); }
     }
   });
+  /* Con la tastiera si gioca molto più veloce se le opzioni hanno un numero.
+     Vale solo mentre si sta rispondendo a una scelta: dentro un campo di
+     testo le cifre sono cifre, e a domanda già corretta sarebbero un modo
+     di cambiare risposta dopo il fatto. */
+  document.addEventListener('keydown', e => {
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    if (!/^[1-9]$/.test(e.key)) return;
+    if (!$('#lessonScreen').classList.contains('active')) return;
+    if (!run || run.state !== 'answering' || run.current?.ex?.type !== 'choice') return;
+    const attivo = document.activeElement?.tagName;
+    if (attivo === 'INPUT' || attivo === 'TEXTAREA') return;
+    const scelta = $$('.opt')[Number(e.key) - 1];
+    if (!scelta || scelta.disabled) return;
+    e.preventDefault();
+    scelta.click();
+  });
 
   renderPath({ vaiAlPunto: true });   // primo arrivo: si parte da dove si era rimasti
+  // i contatori sulla barra in fondo si calcolavano solo cambiando scheda:
+  // appena aperta l'app non diceva che c'era qualcosa da ripassare
+  updateTabBadges();
   avviaOrologioVite();
 
-  // la fascia segue lo scorrimento del percorso. passive: non blocca lo scroll,
-  // e il lavoro vero è rimandato a un frame per non ricalcolare a ogni pixel
-  {
-    let inCoda = false;
-    const suScroll = () => {
-      if (inCoda) return;
-      inCoda = true;
-      const dopo = () => { inCoda = false; aggiornaFascia(); };
-      if (typeof requestAnimationFrame === 'function') requestAnimationFrame(dopo);
-      else setTimeout(dopo, 16);
-    };
-    const guida = $('#unitBannerGuide');
-    if (guida) guida.addEventListener('click', () => {
-      const id = $('#unitBanner')?.dataset.unit;
-      const u = UNITS.find(x => x.id === id);
-      // il glossario filtrato sull'unità che si sta guardando
-      location.href = 'glossary.html' + (u ? '?unit=' + encodeURIComponent(u.id) : '');
-    });
-    window.addEventListener('scroll', suScroll, { passive: true });
-    window.addEventListener('resize', suScroll, { passive: true });
-    window.addEventListener('wot:screen', e => {
-      // rientrando nel percorso si torna al punto in cui si era rimasti
-      if (e.detail?.id === 'pathScreen') renderPath({ vaiAlPunto: true });
-      const b = $('#unitBanner');
-      if (!b) return;
-      if (e.detail?.id !== 'pathScreen') { b.hidden = true; return; }
-      aggiornaFascia();
-    });
-  }
+  // rientrando nel percorso si torna al punto in cui si era rimasti
+  window.addEventListener('wot:screen', e => {
+    if (e.detail?.id === 'pathScreen') renderPath({ vaiAlPunto: true });
+  });
 
   // se la scheda è rimasta in secondo piano per ore, al rientro il fondo
   // va ricalcolato subito: l'intervallo può essere stato messo in pausa
@@ -2449,10 +2591,15 @@
     maturaVite, attesaVita, testoAttesa, renderStatLives, avviaOrologioVite, fermaOrologioVite,
     MAX_LIVES, STREAK_PER_LIFE, CHECK_MIN_LIVES, LIFE_REGEN_MS, FULL_REFILL_MS,
     replaceState, defaultState, migraSalvataggio, CURRICULUM_REV, STORAGE_KEY: KEY, SOGLIE, renderStreak, isUnlocked,
-    unitaInFascia, disegnaFascia, aggiornaFascia, fasediUnita, SEZIONI,
     chiediUscita, chiudiUscita, abbandona, isApertura, SANDBOX,
     concettoNuovo, vistoConcetto, segnaVisto, citato, formeDi, MAX_PRESENTAZIONI,
     careerRank, careerLevel, skillScore, startFlash, finishFlash, get flash(){return flash;}, startFrontier, unlockedMasteryWorlds,
     startBoss, startDaily, finishBoss, quitBoss, get boss(){return boss;}, ensureDaily, dailyQuests, claimDailyQuest, localDayKey,
-    ensureCompetitive, leagueScore, leagueEntry, renderLeagueHub, unlockedAchievements, save, GAME, COMP };
+    ensureCompetitive, leagueScore, leagueEntry, renderLeagueHub, unlockedAchievements, save, GAME, COMP,
+    impostazioni, salvaImpostazioni,
+    reviewItemsForSkill, startSkillReview, skillsAllenabili, renderPracticeHub,
+    addXp, ensureToday, renderDailyGoal, DAILY_GOAL,
+    // il cartellino del desk si mostra una volta per desk: esporre l'insieme
+    // permette a una prova di dichiararlo già visto e andare alla domanda
+    deskBriefSeen };
 })();

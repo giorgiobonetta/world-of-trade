@@ -18,21 +18,37 @@ Any static server, from the repository root:
 python -m http.server 8000
 ```
 
+```bash
+npx --yes serve -l 8000 .
+```
+
 Then open `http://localhost:8000/landing.html`. It deploys to Vercel as-is — no build step.
+
+No configuration is required to play: **Start trading** on the entrance screen opens the game
+straight away and the career is saved in the browser. Supabase is only needed for accounts,
+cross-device sync and the social features; see *Configuration* below.
+
+While developing, remember the service worker: it serves `app.js`, `styles.css` and the rest from
+its own cache, so a hard reload can still show you the previous build. Either bump `VERSION` in
+`sw.js` or unregister the worker and clear the cache from the browser's application panel.
 
 ## Structure
 
 ```
-landing.html           public landing page
+landing.html           the public site: what it is, the curriculum, the league, the glossary
+site.css / site.js     the bar and footer shared by every public page
+404.html               branded not-found page
 learn.html             the game shell
 index.html             splash used by the native shell (redirects to learn.html)
 curriculum.js          16 core trading units, hand-written: 111 levels, 546 exercises
 scenes.js              the sixteen SVG scenes used as section backgrounds
 content-engine.js      deterministic generator for the specialist desks
 glossary.js            171 terms, also used in-lesson by the coach
-intro.js               the three-screen first-run introduction
-sw.js                  service worker (offline support)
-tests/                 37 verification suites
+intro.js               the two-screen first-run introduction
+cloud.js               accounts, guest mode and Supabase sync
+sound.js               synthesised sound effects — no audio files
+sw.js                  service worker (offline support, and the cache version)
+tests/                 47 verification suites
 capacitor.config.ts    native shell configuration
 MOBILE-APP-SETUP.md    building the iOS/Android apps
 ```
@@ -125,3 +141,24 @@ Profile now contains Account & Settings. League is split into League, Friends an
 
 ## v0.6.1 — Mobile stability
 The five main tabs now behave like stable native app canvases. Only the destination hub is refreshed, scroll restoration happens before paint, mobile reveal animations cannot leave content temporarily invisible, and every hub shares the same header/bottom-bar safe-area geometry. League sub-tabs and Account sheets also use stable scroll handling.
+
+## v0.8.0 — One Site
+The public pages became one site: a sticky bar with the sections and a permanent **Start trading**,
+a shared footer, a Compete section built on the game's real divisions and trading houses, a glossary
+section, a branded 404, `robots.txt` and `sitemap.xml`. Deploy configuration moved from twenty
+per-file cache rules to six patterns, plus security headers.
+
+The game gained sound — synthesised, nothing downloaded, off until you turn it on — and **Sound and
+feel** in Profile, where a player without an account can actually reach it.
+
+## v0.7.0 — Open Door & the Trail
+The game no longer asks who you are before it lets you play: **Start trading** opens the Career Path
+immediately, the career is kept on the device, and creating an account later merges it rather than
+replacing it. The Career Path is drawn as a winding trail of level tokens with a START bubble on the
+current one and a trophy at the end of each desk. Practice gained per-skill drills, weakest skill
+first. A 50 XP daily goal is drawn as a ring around the streak flame.
+
+The League screen had not been drawing at all — a removed element threw inside its render function
+and took the emblem, the trading houses, the achievements and the standings with it. The verification
+suite could not open a page on Windows, so 31 of its 46 files aborted before their first assertion;
+both are fixed, and the suite runs 840 assertions. See `CHANGELOG.md` for the full list.

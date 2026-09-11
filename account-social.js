@@ -48,6 +48,18 @@
       const editor=body.querySelector('.profile-editor');
       if(editor)editor.insertAdjacentElement('afterend',card); else body.prepend(card);
     }
+    /* Chi gioca da ospite non ha impostazioni di account da aprire: mostrargli
+       "Account & Settings" con una email vuota promette una cosa che non c'è.
+       Al suo posto l'unica azione che gli serve davvero — mettere la carriera
+       al sicuro — e solo se c'è un backend che possa riceverla. */
+    if(!me()){
+      if(!api().enabled){card.hidden=true;card.innerHTML='';return;}
+      card.hidden=false;
+      card.innerHTML=`<button type="button" id="openAccount060" class="account-card-button060"><span class="account-icon060">☁</span><span><small>PLAYING AS A GUEST</small><b>Save your career</b><em>Create an account and it follows you to another device</em></span><i>›</i></button>`;
+      $('#openAccount060')?.addEventListener('click',()=>api().apri?.('up'));
+      return;
+    }
+    card.hidden=false;
     const p=ownProfile();
     const email=accountUser?.email||api().session?.user?.email||'Account';
     card.innerHTML=`<button type="button" id="openAccount060" class="account-card-button060"><span class="account-icon060">⚙</span><span><small>ACCOUNT & SETTINGS</small><b>${esc(profileTag(p))}</b><em>${esc(email)}</em></span><i>›</i></button>`;
@@ -75,7 +87,7 @@
     host.innerHTML=`
       <section class="account-section060 account-identity060"><div class="account-section-title060"><span>IDENTITY</span><small>Public inside World of Trade</small></div><div class="account-identity-main060"><div class="account-mini-avatar060">${esc((profileName(p)[0]||'T').toUpperCase())}</div><div><b>${esc(profileName(p))}</b><small>${esc(profileTag(p))}</small></div></div><label>Trader ID<div class="trader-id-input060"><span>@</span><input id="traderTag060" maxlength="20" value="${esc(p.trader_tag||'')}" autocomplete="off" autocapitalize="none"><button id="saveTraderTag060" type="button">Save</button></div><small>3–20 characters: letters, numbers and underscores. Other traders can find you with this ID.</small></label><p id="traderTagStatus060" class="account-status060" hidden></p></section>
       <section class="account-section060"><div class="account-section-title060"><span>ACCOUNT</span><small>Private</small></div><div class="account-row060"><span><b>Email</b><small>${esc(email)}</small></span><em class="${verified?'verified':''}">${verified?'✓ Verified':'Not verified'}</em></div><div class="account-row060 action"><span><b>Password</b><small>Change the password used to sign in.</small></span><button id="changePassword060" type="button">Change</button></div><div id="passwordBox060" class="password-box060" hidden><input id="newPassword060" type="password" minlength="8" autocomplete="new-password" placeholder="New password · 8+ characters"><button id="savePassword060" type="button">Update password</button><small id="passwordStatus060"></small></div></section>
-      <section class="account-section060"><div class="account-section-title060"><span>APP</span><small>On this device</small></div><label class="setting-toggle060"><span><b>Haptic feedback</b><small>Vibration on answers, rewards and key actions.</small></span><input id="haptics060" type="checkbox" ${cfg.haptics!==false?'checked':''}><i></i></label></section>
+      <section class="account-section060"><div class="account-section-title060"><span>APP</span><small>On this device</small></div><a class="account-link060" id="openDeviceSettings060" href="#">Sound and haptics — in Profile <i>›</i></a></section>
       <section class="account-section060"><div class="account-section-title060"><span>PRIVACY & DATA</span><small>Your account</small></div><a class="account-link060" href="privacy.html">Privacy Policy <i>›</i></a><button id="signOut060" class="account-danger-light060" type="button">Sign out</button><button id="deleteAccount060" class="account-danger060" type="button">Delete account</button><div id="deleteBox060" class="delete-box060" hidden><b>Delete World of Trade account?</b><p>This permanently deletes your account, career progress, social profile, friendships and challenge history. This cannot be undone.</p><label>Type <strong>DELETE</strong> to confirm<input id="deleteConfirm060" autocomplete="off"></label><button id="deleteForever060" type="button" disabled>Delete forever</button><small id="deleteStatus060"></small></div></section>`;
     bindAccount();
   }
@@ -89,7 +101,7 @@
     });
     $('#changePassword060')?.addEventListener('click',()=>{const box=$('#passwordBox060');if(box){box.hidden=!box.hidden;if(!box.hidden)$('#newPassword060')?.focus();}});
     $('#savePassword060')?.addEventListener('click',async()=>{const btn=$('#savePassword060'),pw=$('#newPassword060')?.value||'';if(pw.length<8){$('#passwordStatus060').textContent='Use at least 8 characters.';return;}btn.disabled=true;$('#passwordStatus060').textContent='Updating…';try{await api().updatePassword?.(pw);$('#newPassword060').value='';$('#passwordStatus060').textContent='Password updated.';}catch(e){$('#passwordStatus060').textContent=e?.message||'Could not update password.';}finally{btn.disabled=false;}});
-    $('#haptics060')?.addEventListener('change',e=>saveSettings({haptics:!!e.target.checked}));
+    $('#openDeviceSettings060')?.addEventListener('click',e=>{e.preventDefault();closeAccount();});
     $('#signOut060')?.addEventListener('click',async()=>{closeAccount();await api().esci?.();});
     $('#deleteAccount060')?.addEventListener('click',()=>{const box=$('#deleteBox060');if(box){box.hidden=!box.hidden;if(!box.hidden)$('#deleteConfirm060')?.focus();}});
     $('#deleteConfirm060')?.addEventListener('input',e=>{const b=$('#deleteForever060');if(b)b.disabled=String(e.target.value||'').trim()!=='DELETE';});

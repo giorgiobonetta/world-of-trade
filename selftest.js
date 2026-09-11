@@ -30,10 +30,20 @@
     g: fg.g * fg.a + bg.g * (1 - fg.a),
     b: fg.b * fg.a + bg.b * (1 - fg.a), a: 1,
   });
+  /* Un pulsante dorato ha background-color trasparente e il colore vero sta
+     nel gradiente: leggendo solo backgroundColor si finiva a misurare il
+     testo scuro contro la fascia scura dietro, e a riportare 1.12:1 su un
+     pulsante perfettamente leggibile. */
+  function primoColoreGradiente(s) {
+    if (!s || s === 'none') return null;
+    const m = /rgba?\([^)]+\)/.exec(s);
+    return m ? rgb(m[0]) : null;
+  }
   function sfondoEffettivo(el, win) {
     let n = el, acc = null;
     while (n && n.nodeType === 1) {
-      const c = rgb(win.getComputedStyle(n).backgroundColor);
+      const st = win.getComputedStyle(n);
+      const c = rgb(st.backgroundColor)?.a ? rgb(st.backgroundColor) : primoColoreGradiente(st.backgroundImage);
       if (c && c.a > 0) {
         acc = acc ? mix(acc, c) : c;
         if (acc.a >= 1 || c.a >= 1) return acc;
@@ -122,12 +132,23 @@
     t('the engine started', !!L, L ? '' : 'app.js did not run — check the console');
     if (!L) return;
     t('it is using the scratch save, not yours', L.STORAGE_KEY === 'wot-learn-selftest', L.STORAGE_KEY);
-    t('the curriculum loaded', L.allLessons.length === 173, L.allLessons.length + ' lessons');
-    t('the path drew every lesson', d.querySelectorAll('.node').length === 103,
-      d.querySelectorAll('.node').length + ' nodes');
-    t('Hélène is on the path', !!d.querySelector('#pathGreet svg'));
-    t('five main game tabs are present', d.querySelectorAll('.nav-item').length === 5,
-      d.querySelectorAll('.nav-item').length + ' tabs');
+    const totaleLezioni = L.UNITS.reduce((n, u) => n + u.lessons.length, 0);
+    t('the curriculum loaded', L.allLessons.length === totaleLezioni && totaleLezioni > 100,
+      L.allLessons.length + ' lessons');
+    /* Il percorso mostra il desk corrente e quelli già finiti, non l'intero
+       corso: contare tutte le lezioni darebbe sempre un errore. Si controlla
+       che ogni livello dei desk aperti abbia il suo nodo. */
+    const desksAperti = [...d.querySelectorAll('.unit')].map(sec => sec.id.replace(/^unit-/, ''));
+    const nodiAttesi = desksAperti.reduce((n, id) =>
+      n + (L.UNITS.find(u => u.id === id)?.lessons.length || 0), 0);
+    t('the path drew every level of every open desk',
+      d.querySelectorAll('.node').length === nodiAttesi,
+      d.querySelectorAll('.node').length + ' nodes for ' + nodiAttesi + ' levels in ' + desksAperti.length + ' desks');
+    t('Hélène can be called from the path', !!d.querySelector('#heleneCall'));
+    t('five main game tabs are present', d.querySelectorAll('#gameNav .nav-item').length === 5,
+      d.querySelectorAll('#gameNav .nav-item').length + ' tabs');
+    t('and the same five in the bottom bar', d.querySelectorAll('.tab-bar .tab-item').length === 5,
+      d.querySelectorAll('.tab-bar .tab-item').length + ' tabs');
     const lb = d.querySelector('[data-screen="leagueScreen"]');
     if (lb) {
       lb.click(); await attendi(80);
@@ -218,6 +239,12 @@
       primo.click();
       await attendi(320);
       t('the lesson screen opens', d.querySelector('#lessonScreen').classList.contains('active'));
+      /* Entrando in un desk per la prima volta Hélène dà il cartellino: è una
+         schermata da superare, non la domanda che si vuole provare. */
+      let giri = 0;
+      while (L.run && (L.run.state === 'briefing' || L.run.state === 'insegna') && giri++ < 6) {
+        L.onCheck(); await attendi(80);
+      }
       const ex = L.run && L.run.current && L.run.current.ex;
       t('an exercise is showing', !!ex && !!d.querySelector('#exerciseArea').textContent.trim());
       controllaContrasto(d.querySelector('#lessonScreen'), 'A lesson');

@@ -4,14 +4,19 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>World of Trade — learn physical commodity trading</title>
-<meta name="description" content="Learn physical commodity trading through a 219-level career path, daily deals, simulations and competitive leagues. Create an account or sign in to start your trading career." />
+<meta name="description" content="Learn physical commodity trading through a 219-level career path, daily deals, simulations and competitive leagues. Start playing straight away — an account is only needed to carry your career between devices." />
 <meta property="og:title" content="World of Trade — learn physical commodity trading" />
 <meta property="og:description" content="Five minutes at a time, from what a cargo is to why a perfect hedge can still bankrupt a desk." />
 <meta property="og:image" content="https://world-of-trade.vercel.app/world-of-trade-premium-icon-512.png" />
 <meta property="og:image:width" content="512" />
 <meta property="og:image:height" content="512" />
 <meta property="og:url" content="https://world-of-trade.vercel.app/" />
-<meta name="twitter:card" content="summary_large_image" />
+<!-- L'immagine di anteprima è il crest, che è quadrato. Una scheda
+     "large_image" la ritaglia a due a uno e le taglia la testa e la base:
+     con una figura quadrata la scheda giusta è quella piccola. -->
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="World of Trade — learn physical commodity trading" />
+<meta name="twitter:description" content="Five minutes at a time, from what a cargo is to why a perfect hedge can still bankrupt a desk." />
 <meta property="og:type" content="website" />
 <meta name="theme-color" content="#0a1b3d" />
 <link rel="icon" href="world-of-trade-premium-icon-192.png" type="image/png" />
@@ -20,6 +25,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" />
+<link rel="stylesheet" href="site.css" />
+<link rel="canonical" href="https://world-of-trade.vercel.app/" />
+<script defer src="site.js"></script>
 <style>
 :root{
   --navy:#0a1b3d;--navy-deep:#050d20;--royal:#1d4fa8;--royal-mid:#2660c9;--royal-deep:#12356f;--royal-lite:#3f7ae0;
@@ -78,6 +86,60 @@ h2{font-size:clamp(24px,3.6vw,34px);margin-bottom:14px}
   border:3px solid rgba(255,212,92,.24);box-shadow:0 6px 0 rgba(5,18,48,.55),inset 0 2px 0 rgba(255,255,255,.16)}
 .stat b{display:block;font-size:34px;color:var(--gold);font-variant-numeric:tabular-nums;text-shadow:0 2px 0 rgba(5,16,45,.5)}
 .stat span{display:block;margin-top:4px;color:var(--muted);font-size:12.5px;text-transform:uppercase;letter-spacing:.12em;font-weight:700}
+
+/* ── Compete: la scala delle divisioni e un tabellone vero ──────────
+   Le righe sono quelle che l'app disegna davvero in anteprima locale,
+   con lo stesso contrassegno: una classifica inventata che sembra reale
+   sarebbe una promessa che il gioco non mantiene. */
+.league-split{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));align-items:start}
+.ladder{display:grid;gap:9px}
+.rank{display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;gap:13px;
+  padding:12px 15px;border-radius:16px;
+  background:linear-gradient(150deg,rgba(24,64,130,.72),rgba(9,31,72,.85));
+  border:1px solid rgba(173,205,255,.15)}
+.rank i{display:grid;place-items:center;width:44px;height:44px;border-radius:13px;font-style:normal;
+  font-size:15px;font-weight:800;color:#08183f;background:linear-gradient(180deg,#94a9c6,#5b6d8e)}
+.rank.r-silver i{background:linear-gradient(180deg,#e4ecf7,#9fb2cc)}
+.rank.r-gold i{background:linear-gradient(180deg,var(--gold-hi),var(--gold-mid))}
+.rank.r-plat i{background:linear-gradient(180deg,#cfe9ff,#69a6de)}
+.rank.r-dia i{background:linear-gradient(180deg,#c8f6ff,#4fc7e0)}
+.rank.r-elite i{background:linear-gradient(180deg,#ffd9a8,#f5754a)}
+.rank b{display:block;font-size:16px}
+.rank small{display:block;color:#a9c2e8;font-size:13px}
+.rank em{font-style:normal;color:var(--gold-hi);font-size:13.5px;font-weight:700;white-space:nowrap}
+
+.board{padding:18px 18px 16px;border-radius:var(--r-lg);
+  background:linear-gradient(160deg,rgba(16,40,86,.85),rgba(6,20,48,.92));
+  border:1px solid rgba(255,212,92,.2);box-shadow:0 10px 30px rgba(0,0,0,.28)}
+.board-top{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:14px}
+.board-top b{font-size:18px;color:#fff8e6}
+.board-top span{color:#9fb7db;font-size:12px;text-transform:uppercase;letter-spacing:.12em;font-weight:700}
+.board-row{display:grid;grid-template-columns:26px minmax(0,1fr) 34px 58px;align-items:center;gap:10px;
+  padding:10px 6px;border-top:1px solid rgba(255,255,255,.07);font-size:15px}
+.board-row:first-of-type{border-top:0}
+.board-row.you{background:rgba(255,212,92,.09);border-radius:12px}
+.board-row .p{color:#8ea9d0;font-variant-numeric:tabular-nums}
+.board-row .t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.board-row .t em{font-style:normal;margin-left:7px;color:#8ea9d0;font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+.board-row .h{display:grid;place-items:center;width:26px;height:26px;border-radius:8px;
+  background:rgba(3,12,34,.6);color:#c8daf7;font-size:12px;font-weight:800}
+.board-row .x{text-align:right;color:var(--gold);font-weight:700;font-variant-numeric:tabular-nums}
+.board-note{margin:14px 0 0;color:#9fb7db;font-size:13px;line-height:1.6}
+
+.houses{display:flex;flex-wrap:wrap;gap:9px;margin-top:22px}
+.house{display:flex;align-items:center;gap:9px;padding:9px 14px 9px 9px;border-radius:999px;
+  background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.12);font-size:14px}
+.house i{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;font-style:normal;
+  font-size:12px;font-weight:800;color:#08183f;background:linear-gradient(180deg,var(--gold-hi),var(--gold-mid))}
+
+/* ── il glossario, promosso: 171 voci sono un prodotto dentro il prodotto ── */
+.gloss-promo{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));align-items:center;
+  padding:28px;border-radius:var(--r-lg);
+  background:linear-gradient(150deg,rgba(34,72,139,.7),rgba(7,27,68,.85));
+  border:1px solid rgba(255,212,92,.2)}
+.gloss-terms{display:flex;flex-wrap:wrap;gap:8px}
+.gloss-terms span{padding:7px 13px;border-radius:999px;background:rgba(3,12,34,.55);
+  border:1px solid rgba(173,205,255,.16);color:#d6e5ff;font-size:13.5px}
 </style>
 </head>
 <body>
@@ -339,6 +401,28 @@ footer{padding:46px 0 64px;text-align:center;color:var(--muted-2);font-size:15px
 @media (max-width:420px){.backdrop{opacity:.62}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<nav class="site-nav" aria-label="Site">
+  <div class="site-nav-inner">
+    <a class="site-brand" href="landing.html" aria-label="World of Trade — home">
+      <img src="logo-crest-220.webp" alt="" width="36" height="36"
+           onerror="this.onerror=null;this.src='logo-crest-220.png'" />
+      <b>World of Trade</b>
+    </a>
+    <button id="siteNavToggle" class="site-nav-toggle" type="button"
+            aria-expanded="true" aria-controls="siteLinks">Menu</button>
+    <ul id="siteLinks" class="site-links">
+      <li><a href="#how">How it works</a></li>
+      <li><a href="#curriculum">Curriculum</a></li>
+      <li><a href="#compete">Compete</a></li>
+      <li><a href="glossary.html">Glossary</a></li>
+    </ul>
+    <a class="site-cta" href="learn.html">Start trading</a>
+  </div>
+</nav>
+
+<main id="main">
 <header>
   <div class="wrap">
     <picture>
@@ -349,10 +433,10 @@ footer{padding:46px 0 64px;text-align:center;color:var(--muted-2);font-size:15px
     <h1>Learn <span class="gold">physical commodity trading</span><br />one cargo at a time.</h1>
     <p class="lede">Start as an intern, build the core desk skills, specialise in metals, oil, LNG, power and agriculture, then keep training on an endless trading floor. Short decisions, live feedback and no jargon dumped on you — every answer is explained.</p>
     <div class="cta">
-      <a class="btn" href="learn.html">Sign in / Create account</a>
+      <a class="btn" href="learn.html">Start trading</a>
       <a class="btn ghost" href="#curriculum">See the curriculum</a>
     </div>
-    <p class="note">Runs in the browser · installs as an app · secure account required</p>
+    <p class="note">Play straight away · no account needed · runs in the browser and installs as an app</p>
   </div>
 </header>
 
@@ -367,7 +451,7 @@ footer{padding:46px 0 64px;text-align:center;color:var(--muted-2);font-size:15px
   </div>
 </section>
 
-<section>
+<section id="how">
   <div class="wrap">
     <span class="eyebrow">The idea</span>
     <h2>Trading is taught by doing, not by reading.</h2>
@@ -383,7 +467,7 @@ footer{padding:46px 0 64px;text-align:center;color:var(--muted-2);font-size:15px
       <div class="card"><h3>The floor never ends</h3><p>Flash Trading, Boss Deals and regenerated 10-question Trading Floor Runs keep producing new decisions after the Career Path is finished.</p></div>
       <div class="card"><h3>Compete every week</h3><p>Climb Bronze through Elite League, contribute XP to a Trading House and collect career achievements. Online standings use a public trader alias — never your email.</p></div>
       <div class="card"><h3>Streaks worth showing</h3><p>Correct answers taken first try build a streak across lessons. Hit a run you are proud of and the app builds a card you can post on LinkedIn.</p></div>
-      <div class="card"><h3>Your career, securely saved</h3><p>An account is required before entering World of Trade. Your private career progress is tied to your account and can follow you across devices; the League publishes only your chosen trader alias, house, division and weekly score.</p></div>
+      <div class="card"><h3>Yours to keep</h3><p>You play immediately and the career is saved on the device. Add an account whenever you want it to follow you to another one — the League publishes only your chosen trader alias, house, division and weekly score, never your email.</p></div>
     </div>
   </div>
 </section>
@@ -538,7 +622,7 @@ footer{padding:46px 0 64px;text-align:center;color:var(--muted-2);font-size:15px
           <li><strong>Interview-shaped.</strong> The questions people are actually asked about incoterms, QP and hedging.</li>
           <li><strong>Honest about numbers.</strong> Every calculation is worked through so you can reproduce it.</li>
           <li><strong>Built to stick.</strong> A practice queue weighted on what you got wrong, and a checkpoint per unit.</li>
-          <li><strong>Free to play.</strong> No paywall or upsell. A secure account is required to enter the game and save your career.</li>
+          <li><strong>Free to play.</strong> No paywall, no upsell, and no sign-up before the first level. An account only carries your career to a second device.</li>
         </ul>
       </div>
       <div class="card">
@@ -554,20 +638,112 @@ footer{padding:46px 0 64px;text-align:center;color:var(--muted-2);font-size:15px
   </div>
 </section>
 
+<section id="compete">
+  <div class="wrap">
+    <span class="eyebrow">Compete</span>
+    <h2>Answer questions. Climb the desk.</h2>
+    <p class="sub">Every XP you earn in a week counts towards a division. Six leagues, six trading houses to fight for, eighteen career achievements — and a public standing that shows a trader alias you choose, never your email.</p>
+    <div class="league-split">
+      <div class="ladder">
+        <div class="rank"><i>III</i><div><b>Bronze</b><small>Where every trader starts</small></div><em>200 XP</em></div>
+        <div class="rank r-silver"><i>II</i><div><b>Silver</b><small>A week of steady levels</small></div><em>300 XP</em></div>
+        <div class="rank r-gold"><i>I</i><div><b>Gold</b><small>Career plus the daily deal</small></div><em>450 XP</em></div>
+        <div class="rank r-plat"><i>P</i><div><b>Platinum</b><small>Flash runs and Boss Deals</small></div><em>650 XP</em></div>
+        <div class="rank r-dia"><i>D</i><div><b>Diamond</b><small>The specialist desks</small></div><em>900 XP</em></div>
+        <div class="rank r-elite"><i>E</i><div><b>Elite</b><small>Nothing above it</small></div><em>Top</em></div>
+      </div>
+      <div class="board">
+        <div class="board-top"><b>Your League</b><span>Weekly standings</span></div>
+        <div class="board-row"><span class="p">1</span><span class="t">Copper Fox<em>preview</em></span><span class="h">A</span><span class="x">117</span></div>
+        <div class="board-row"><span class="p">2</span><span class="t">Baltic Owl<em>preview</em></span><span class="h">H</span><span class="x">114</span></div>
+        <div class="board-row you"><span class="p">3</span><span class="t">You</span><span class="h">N</span><span class="x">108</span></div>
+        <div class="board-row"><span class="p">4</span><span class="t">Orion Desk<em>preview</em></span><span class="h">M</span><span class="x">101</span></div>
+        <div class="board-row"><span class="p">5</span><span class="t">Delta Cargo<em>preview</em></span><span class="h">R</span><span class="x">94</span></div>
+        <p class="board-note">Until you add an account the board is a local preview, marked exactly like this inside the game. Sign in and the rows become the people actually playing this week.</p>
+      </div>
+    </div>
+    <div class="houses">
+      <span class="house"><i>A</i>Atlas Merchant House</span>
+      <span class="house"><i>H</i>Helios Commodities</span>
+      <span class="house"><i>N</i>Northstar Trading</span>
+      <span class="house"><i>M</i>Meridian Resources</span>
+      <span class="house"><i>B</i>BlueHarbor Merchants</span>
+      <span class="house"><i>R</i>Argonaut Trading House</span>
+    </div>
+  </div>
+</section>
+
+<section id="glossary">
+  <div class="wrap">
+    <span class="eyebrow">The vocabulary</span>
+    <h2>171 terms, and the reason each one matters.</h2>
+    <p class="sub">The glossary is not an appendix. Hélène pulls from it mid-lesson the first time a term appears, and you can read the whole thing without playing a single level.</p>
+    <div class="gloss-promo">
+      <div class="gloss-terms">
+        <span>Incoterms</span><span>Quotational period</span><span>Basis</span><span>Contango</span>
+        <span>Backwardation</span><span>Laytime</span><span>Demurrage</span><span>Letter of credit</span>
+        <span>Bill of lading</span><span>Hedge ratio</span><span>Variation margin</span><span>Borrowing base</span>
+        <span>Crack spread</span><span>TC/RC</span><span>Netback</span><span>Spark spread</span>
+      </div>
+      <div>
+        <p class="sub" style="margin-bottom:20px">Each entry says what it is, why a desk cares, and what it costs you to get wrong.</p>
+        <a class="btn ghost" href="glossary.html">Open the glossary</a>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section>
   <div class="wrap" style="text-align:center">
     <h2>Unit 1, Lesson 1 takes four minutes.</h2>
     <p class="sub" style="margin:12px auto 26px">You will know what a physical trader actually gets paid for by the end of it.</p>
-    <div class="cta"><a class="btn" href="learn.html">Sign in / Create account</a></div>
+    <div class="cta"><a class="btn" href="learn.html">Start trading</a></div>
   </div>
 </section>
 
-<footer>
-  <div class="wrap">
-    <p><strong style="color:#fff8e6">World of Trade</strong> — learn physical commodity trading, step by step.</p>
-    <p>Educational material only. Not trading, investment, legal or tax advice.
-       Figures and cases are illustrative and simplified for teaching.</p>
-    <p><a href="privacy.html">Privacy and terms</a></p>
+</main>
+
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <div class="site-footer-top">
+      <div>
+        <div class="site-footer-brand">
+          <img src="logo-crest-220.webp" alt="" width="44" height="44"
+               onerror="this.onerror=null;this.src='logo-crest-220.png'" />
+          <b>World of Trade</b>
+        </div>
+        <p class="site-footer-line">Physical commodity trading, learned the way a desk works it:
+           short levels, real decisions, an explanation behind every call.</p>
+      </div>
+      <div class="site-footer-col">
+        <h3>Play</h3>
+        <ul>
+          <li><a href="learn.html">Career Path</a></li>
+          <li><a href="learn.html">Trading Floor</a></li>
+          <li><a href="#compete">League</a></li>
+        </ul>
+      </div>
+      <div class="site-footer-col">
+        <h3>Learn</h3>
+        <ul>
+          <li><a href="#how">How it works</a></li>
+          <li><a href="#curriculum">Curriculum</a></li>
+          <li><a href="glossary.html">Glossary</a></li>
+        </ul>
+      </div>
+      <div class="site-footer-col">
+        <h3>About</h3>
+        <ul>
+          <li><a href="privacy.html">Privacy and terms</a></li>
+          <li><a href="selftest.html">Self-check</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="site-footer-bottom">
+      <p>Educational material only. Not trading, investment, legal or tax advice.
+         Figures and cases are illustrative and simplified for teaching.</p>
+      <p>&copy; 2026 World of Trade</p>
+    </div>
   </div>
 </footer>
 <style>
@@ -583,7 +759,9 @@ header .note{animation:popIn .7s var(--spring) .4s both}
 .gold{background-size:200% auto;animation:shine 6s linear infinite alternate}
 .helene-row .face,.demo-fb-face{animation:floaty 4.5s ease-in-out infinite}
 .reveal{opacity:0;transform:translateY(26px) scale(.97)}
-.reveal.in{animation:popIn .62s var(--spring) both}
+/* L'animazione dà il movimento, non la visibilità: se non parte — scheda in
+   secondo piano, motion ridotto, un frame perso — il contenuto è comunque lì. */
+.reveal.in{opacity:1;transform:none;animation:popIn .62s var(--spring) both}
 .stat:nth-child(2),.card:nth-child(2),.unit:nth-child(2),.type:nth-child(2){animation-delay:.06s}
 .stat:nth-child(3),.card:nth-child(3),.unit:nth-child(3),.type:nth-child(3){animation-delay:.12s}
 .stat:nth-child(4),.card:nth-child(4),.unit:nth-child(4),.type:nth-child(4){animation-delay:.18s}

@@ -55,10 +55,25 @@
   const loadSession = () => { try { return JSON.parse(localStorage.getItem(SESS) || 'null'); } catch (e) { return null; } };
   const putSession = s => {
     session = s;
+    // chi entra con un account non è più un ospite: la carriera locale viene
+    // fusa con quella in cloud dalla sincronizzazione che segue
+    if (s) { try { localStorage.removeItem('wot-guest'); } catch (e) {} guest = false; }
     try { s ? localStorage.setItem(SESS, JSON.stringify(s)) : localStorage.removeItem(SESS); } catch (e) {}
     try { window.dispatchEvent(new CustomEvent('wot:auth', { detail: { signedIn: !!s, session: s || null } })); } catch (e) {}
   };
   session = loadSession();
+
+  /* ── ospite ───────────────────────────────────────────────────────
+     Un muro di registrazione davanti al primo livello è il modo più
+     veloce per perdere un giocatore che non sa ancora se il gioco gli
+     piace. Si entra subito: la carriera vive in locale finché non si
+     crea un account, e allora viene fusa con quella in cloud. */
+  const GUEST = 'wot-guest';
+  let guest = (() => { try { return localStorage.getItem(GUEST) === '1'; } catch (e) { return false; } })();
+  function setGuest(v) {
+    guest = !!v;
+    try { v ? localStorage.setItem(GUEST, '1') : localStorage.removeItem(GUEST); } catch (e) {}
+  }
 
   /* ── chiamate ─────────────────────────────────────────────────────── */
   async function call(path, { method = 'POST', body, auth = false, headers = {} } = {}) {
@@ -495,6 +510,15 @@
       doneAt: maxMap(a.doneAt, b.doneAt),
       misses: maxMap(a.misses, b.misses),
       skillXp: maxMap(a.skillXp, b.skillXp),
+      // l'obiettivo del giorno: se le due copie parlano dello stesso giorno si
+      // tiene il conteggio più alto, altrimenti vince il giorno più recente
+      today: (() => {
+        const x = a?.today, y = b?.today;
+        if (!x?.day) return y?.day ? y : null;
+        if (!y?.day) return x;
+        if (x.day === y.day) return { day: x.day, xp: Math.max(Number(x.xp)||0, Number(y.xp)||0), hit: !!(x.hit || y.hit) };
+        return x.day > y.day ? x : y;
+      })(),
       flash: {
         best: Math.max(Number(a.flash?.best) || 0, Number(b.flash?.best) || 0),
         plays: Math.max(Number(a.flash?.plays) || 0, Number(b.flash?.plays) || 0),
@@ -532,9 +556,15 @@
   function aggiornaGate(messaggioGate = '', tipo = '') {
     const gate = $('#authGate');
     const status = $('#authGateStatus');
-    const locked = !session;
+    const eraBloccato = document.body.classList.contains('auth-locked');
+    const locked = !session && !guest;
     document.body.classList.toggle('auth-locked', locked);
     if (gate) gate.hidden = !locked;
+    // gli altri moduli (coach, social) aspettano che la porta si apra:
+    // senza un evento dovrebbero sondare il DOM all'infinito
+    if (eraBloccato && !locked) {
+      try { window.dispatchEvent(new CustomEvent('wot:unlocked', { detail: { guest: !session } })); } catch (e) {}
+    }
     if (status) {
       status.textContent = messaggioGate || (locked ? 'Sign in or create an account to continue.' : 'Access granted.');
       status.className = 'auth-gate-status' + (tipo ? ' ' + tipo : '');
@@ -542,16 +572,45 @@
   }
 
   function gateNonConfigurato() {
-    aggiornaGate(PERICOLO
-      ? 'Authentication is blocked because supabase-config.js contains a secret key. Replace it with the public publishable/anon key.'
-      : SANDBOX
-        ? 'Secure access is disabled in sandbox mode.'
-        : 'Authentication is not configured. Copy supabase-config.example.js to supabase-config.js and fill in your Supabase URL and publishable key — see SUPABASE-SETUP.md.', 'warn');
-    $('#authSignIn')?.setAttribute('disabled','');
-    $('#authSignUp')?.setAttribute('disabled','');
+    // Il dettaglio tecnico serve a chi installa, non a chi gioca: in console
+    // per esteso, sullo schermo solo la conseguenza pratica.
+    if (!SANDBOX) {
+      try {
+        console.warn(PERICOLO
+          ? 'World of Trade: supabase-config.js contains a SECRET key. Replace it with the publishable/anon key.'
+          : 'World of Trade: cloud sync is off. Copy supabase-config.example.js to supabase-config.js — see SUPABASE-SETUP.md.');
+      } catch (e) {}
+    }
+    // Un pulsante disabilitato è un invito a premerlo che finisce male:
+    // se non c'è un account da usare, l'opzione non va mostrata affatto.
+    aggiornaGate('Your career is saved on this device.');
+    ['#authSignIn', '#authSignUp'].forEach(sel => {
+      const b = $(sel);
+      if (!b) return;
+      b.setAttribute('disabled', '');
+      b.hidden = true;
+    });
+    agganciaOspite();
+  }
+
+  /* Il pulsante d'ingresso deve funzionare anche quando il cloud è spento:
+     è l'unica strada verso il gioco, e in quel caso avvia() non viene mai
+     eseguita. Va quindi agganciato da entrambi i rami. */
+  let ospiteAgganciato = false;
+  function agganciaOspite() {
+    if (ospiteAgganciato) return;
+    const b = $('#authGuest');
+    if (!b) return;
+    ospiteAgganciato = true;
+    b.addEventListener('click', () => {
+      setGuest(true);
+      aggiornaGate('');
+      try { window.dispatchEvent(new CustomEvent('wot:auth', { detail: { signedIn: false, guest: true, session: null } })); } catch (e) {}
+    });
   }
 
   window.WOT_CLOUD_API = { merge, messaggio, get session() { return session; },
+    get guest() { return guest && !session; }, setGuest,
     enabled: ON, chiaveSegreta: PERICOLO, segreta };
 
   // I pannelli si devono poter chiudere in ogni caso, anche se il cloud è spento:
@@ -765,6 +824,7 @@
     const signInGate = $('#authSignIn'), signUpGate = $('#authSignUp');
     if (signInGate) { signInGate.disabled = false; signInGate.addEventListener('click', () => apri('in')); }
     if (signUpGate) { signUpGate.disabled = false; signUpGate.addEventListener('click', () => apri('up')); }
+    agganciaOspite();
     $('#cloudClose')?.addEventListener('click', chiudi);
     $('#cloudDialog')?.addEventListener('click', e => { if (e.target.id === 'cloudDialog') chiudi(); });
 

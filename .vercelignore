@@ -1,2 +1,13 @@
-tests
-node_modules
+# Quello che non serve al browser non va caricato: la cartella tests pesa
+# 15 MB di node_modules (jsdom) contro i 2,6 MB di tutto il sito.
+tests/
+node_modules/
+
+# Documentazione e impalcatura delle app native: restano nel repository,
+# non sul dominio.
+*.md
+setup-android.ps1
+setup-mobile.sh
+capacitor.config.ts
+SUPABASE-V060-ACCOUNT-SOCIAL.sql
+.claude/

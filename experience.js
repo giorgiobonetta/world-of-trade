@@ -204,9 +204,12 @@
     $('#inviteCopy').addEventListener('click',async()=>{$('#inviteStatus').textContent=(await copyInvite())?'Invite text copied. Paste it into a LinkedIn message or post.':'Could not access the clipboard; use Invite on LinkedIn instead.';});
   }
 
+  /* La pastiglia col numero di sezione mostrava "04" accanto a un titolo che
+     diceva già "League": il nome sotto era a 7px, cioè illeggibile, e restava
+     un distintivo senza significato. Le sezioni ora si presentano col titolo,
+     e le vecchie pastiglie eventualmente rimaste in pagina vengono tolte. */
   function decorateSections() {
-    const data={pathScreen:['01','Career'],playScreen:['02','Floor'],practiceScreen:['03','Practice'],leagueScreen:['04','League'],profileScreen:['05','Profile']};
-    Object.entries(data).forEach(([id,[n,name]])=>{const top=$(`#${id} .section-top`);if(top&&!$('.section-number',top))top.insertAdjacentHTML('afterbegin',`<div class="section-number"><b>${n}</b><span>${name}</span></div>`);});
+    document.querySelectorAll('.section-number').forEach(n => n.remove());
   }
 
   function onScreen(id) {
@@ -233,7 +236,9 @@
     window.addEventListener('wot:screen',e=>onScreen(e.detail?.id));
     window.addEventListener('wot:saved',()=>{});
     window.addEventListener('wot:auth',e=>{if(e.detail?.signedIn)setTimeout(readyAfterAuth,250);else{closeCoach();closeBriefing();}});
-    // Existing sessions may have been loaded before this module executes.
+    // The gate may open long after boot — a guest can sit on it for a minute —
+    // so the event is the signal; the poll only covers a session restored at boot.
+    window.addEventListener('wot:unlocked',()=>setTimeout(readyAfterAuth,120));
     let tries=0;const t=setInterval(()=>{tries++;if(!document.body.classList.contains('auth-locked')){clearInterval(t);readyAfterAuth();}else if(tries>40)clearInterval(t);},150);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();

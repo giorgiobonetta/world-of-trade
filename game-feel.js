@@ -39,14 +39,15 @@
     const style = document.createElement('style');
     style.id = 'rewardStyles055';
     style.textContent = `
-      /* Current assignment: visible at a glance, but still inside the existing Path. */
-      .node.next{position:relative;overflow:visible!important;transform:translateZ(0)}
-      .node.next::before{content:"";position:absolute;inset:-5px;border:2px solid rgba(255,212,92,.30);border-radius:calc(var(--r-md,20px) + 5px);pointer-events:none;opacity:.8}
+      /* Current assignment: the halo hugs the token, not a card around it —
+         sulla rotta il nodo è un disco e una cornice rettangolare lo negherebbe. */
+      .node.next{position:relative;overflow:visible!important}
+      .node.next .medal::before{content:"";position:absolute;inset:-7px;border-radius:50%;
+        border:2px solid rgba(255,212,92,.34);pointer-events:none;opacity:.8}
       .node.next .tag{background:#ffd45c!important;color:#08183f!important;box-shadow:0 3px 0 #a35f04!important;letter-spacing:.08em!important}
-      .node.done .medal{box-shadow:0 3px 0 #135f3b,0 0 0 3px rgba(79,224,138,.12)!important}
       @media (prefers-reduced-motion:no-preference){
-        .node.next::before{animation:wotCurrentPulse 1.9s ease-in-out infinite}
-        @keyframes wotCurrentPulse{0%,100%{opacity:.30;transform:scale(.995)}50%{opacity:.9;transform:scale(1.012)}}
+        .node.next .medal::before{animation:wotCurrentPulse 1.9s ease-in-out infinite}
+        @keyframes wotCurrentPulse{0%,100%{opacity:.30;transform:scale(.995)}50%{opacity:.9;transform:scale(1.05)}}
       }
 
       /* Extra reward information added to the existing completion screen. */
@@ -191,7 +192,8 @@
   }
 
   function normalizeCurrentTag() {
-    $$('.node.next .tag').forEach(tag => { if (tag.textContent !== 'CURRENT') tag.textContent = 'CURRENT'; });
+    // "Start" è un invito, "current" è un'etichetta: la rotta chiede di partire.
+    $$('.node.next .tag').forEach(tag => { if (tag.textContent !== 'START') tag.textContent = 'START'; });
   }
 
   document.addEventListener('pointerup', e => {

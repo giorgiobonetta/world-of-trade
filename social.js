@@ -387,6 +387,7 @@
     window.addEventListener('wot:screen',e=>{if(e.detail?.id==='leagueScreen')setTimeout(refreshIfLeague,80);});
     window.addEventListener('wot:auth',e=>{if(e.detail?.signedIn)setTimeout(refreshIfLeague,250);else{profile=null;friends=[];friendProfiles.clear();challenges=[];challengeScores=[];renderNavBadge();}});
     window.addEventListener('wot:saved',()=>{if($('#leagueScreen')?.classList.contains('active'))setTimeout(refreshIfLeague,180);});
+    window.addEventListener('wot:unlocked',()=>setTimeout(refreshIfLeague,120));
     let tries=0;const t=setInterval(()=>{tries++;if(!document.body.classList.contains('auth-locked')){clearInterval(t);refreshIfLeague();}else if(tries>40)clearInterval(t);},150);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();

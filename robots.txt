@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# La pagina di autodiagnosi apre l'app in un iframe e ci gioca davvero:
+# non è contenuto, e in un indice sarebbe solo un risultato sbagliato.
+Disallow: /selftest
+Disallow: /selftest.html
+
+Sitemap: https://world-of-trade.vercel.app/sitemap.xml

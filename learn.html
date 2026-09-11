@@ -15,8 +15,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" />
-<link rel="stylesheet" href="styles.css?v=061" />
-<link rel="stylesheet" href="mobile-native.css?v=061" />
+<link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="mobile-native.css" />
 <script defer src="native-runtime.js"></script>
 </head>
 <body class="auth-locked">
@@ -234,21 +234,25 @@
          onerror="this.onerror=null;this.src='logo-crest-220.png'" />
     <span class="eyebrow">Your trading career starts here</span>
     <h1 id="authGateTitle">Enter World of Trade</h1>
-    <p>Sign in or create an account before accessing the Career Path, Trading Floor and League. Your progress is tied to your account and follows you across devices.</p>
+    <p>Learn physical commodity trading the way a desk actually works it: short levels, real decisions, an explanation behind every call.</p>
     <div class="auth-gate-actions">
-      <button id="authSignIn" class="btn primary" type="button" disabled>Sign in</button>
-      <button id="authSignUp" class="btn auth-secondary" type="button" disabled>Create account</button>
+      <button id="authGuest" class="btn primary" type="button">Start trading</button>
+      <button id="authSignIn" class="btn auth-secondary" type="button" disabled>I already have an account</button>
+      <button id="authSignUp" class="link-btn auth-tertiary" type="button" disabled>Create an account to sync across devices</button>
     </div>
-    <p id="authGateStatus" class="auth-gate-status" role="status">Checking secure access…</p>
-    <p class="auth-gate-legal">Your account saves progress and the social features you choose to use.
-       <a href="privacy.html">Privacy and terms</a></p>
+    <p id="authGateStatus" class="auth-gate-status" role="status">Your first level is one tap away.</p>
+    <p class="auth-gate-legal">Play straight away — progress stays on this device.
+       <a href="privacy.html">Privacy and terms</a><br />
+       An account (email and password) is only needed to sync across devices.<br />
+       Educational material only. Not trading, investment, legal or tax advice.
+       Figures and cases are illustrative and simplified for teaching.</p>
   </div>
 </section>
 
 <!-- NAVIGAZIONE PRINCIPALE -->
 <header id="appHeader" class="app-header">
   <div class="app-header-inner">
-    <a class="brand-link" href="index.html" aria-label="World of Trade — home">
+    <a class="brand-link" href="landing.html" aria-label="World of Trade — home">
       <img class="brand" src="logo-crest-220.webp" alt="World of Trade" width="239" height="220"
            onerror="this.onerror=null;this.src='logo-crest-220.png'" />
     </a>
@@ -285,7 +289,10 @@
       </div>
     </div>
     <div class="stats header-stats" aria-label="Player rewards and level">
-      <div class="stat streak" title="Day streak"><i aria-hidden="true">🔥</i><b id="statStreak">0</b></div>
+      <div class="stat streak" id="statStreakHost" title="Daily goal">
+        <i aria-hidden="true">🔥</i><b id="statStreak">0</b>
+        <span id="statStreakNote" class="sr-only" role="status"></span>
+      </div>
       <div class="stat level" title="Career level"><i aria-hidden="true">LV</i><b id="statLevel">1</b></div>
       <div class="stat lives" id="statLivesHost" title="Lifebuoys"><i class="stat-buoy" aria-hidden="true"></i><b id="statLives">5</b><small id="statLivesTimer" class="stat-timer" hidden></small></div>
       <div class="stat gold" title="Experience"><i aria-hidden="true">★</i><b id="statXp">0</b></div>
@@ -297,15 +304,20 @@
 <main id="pathScreen" class="screen active">
   <div class="wrap path-levels-only">
     <p id="offlineFlag" class="offline-flag" role="status" hidden></p>
+    <!-- Avanzamento del corso. Il motore lo riempiva già da tempo, ma il
+         markup era stato tolto: la carriera non mostrava più a che punto è. -->
+    <section id="pathProgress" class="course-progress" hidden>
+      <div class="course-top"><span id="courseLabel">Trading House Academy</span><b id="coursePct">0%</b></div>
+      <div id="courseTrack" class="course-track" role="progressbar" aria-label="Career path progress"
+           aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="courseFill"></i></div>
+    </section>
     <div id="pathBody"></div>
     <!-- Utility hosts remain in the DOM for sync/PWA logic but are intentionally not part of Career Path UI. -->
-    <div id="pathGreet" hidden></div>
-    <div id="reviewHost" hidden></div>
     <div class="share-host" hidden></div>
     <div id="cloudHost" class="cloud-host" hidden></div>
     <div id="installHost" class="install-host" hidden></div>
     <p id="lockedHint" class="locked-hint" role="status" hidden></p>
-    <p class="gl-row" hidden><a class="gl-back" href="glossary.html">Glossary — every term, explained</a></p>
+    <p class="path-footnote">Your role, desk map and career stats live in Profile. <a class="gl-back" href="glossary.html">Glossary</a></p>
     <footer class="app-legal" hidden><a href="privacy.html">Privacy and terms</a></footer>
     <p class="reset-row" hidden><button id="introReplay" class="link-btn">How this works</button> · <button id="resetButton" class="link-btn">Reset all progress</button></p>
   </div>
@@ -378,6 +390,11 @@
       <div id="worldMapHost" class="world-map"></div>
     </section>
     <div id="profileBody"></div>
+    <footer class="app-legal">
+      <p>Educational material only. Not trading, investment, legal or tax advice.
+         Figures and cases are illustrative and simplified for teaching.</p>
+      <a href="privacy.html">Privacy and terms</a> · <a href="glossary.html">Glossary</a>
+    </footer>
   </div>
 </main>
 
@@ -515,16 +532,17 @@
 <script defer src="glossary.js"></script>
 <script defer src="career.js"></script>
 <script defer src="competitive.js"></script>
-<script defer src="app.js?v=061"></script>
+<script defer src="app.js"></script>
 <script defer src="pwa.js"></script>
-<script defer src="cloud.js?v=061"></script>
+<script defer src="cloud.js"></script>
 <script defer src="social.js"></script>
-<script defer src="account-social.js?v=061"></script>
+<script defer src="account-social.js"></script>
 <script defer src="share.js"></script>
 <script defer src="experience.js"></script>
 <script defer src="intro.js"></script>
-<script defer src="ui-polish.js?v=061"></script>
-<script defer src="game-feel.js?v=061"></script>
+<script defer src="ui-polish.js"></script>
+<script defer src="game-feel.js"></script>
+<script defer src="sound.js"></script>
 
 <!-- NAVIGAZIONE IN FONDO — su telefono sostituisce il menu a panino -->
 <nav id="tabBar" class="tab-bar" aria-label="Sections">

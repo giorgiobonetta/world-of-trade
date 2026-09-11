@@ -13,8 +13,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" />
 <link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="site.css" />
+<script defer src="site.js"></script>
 </head>
-<body>
+<body class="site-page">
 
 <svg class="backdrop" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice"
      xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
@@ -220,14 +222,28 @@
   </g>
 </svg>
 
-<main class="screen active">
-  <header class="topbar">
-    <a class="brand-link" href="index.html" aria-label="World of Trade — home">
-      <img class="brand" src="logo-crest-220.webp" alt="World of Trade"
-           width="239" height="220"
-           onerror="this.onerror=null;this.src='logo-crest-220.png'" /></a>
-    <a class="gl-back" href="learn.html">Back to World of Trade</a>
-  </header>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<nav class="site-nav" aria-label="Site">
+  <div class="site-nav-inner">
+    <a class="site-brand" href="landing.html" aria-label="World of Trade — home">
+      <img src="logo-crest-220.webp" alt="" width="36" height="36"
+           onerror="this.onerror=null;this.src='logo-crest-220.png'" />
+      <b>World of Trade</b>
+    </a>
+    <button id="siteNavToggle" class="site-nav-toggle" type="button"
+            aria-expanded="true" aria-controls="siteLinks">Menu</button>
+    <ul id="siteLinks" class="site-links">
+      <li><a href="landing.html#how">How it works</a></li>
+      <li><a href="landing.html#curriculum">Curriculum</a></li>
+      <li><a href="landing.html#compete">Compete</a></li>
+      <li><a href="glossary.html">Glossary</a></li>
+    </ul>
+    <a class="site-cta" href="learn.html">Start trading</a>
+  </div>
+</nav>
+
+<main id="main" class="screen active">
 
   <div class="wrap">
     <div class="intro">
@@ -255,8 +271,50 @@
          Figures and cases are illustrative and simplified for teaching.
          <a href="privacy.html">Privacy and terms</a></p>
     </footer>
-    <p class="reset-row"><a class="gl-back" href="learn.html">Back to World of Trade</a></p>
+
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <div class="site-footer-top">
+      <div>
+        <div class="site-footer-brand">
+          <img src="logo-crest-220.webp" alt="" width="44" height="44"
+               onerror="this.onerror=null;this.src='logo-crest-220.png'" />
+          <b>World of Trade</b>
+        </div>
+        <p class="site-footer-line">Physical commodity trading, learned the way a desk works it:
+           short levels, real decisions, an explanation behind every call.</p>
+      </div>
+      <div class="site-footer-col">
+        <h3>Play</h3>
+        <ul>
+          <li><a href="learn.html">Career Path</a></li>
+          <li><a href="learn.html">Trading Floor</a></li>
+          <li><a href="landing.html#compete">League</a></li>
+        </ul>
+      </div>
+      <div class="site-footer-col">
+        <h3>Learn</h3>
+        <ul>
+          <li><a href="landing.html#how">How it works</a></li>
+          <li><a href="landing.html#curriculum">Curriculum</a></li>
+          <li><a href="glossary.html">Glossary</a></li>
+        </ul>
+      </div>
+      <div class="site-footer-col">
+        <h3>About</h3>
+        <ul>
+          <li><a href="privacy.html">Privacy and terms</a></li>
+          <li><a href="selftest.html">Self-check</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="site-footer-bottom">
+      <p>Educational material only. Not trading, investment, legal or tax advice.
+         Figures and cases are illustrative and simplified for teaching.</p>
+      <p>&copy; 2026 World of Trade</p>
+    </div>
   </div>
+</footer>
 </main>
 
 <script src="curriculum.js"></script>
