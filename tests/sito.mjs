@@ -27,7 +27,7 @@ for (const f of PAGINE) {
   t(`${f}: carica la cornice`, /site\.css/.test(s) && /site\.js/.test(s));
   t(`${f}: ha la barra del sito`, /class="site-nav"/.test(s));
   t(`${f}: il marchio torna alla presentazione`,
-    /class="site-brand" href="landing\.html"/.test(s));
+    /class="site-brand" href="\/"/.test(s));
   t(`${f}: l'invito a giocare è sempre in vista`,
     /class="site-cta" href="learn\.html"/.test(s));
   t(`${f}: ha il piede del sito`, /class="site-footer"/.test(s));
@@ -40,7 +40,7 @@ for (const f of PAGINE) {
 {
   const learn = leggi('learn.html');
   t('il gioco non monta una seconda barra', !/class="site-nav"/.test(learn));
-  t('ma il suo crest riporta al sito', /class="brand-link" href="landing\.html"/.test(learn));
+  t('ma il suo crest riporta al sito', /class="brand-link" href="\/"/.test(learn));
 }
 
 /* Ogni ancora citata dalla cornice deve esistere nella pagina che la ospita. */

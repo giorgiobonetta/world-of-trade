@@ -1,5 +1,5 @@
-// Chi apre il dominio deve vedere la landing, non la schermata di accesso.
-// L'app nativa e la PWA installata devono invece continuare ad aprire il gioco.
+// Chi apre il dominio deve vedere la landing direttamente da index.html.
+// La PWA installata e il launcher nativo preservato devono invece aprire il gioco.
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -15,45 +15,35 @@ const t = (name, ok, extra = '') => {
 };
 
 const vercel = JSON.parse(leggi('vercel.json'));
-const rew = vercel.rewrites || [];
-const home = rew.find(r => r.source === '/');
+const rootRewrite = (vercel.rewrites || []).find(r => r.source === '/');
+t('la radice non dipende più da una rewrite', !rootRewrite,
+  rootRewrite ? JSON.stringify(rootRewrite) : 'index.html è la landing');
 
-t('vercel.json dichiara una riscrittura per la radice', !!home,
-  home ? '/ → ' + home.destination : 'nessuna: il dominio aprirebbe index.html');
-
-t('la radice serve la landing', home && /landing\.html$/.test(home.destination),
-  home ? home.destination : '');
-
-t('il file servito sulla radice esiste', home && fs.existsSync(path.join(root, home.destination.replace(/^\//, ''))));
+const index = leggi('index.html');
+t('index.html è una vera landing', /class="site-nav"/.test(index) && /id="main"/.test(index));
+t('index.html porta al gioco', /href="learn\.html"/.test(index));
+t('index.html non reindirizza automaticamente al gioco', !/location\.replace\(['"]learn\.html/.test(index));
+t('index.html usa il dominio pubblico', /https:\/\/www\.worldoftrade\.app\//.test(index));
 
 const landing = leggi('landing.html');
-t('la landing porta al gioco', /href="learn\.html"/.test(landing));
-t('la landing non è vuota', landing.length > 5000, landing.length + ' byte');
+t('landing.html resta disponibile come alias', landing.length > 5000, landing.length + ' byte');
 
-/* La home non deve restare in cache sul CDN: cambia a ogni pubblicazione.
-   La regola vale per estensione, non per singolo file — elencare un file per
-   volta significa dimenticarsene uno al prossimo che si aggiunge. */
 const senzaCache = (vercel.headers || [])
   .filter(h => JSON.stringify(h).includes('max-age=0'))
   .map(h => h.source);
 const copre = f => senzaCache.some(src => {
   if (src === '/' + f) return true;
-  // il carattere jolly di Vercel è "(.*)": va tenuto da parte PRIMA di
-  // proteggere i punti, o "/(.*).html" diventa la regex "/\.\*\.html"
   const rx = new RegExp('^' + src.split('(.*)')
     .map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('.*') + '$');
   return rx.test('/' + f);
 });
-t('la landing non viene messa in cache dal CDN', copre('landing.html'), senzaCache.join(' '));
+t('la home non viene messa in cache dal CDN', copre('index.html'), senzaCache.join(' '));
 t('e nemmeno il motore del gioco', copre('app.js') && copre('learn.html'));
 t('né i fogli di stile', copre('styles.css') && copre('site.css'));
 
-// Il guscio Capacitor carica index.html dal filesystem locale: deve restare
-// un trampolino verso il gioco, altrimenti l'app nativa si apre sulla vetrina.
-const index = leggi('index.html');
-t('index.html rimanda al gioco (serve al guscio nativo)', /learn\.html/.test(index));
+const native = leggi('native-index.html');
+t('il launcher nativo preservato rimanda al gioco', /learn\.html/.test(native));
 
-// La PWA installata parte dal gioco, non dalla landing.
 const manifest = JSON.parse(leggi('manifest.webmanifest'));
 t('la PWA installata apre il gioco', /learn\.html/.test(manifest.start_url || ''),
   'start_url: ' + manifest.start_url);
