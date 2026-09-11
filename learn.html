@@ -2,6 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
+<script>
+(function(){
+  try{
+    var s=JSON.parse(localStorage.getItem('wot-cloud-session')||'null');
+    if(!s || !s.access_token){ location.replace('access.html'); }
+  }catch(e){ location.replace('access.html'); }
+})();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Career Path — World of Trade</title>
 <meta name="description" content="Build a career in physical commodity trading through levels, practice and fast trading challenges." />

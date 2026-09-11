@@ -2,6 +2,8 @@ User-agent: *
 Allow: /
 Disallow: /learn
 Disallow: /learn.html
+Disallow: /access
+Disallow: /access.html
 Disallow: /login
 Disallow: /login.html
 Disallow: /register

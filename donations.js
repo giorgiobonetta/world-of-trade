@@ -1,19 +1,20 @@
 /* World of Trade — voluntary support.
-   The project remains fully free: donating never unlocks anything.
+   The project remains fully free: contributing never unlocks anything.
 
-   PayPal is intentionally an external hosted flow, so World of Trade never
-   receives or stores card/payment credentials. The current recipient uses the
-   public contact email already published on the site. If your PayPal account
-   uses another email or you create a PayPal hosted donation link, replace
-   PAYPAL_URL below before deploying. */
+   IMPORTANT: This uses PayPal's standard payment flow (_xclick), not the
+   charity/donation product. If you later create an official PayPal Payment
+   Link, paste it into WOT_PAYPAL_PAYMENT_LINK below and it will take priority.
+*/
 (function () {
   'use strict';
 
   var CONTACT_EMAIL = 'giorgio.bonnybonetta@gmail.com';
-  var PAYPAL_URL = 'https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=' +
+  var WOT_PAYPAL_PAYMENT_LINK = ''; // Optional: paste your official hosted PayPal Payment Link here.
+  var FALLBACK_PAYMENT_URL = 'https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=' +
     encodeURIComponent(CONTACT_EMAIL) +
     '&item_name=' + encodeURIComponent('Support World of Trade development') +
-    '&amount=4.99&currency_code=USD&no_recurring=1';
+    '&amount=4.99&currency_code=USD&no_shipping=1&no_note=1';
+  var PAYPAL_URL = WOT_PAYPAL_PAYMENT_LINK || FALLBACK_PAYMENT_URL;
 
   var donate = document.getElementById('paypalDonateBtn');
   if (donate) donate.href = PAYPAL_URL;
@@ -29,7 +30,7 @@
     if (!names.length) {
       var empty = document.createElement('div');
       empty.className = 'supporters-empty';
-      empty.textContent = 'Be the first supporter listed here.';
+      empty.textContent = 'Be the first contributor listed here.';
       list.appendChild(empty);
     } else {
       names.forEach(function (name) {
@@ -52,15 +53,15 @@
         input.focus();
         return;
       }
-      var subject = 'World of Trade supporter listing — ' + name;
+      var subject = 'World of Trade contributor listing — ' + name;
       var body = [
         'Hi,',
         '',
-        'I made the $4.99 World of Trade donation via PayPal and would like to appear in the public supporter list as:',
+        'I supported World of Trade with the $4.99 PayPal contribution and would like to appear in the public contributor list as:',
         '',
         name,
         '',
-        'I am sending this request from the email address you can use to match the PayPal donation.',
+        'I am sending this request from the email address you can use to match the PayPal payment.',
         '',
         'Thanks.'
       ].join('\n');

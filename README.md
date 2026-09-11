@@ -1,3 +1,12 @@
+## Version 0.7.5 — access flow + founder
+
+- The public domain always opens the landing page.
+- `Start trading` opens `access.html`, where users can create an account or log in.
+- Direct game access redirects unauthenticated users to the access page.
+- Voluntary support is $4.99 via a standard PayPal payment flow, not the charity donation product.
+- Contributor names remain manually verified before publication.
+- Founder section added to the bottom of the landing.
+
 ## Version 0.7.4 — support restored
 
 The public landing keeps Login/Create account and restores the $4.99 PayPal support section and public contributor wall.

@@ -248,3 +248,11 @@
 ## v0.4.3 — Mobile navigation cleanup
 - Bottom navigation uses icon-only active states and per-tab notification badges.
 - Career Path was reduced to the level progression itself.
+
+## 0.7.5 — Public entry flow, founder and support payment
+- Landing remains the canonical public entry point.
+- Removed direct Log in / Create account buttons from the landing.
+- Start trading now opens a unified Login / Create account page, then enters the game.
+- Direct game access without an account session redirects to the unified access page.
+- Restored $4.99 voluntary support using a standard PayPal payment flow (not PayPal charity donations).
+- Added a Founder section for Giorgio Bonetta.

@@ -4,7 +4,7 @@
   "rewrites": [
     {
       "source": "/play",
-      "destination": "/learn.html"
+      "destination": "/access.html"
     }
   ],
   "headers": [

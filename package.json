@@ -1,8 +1,8 @@
 {
   "name": "world-of-trade-mobile",
   "private": true,
-  "version": "0.7.3-public-auth",
-  "description": "World of Trade \u2014 public landing with dedicated sign-in and registration pages",
+  "version": "0.7.5-access-founder",
+  "description": "World of Trade — landing-first public site with unified account access, voluntary support and founder section",
   "scripts": {
     "cap:sync": "npx cap sync",
     "android:add": "npx cap add android",

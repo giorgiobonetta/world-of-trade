@@ -29,3 +29,11 @@ body.auth-page{margin:0;min-height:100vh;color:#fff;font-family:var(--font);back
 .auth-legal{margin:22px 0 0;text-align:center;color:#8fa9d1;font-size:12.5px;line-height:1.55}.auth-legal a{color:#c8daf7}
 .auth-home-link{display:inline-flex;align-items:center;gap:7px;color:#c8daf7;text-decoration:none;font-weight:600}.auth-home-link:hover{color:#fff0b8}
 @media(max-width:560px){.auth-shell{padding:36px 14px 56px}.auth-card{padding:25px 18px 23px;border-radius:23px}.auth-logo{width:96px}.auth-card h1{font-size:31px}}
+
+/* v0.7.5 — unified access page */
+.auth-card-wide{width:min(100%,540px)}
+.auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:6px;margin:0 0 20px;border-radius:16px;background:rgba(3,14,39,.42);border:1px solid rgba(190,215,255,.12)}
+.auth-tab{min-height:44px;border:0;border-radius:12px;background:transparent;color:#afc6e9;font:700 14px var(--font);cursor:pointer;transition:.15s ease}
+.auth-tab.active{background:linear-gradient(180deg,#2d66cc,#173f86);color:#fff0b8;box-shadow:0 3px 10px rgba(0,0,0,.2)}
+.auth-panel[hidden]{display:none}
+.auth-check{display:flex;align-items:flex-start;gap:10px;color:#c4d6f7;font-size:13px;line-height:1.45;cursor:pointer}.auth-check input{margin-top:3px}.auth-check a{color:#fff0b8}
