@@ -1,8 +1,8 @@
 {
   "name": "world-of-trade-mobile",
   "private": true,
-  "version": "0.8.0-one-site",
-  "description": "World of Trade installable mobile app preview (PWA + Capacitor-ready)",
+  "version": "0.7.3-public-auth",
+  "description": "World of Trade \u2014 public landing with dedicated sign-in and registration pages",
   "scripts": {
     "cap:sync": "npx cap sync",
     "android:add": "npx cap add android",

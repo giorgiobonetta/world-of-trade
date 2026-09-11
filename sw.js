@@ -2,7 +2,7 @@
    Regola: l'HTML si prende dalla rete quando c'è (così un aggiornamento
    arriva subito), tutto il resto dalla cache (così l'app parte offline).
    La versione nel nome della cache è ciò che manda via una shell vecchia. */
-const VERSION = 'v61';
+const VERSION = 'v63-public-auth';
 const CACHE = `wot-learn-${VERSION}`;
 
 const SHELL = [
@@ -10,6 +10,10 @@ const SHELL = [
   'index.html',
   'intro.js',
   'learn.html',
+  'login.html',
+  'register.html',
+  'auth.css',
+  'auth-page.js',
   'glossary.html',
   'privacy.html',
   '404.html',
@@ -81,7 +85,7 @@ self.addEventListener('fetch', e => {
         c.put(req, fresh.clone());
         return fresh;
       } catch (err) {
-        const cached = await caches.match(req) || await caches.match('learn.html');
+        const cached = await caches.match(req) || await caches.match('index.html') || await caches.match('learn.html');
         return cached || new Response('Offline', { status: 503, statusText: 'Offline' });
       }
     })());

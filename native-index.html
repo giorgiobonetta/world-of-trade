@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#071232" />
+  <title>World of Trade</title>
+  <style>
+    html,body{margin:0;height:100%;background:#071232;color:#fff;font-family:system-ui,-apple-system,Segoe UI,sans-serif}
+    body{display:grid;place-items:center;overflow:hidden}
+    .boot{display:grid;place-items:center;gap:18px;text-align:center}
+    .boot img{width:116px;height:116px;object-fit:contain;filter:drop-shadow(0 14px 35px rgba(0,0,0,.4))}
+    .boot b{font-size:20px;letter-spacing:.02em}.boot small{opacity:.62}
+    .dot{width:7px;height:7px;border-radius:50%;background:#ffd45c;animation:p 1s ease-in-out infinite alternate}
+    @keyframes p{to{transform:scale(1.8);opacity:.35}}
+  </style>
+</head>
+<body>
+  <div class="boot">
+    <img src="world-of-trade-premium-icon-512.png" alt="World of Trade" />
+    <b>World of Trade</b>
+    <div class="dot" aria-hidden="true"></div>
+    <small>Opening the trading floor…</small>
+  </div>
+  <script>location.replace('learn.html');</script>
+</body>
+</html>

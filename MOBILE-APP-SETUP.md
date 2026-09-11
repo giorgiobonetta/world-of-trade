@@ -65,7 +65,7 @@ Poi seleziona un simulatore/iPhone in Xcode e premi Run.
 ## Struttura
 
 - `www/` = gioco completo v7.1
-- `www/index.html` = launcher nativo, apre direttamente login/gioco
+- `www/index.html` = launcher nativo, apre direttamente login/gioco (usa `native-index.html` come sorgente quando prepari `www/`)
 - `www/landing.html` = copia della landing web (non è la schermata iniziale dell'app)
 - `mobile-native.css` = adattamenti solo nativi
 - `native-runtime.js` = marker runtime app

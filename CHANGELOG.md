@@ -1,3 +1,35 @@
+
+## 0.7.4
+- Restored and highlighted the voluntary $4.99 PayPal support section on the public landing.
+- Kept Log in / Create account unchanged.
+- Renamed the public supporter wall to Contributors.
+- Added a direct Support $4.99 call-to-action in the landing hero.
+- Donations do not unlock any game content or account feature.
+
+
+## 0.7.3 — Public landing + account pages
+
+- The public domain always opens the landing page.
+- The game page is `noindex` and canonicalized to the public homepage so search results point to the landing.
+- Added dedicated `login.html` and `register.html` pages using the existing Supabase account backend.
+- Added Log in / Create account actions to the landing navigation and hero.
+- Login and registration use the same World of Trade visual language as the landing and redirect to the game after authentication.
+
+# 0.7.1 — voluntary support
+
+## 0.7.2 — public landing as real homepage
+
+- `index.html` is now the public landing page, so opening the custom domain can no longer jump straight into the game if a hosting rewrite is skipped.
+- The old native launcher is preserved as `native-index.html`.
+- Public metadata, sitemap and robots now use `https://www.worldoftrade.app/`.
+- Public brand links return to `/`; the PWA and installed app still open `learn.html`.
+- Service-worker cache version bumped so the old homepage shell is discarded.
+
+- Added a dedicated landing-page donation section with a fixed $4.99 USD PayPal contribution.
+- Donations do not unlock any game content or features.
+- Added a manually verified public supporter wall and post-donation listing request flow.
+- Added `DONATIONS.md`, `donations.js` and `supporters.js` for simple static-site maintenance.
+
 # Changelog
 
 ## v0.8.0 — One Site

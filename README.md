@@ -1,3 +1,7 @@
+## Version 0.7.4 — support restored
+
+The public landing keeps Login/Create account and restores the $4.99 PayPal support section and public contributor wall.
+
 # World of Trade
 
 An interactive game for **physical commodity trading**, built around short desk lessons in the
@@ -22,7 +26,7 @@ python -m http.server 8000
 npx --yes serve -l 8000 .
 ```
 
-Then open `http://localhost:8000/landing.html`. It deploys to Vercel as-is — no build step.
+Then open `http://localhost:8000/`. The root page is the public landing page and deploys to Vercel as-is — no build step.
 
 No configuration is required to play: **Start trading** on the entrance screen opens the game
 straight away and the career is saved in the browser. Supabase is only needed for accounts,
@@ -35,11 +39,12 @@ its own cache, so a hard reload can still show you the previous build. Either bu
 ## Structure
 
 ```
-landing.html           the public site: what it is, the curriculum, the league, the glossary
+index.html             the public home / landing page
+landing.html           legacy landing alias with the same public content
 site.css / site.js     the bar and footer shared by every public page
 404.html               branded not-found page
 learn.html             the game shell
-index.html             splash used by the native shell (redirects to learn.html)
+native-index.html      preserved native-shell launcher (redirects to learn.html)
 curriculum.js          16 core trading units, hand-written: 111 levels, 546 exercises
 scenes.js              the sixteen SVG scenes used as section backgrounds
 content-engine.js      deterministic generator for the specialist desks
@@ -162,3 +167,13 @@ The League screen had not been drawing at all — a removed element threw inside
 and took the emblem, the trading houses, the achievements and the standings with it. The verification
 suite could not open a page on Windows, so 31 of its 46 files aborted before their first assertion;
 both are fixed, and the suite runs 840 assertions. See `CHANGELOG.md` for the full list.
+
+### Public landing and accounts
+
+The public domain (`/`) is always the presentation landing page. Account access lives on
+`/login` and `/register`; after successful authentication the user is sent to the game.
+The game page is intentionally `noindex` so search engines surface the landing instead.
+
+`login.html` and `register.html` use the same `supabase-config.js` as `learn.html`. Keep the
+existing deployment-specific file in the repository: it is intentionally not included in
+release archives because its correct public project values belong to the deployment.

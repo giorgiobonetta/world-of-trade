@@ -13,11 +13,11 @@ Before deploying, verify that this is the email connected to the PayPal account 
 If PayPal uses another email, replace `CONTACT_EMAIL` in `donations.js`.
 If you create an official PayPal.Me / hosted donation URL, replace the `PAYPAL_URL` value with that URL instead.
 
-## Supporter list
+## Contributor list
 
 The public list is deliberately static. This avoids accepting unverified names from anonymous visitors.
 
-After a donation, the supporter enters a display name or trader alias and clicks **Request listing**. That opens an email addressed to the project contact. After you verify the donation, add the public name to `supporters.js`:
+After a donation, the contributor enters a display name or trader alias and clicks **Request listing**. That opens an email addressed to the project contact. After you verify the donation, add the public name to `supporters.js`:
 
 ```js
 window.WOT_SUPPORTERS = [

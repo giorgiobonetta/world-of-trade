@@ -143,3 +143,25 @@ section[id],main[id]{scroll-margin-top:86px}
 /* Sul 404 il piede non ha colonne: senza questa riga la sua linea di
    separazione resta lì da sola, a separare il nulla dal testo legale. */
 .site-footer-inner>.site-footer-bottom:first-child{margin-top:0;padding-top:0;border-top:0}
+
+
+/* ── account actions on the public site ───────────────────────────── */
+.site-auth-actions{display:flex;align-items:center;gap:9px;flex:0 0 auto}
+.site-auth-link{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 17px;
+  border-radius:999px;border:1px solid rgba(255,212,92,.32);color:#eef5ff;text-decoration:none;
+  font-size:14.5px;font-weight:700;background:rgba(255,255,255,.055);transition:background .15s ease,border-color .15s ease,color .15s ease}
+.site-auth-link:hover{background:rgba(255,212,92,.11);border-color:rgba(255,212,92,.5);color:var(--gold-hi,#fff0b8)}
+.hero-login{display:inline-flex;align-items:center;justify-content:center;align-self:center;padding:10px 6px;color:#dbe8ff;
+  font-size:15px;font-weight:600;text-decoration:none;text-underline-offset:4px}
+.hero-login:hover{color:#fff0b8;text-decoration:underline}
+@media (max-width:860px){
+  .site-auth-actions{margin-left:auto}
+  .site-auth-link{padding:9px 13px;font-size:13.5px}
+  .site-auth-actions .site-cta{padding:10px 14px}
+}
+@media (max-width:520px){
+  .site-nav-inner{gap:7px}
+  .site-auth-actions{gap:6px}
+  .site-auth-link{min-height:40px;padding:8px 11px;font-size:12.5px}
+  .site-auth-actions .site-cta{min-height:40px;padding:8px 11px;font-size:12.5px}
+}
