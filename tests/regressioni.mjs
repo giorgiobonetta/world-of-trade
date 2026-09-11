@@ -1,4 +1,4 @@
-import { boot, solver, suite, pausa, DIR } from './harness.mjs';
+import { boot, solver, suite, pausa, DIR, senzaCacheLunga } from './harness.mjs';
 import fs from 'fs';
 const t = suite('Regressioni');
 const leggi = f => fs.readFileSync(DIR + '/' + f, 'utf8');
@@ -71,7 +71,8 @@ const leggi = f => fs.readFileSync(DIR + '/' + f, 'utf8');
 {
   const { w } = await boot();
   const L = w.__LEARN__, S = solver(w, L);
-  t('Hélène sul percorso', !!w.document.querySelector('#pathGreet svg'));
+  // sul percorso Hélène non occupa spazio: la si chiama dal pulsante in basso
+  t('Hélène si può chiamare dal percorso', !!w.document.querySelector('#heleneCall'));
   L.startLesson('u1l1');
   S.giusto(L.run.current.ex); L.onCheck();
   t('Hélène nel feedback', !!w.document.querySelector('#feedback svg'));
@@ -90,7 +91,9 @@ const leggi = f => fs.readFileSync(DIR + '/' + f, 'utf8');
   const { w } = await boot({ seed: { rev: 2, done: fatte, xp: 80, best: {}, badges: {},
     misses: { 'u1l2#1': 3 }, doneAt: Object.fromEntries(fatte.map(id => [id, now])), reviews: 0, updatedAt: 1 } });
   const L = w.__LEARN__;
-  t('la card di ripasso compare', !!w.document.querySelector('#reviewButton'));
+  // il ripasso vive nella sua scheda; sul percorso ne resta il contatore
+  t('il ripasso è segnalato sulla barra in fondo',
+    w.document.querySelector('.tab-badge[data-tab-badge="practiceScreen"]')?.hidden === false);
   const items = L.reviewItems();
   t('il ripasso pesca 8 esercizi', items.length === 8, String(items.length));
   t('l\'errore ripetuto è il primo', items[0].lessonId === 'u1l2' && items[0].i === 1);
@@ -180,7 +183,11 @@ const leggi = f => fs.readFileSync(DIR + '/' + f, 'utf8');
 /* ── PWA, cache e sicurezza del pacchetto ── */
 {
   const m = JSON.parse(leggi('manifest.webmanifest'));
-  t('il manifest apre l\'app, non la landing', m.start_url === 'learn.html', m.start_url);
+  // Il parametro di provenienza e' consentito: cio' che non deve accadere e'
+  // che l'app installata si apra sulla pagina di presentazione.
+  // Il parametro di provenienza e' consentito: cio' che non deve accadere e'
+  // che l'app installata si apra sulla pagina di presentazione.
+  t('il manifest apre l\'app, non la landing', /^\/?learn\.html(\?|$)/.test(m.start_url), m.start_url);
   t('ha un\'icona maskable', m.icons.some(i => (i.purpose || '').includes('maskable')));
   t('tutte le icone esistono', m.icons.every(i => fs.existsSync(DIR + '/' + i.src)));
   const sw = leggi('sw.js');
@@ -197,9 +204,8 @@ const leggi = f => fs.readFileSync(DIR + '/' + f, 'utf8');
   const catchall = vc.headers.filter(h => h.source.startsWith('/(.*)'));
   t('nessuna immagine è immutable (la trappola della cache)',
     catchall.every(h => h.headers.every(k => !/immutable/.test(k.value))));
-  const senzaCache = vc.headers.filter(h => h.headers.some(k => /max-age=0/.test(k.value))).map(h => h.source);
   for (const f of ['/sw.js','/supabase-config.js','/cloud.js','/share.js'])
-    t('non cachato a lungo: ' + f, senzaCache.includes(f));
+    t('non cachato a lungo: ' + f, senzaCacheLunga(vc, f));
   t('la config di esempio è spedita vuota', /url: ''/.test(leggi('supabase-config.example.js')));
   t('e il file reale non è nel pacchetto', !fs.existsSync(DIR + '/supabase-config.js'),
     'includerlo cancellerebbe le chiavi di chi installa');

@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
-const DIR=path.resolve(new URL('.',import.meta.url).pathname,'..');
+import { fileURLToPath } from 'url';
+const DIR=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const cloud=fs.readFileSync(DIR+'/cloud.js','utf8');
 const app=fs.readFileSync(DIR+'/app.js','utf8');
 const checks=[

@@ -73,7 +73,7 @@ const t = suite('Glossario');
   t('e il filtro pure', !!$('label[for="glUnit"]'));
   t('il conteggio è annunciato', $('#glCount').getAttribute('role') === 'status');
   t('c\'è un modo per tornare al corso', $$('a[href="learn.html"]').length >= 1);
-  t('il marchio riporta alla landing', $('.brand-link')?.getAttribute('href') === 'index.html');
+  t('il marchio riporta alla landing', $('.site-brand')?.getAttribute('href') === 'landing.html');
 
   /* ricerca */
   const cerca = v => { $('#glSearch').value = v; $('#glSearch').dispatchEvent(new w.Event('input', { bubbles: true })); };

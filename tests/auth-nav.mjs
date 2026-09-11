@@ -1,17 +1,23 @@
 import { boot, suite } from './harness.mjs';
 const t = suite('Accesso obbligatorio e top navigation');
 
-/* Senza configurazione il gioco resta chiuso. */
+/* Senza configurazione non ci sono account, ma il gioco si deve poter
+   giocare lo stesso: un muro di registrazione davanti al primo livello è il
+   modo più rapido di perdere chi non sa ancora se il gioco gli piace. */
 {
   const { w, errors } = await boot();
   const d = w.document;
   t('il body parte bloccato', d.body.classList.contains('auth-locked'));
   t('il gate di accesso è visibile', d.querySelector('#authGate') && !d.querySelector('#authGate').hidden);
-  t('il gioco non può essere usato senza backend auth', d.querySelector('#authSignIn')?.disabled === true);
-  // il messaggio deve dire cosa fare, non solo cosa manca
+  t('senza backend auth non si offre un accesso che non funziona',
+    d.querySelector('#authSignIn')?.disabled === true && d.querySelector('#authSignIn')?.hidden === true);
+  // il messaggio deve dire la conseguenza pratica, non il nome di un file
   const msg = d.querySelector('#authGateStatus')?.textContent || '';
-  t('spiega quale file creare', /supabase-config\.example\.js/.test(msg), msg.slice(0, 70));
-  t('e dove sono le istruzioni', /SUPABASE-SETUP\.md/.test(msg));
+  t('dice dove finisce la carriera', /saved on this device/i.test(msg), msg.slice(0, 70));
+  t('si può entrare comunque', !!d.querySelector('#authGuest') && d.querySelector('#authGuest').disabled === false);
+  d.querySelector('#authGuest').dispatchEvent(new w.Event('click', { bubbles: true }));
+  t('entrando da ospite il gioco si apre', !d.body.classList.contains('auth-locked'));
+  t('e il gate sparisce', d.querySelector('#authGate').hidden === true);
   t('nessun errore runtime', errors.length === 0, errors.slice(0,2).join('|'));
 }
 

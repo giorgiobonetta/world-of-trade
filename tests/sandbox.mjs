@@ -1,4 +1,4 @@
-import { boot, solver, suite, pausa, DIR } from './harness.mjs';
+import { boot, solver, suite, pausa, DIR, senzaCacheLunga } from './harness.mjs';
 import fs from 'fs';
 const t = suite('Sandbox e autodiagnosi');
 
@@ -99,7 +99,6 @@ const t = suite('Sandbox e autodiagnosi');
   t('la pagina non è in cache: deve testare la versione viva',
     !/selftest/.test(fs.readFileSync(DIR + '/sw.js', 'utf8')));
   const vc = JSON.parse(fs.readFileSync(DIR + '/vercel.json', 'utf8'));
-  const noCache = vc.headers.filter(h => h.headers.some(k => /max-age=0/.test(k.value))).map(h => h.source);
-  t('e nemmeno lato server', noCache.includes('/selftest.html') && noCache.includes('/selftest.js'));
+  t('e nemmeno lato server', senzaCacheLunga(vc, '/selftest.html') && senzaCacheLunga(vc, '/selftest.js'));
 }
 t.fine();

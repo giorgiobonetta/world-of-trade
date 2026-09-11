@@ -2,7 +2,7 @@
    quindi deve comparire da sé, dire le cose giuste, e non ripresentarsi mai
    più. Il modo in cui una finestra come questa rovina un'app è restare
    aperta, rubare il fuoco, o tornare a ogni avvio. */
-import { boot, suite } from './harness.mjs';
+import { boot, suite, pausa } from './harness.mjs';
 
 const t = suite('Introduzione al primo avvio');
 
@@ -11,7 +11,12 @@ const t = suite('Introduzione al primo avvio');
   const { w, errors } = await boot();
   const d = w.document.getElementById('introDialog');
   t('la finestra esiste nella pagina', !!d);
-  t('e al primo avvio è aperta', d && d.hidden === false);
+  /* Non deve comparire sopra la porta d'ingresso: chi non ha ancora scelto di
+     giocare la leggerebbe a vuoto e se la ritroverebbe identica un attimo dopo. */
+  t('non si apre sopra il gate di accesso', d && d.hidden === true);
+  w.document.getElementById('authGuest').dispatchEvent(new w.Event('click', { bubbles: true }));
+  await pausa(340);
+  t('e si apre appena si entra', d && d.hidden === false);
   t('senza errori in console', errors.length === 0, errors.slice(0, 2).join(' | '));
 
   const I = w.INTRO;

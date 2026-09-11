@@ -30,11 +30,23 @@ const landing = leggi('landing.html');
 t('la landing porta al gioco', /href="learn\.html"/.test(landing));
 t('la landing non è vuota', landing.length > 5000, landing.length + ' byte');
 
-// La riscrittura non deve mettere in cache la home: cambia a ogni pubblicazione.
+/* La home non deve restare in cache sul CDN: cambia a ogni pubblicazione.
+   La regola vale per estensione, non per singolo file — elencare un file per
+   volta significa dimenticarsene uno al prossimo che si aggiunge. */
 const senzaCache = (vercel.headers || [])
   .filter(h => JSON.stringify(h).includes('max-age=0'))
   .map(h => h.source);
-t('la landing non viene messa in cache dal CDN', senzaCache.includes('/landing.html'));
+const copre = f => senzaCache.some(src => {
+  if (src === '/' + f) return true;
+  // il carattere jolly di Vercel è "(.*)": va tenuto da parte PRIMA di
+  // proteggere i punti, o "/(.*).html" diventa la regex "/\.\*\.html"
+  const rx = new RegExp('^' + src.split('(.*)')
+    .map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('.*') + '$');
+  return rx.test('/' + f);
+});
+t('la landing non viene messa in cache dal CDN', copre('landing.html'), senzaCache.join(' '));
+t('e nemmeno il motore del gioco', copre('app.js') && copre('learn.html'));
+t('né i fogli di stile', copre('styles.css') && copre('site.css'));
 
 // Il guscio Capacitor carica index.html dal filesystem locale: deve restare
 // un trampolino verso il gioco, altrimenti l'app nativa si apre sulla vetrina.

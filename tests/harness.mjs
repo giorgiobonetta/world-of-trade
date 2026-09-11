@@ -1,11 +1,15 @@
 import { JSDOM, VirtualConsole } from 'jsdom';
 import fs from 'fs';
 import path from 'path';
-export const DIR = path.resolve(new URL('.', import.meta.url).pathname, '..');
+import { fileURLToPath } from 'url';
+/* URL.pathname su Windows vale "/C:/..." e fs non lo apre: la conversione
+   deve passare da fileURLToPath, altrimenti ogni suite che carica una
+   pagina si interrompe prima della prima asserzione. */
+export const DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 /* Carica la pagina eseguendo ESATTAMENTE gli script che dichiara, nel suo ordine.
    Elencarli a mano qui dentro nascose una volta un <script> dimenticato. */
-export async function boot({ seed, sessione, locale, cloud = false, sb, hash = '', query = '', css = false, pagina = 'learn.html', readyState } = {}) {
+export async function boot({ seed, sessione, locale, cloud = false, sb, hash = '', query = '', css = false, pagina = 'learn.html', readyState, brief = false } = {}) {
   const errors = [];
   const vc = new VirtualConsole();
   // jsdom segnala al virtual console anche le API che non implementa (canvas, ecc.).
@@ -60,7 +64,12 @@ export async function boot({ seed, sessione, locale, cloud = false, sb, hash = '
   if (readyState) Object.defineProperty(w.document, 'readyState', { value: readyState, configurable: true });
   const srcs = [...html.matchAll(/<script(?: defer)? src="([^"]+)"><\/script>/g)].map(m => m[1]);
   if (!srcs.length) errors.push('nessuno script dichiarato in ' + pagina);
-  for (const f of srcs) {
+  for (const dichiarato of srcs) {
+    // Gli script sono dichiarati con la marca di versione ("app.js?v=061")
+    // per svuotare la cache del browser. Su disco quel file non esiste:
+    // senza togliere la query la suite riporta "script mancante" per i file
+    // più importanti dell'app e poi prova a usarli lo stesso.
+    const f = dichiarato.split('?')[0];
     if (f === 'pwa.js') continue;                       // testato a parte
     // supabase-config.js vive solo sul repository di chi installa, non nel
     // pacchetto: in un checkout pulito non c'è, e l'esempio prende il suo posto.
@@ -80,6 +89,13 @@ export async function boot({ seed, sessione, locale, cloud = false, sb, hash = '
   if (!readyState || readyState === 'loading')
     w.document.dispatchEvent(new w.Event('DOMContentLoaded'));
   await pausa(70);
+  /* Il cartellino del desk compare una volta sola, all'ingresso nel desk, e
+     una suite che vuole rispondere a una domanda ci sbatte contro prima di
+     vederla. Di default lo diamo per già letto; chi lo vuole provare passa
+     brief:true. */
+  if (!brief && w.__LEARN__?.deskBriefSeen?.add) {
+    try { (w.__LEARN__.UNITS || []).forEach(u => w.__LEARN__.deskBriefSeen.add(u.id)); } catch (e) {}
+  }
   process.off('unhandledRejection', suRifiuto);
   return { w, errors, nonImplementate, scripts: srcs };
 }
@@ -96,7 +112,10 @@ export function solver(w, L) {
      non l'oggetto della prova: chi vuole verificarla la guarda apposta. */
   const superaPresentazione = () => {
     let giri = 0;
-    while (L && L.run && L.run.state === 'insegna' && giri++ < 5) L.onCheck();
+    // 'briefing' è il cartellino del desk mostrato una volta sola all'ingresso,
+    // 'insegna' la scheda di un termine nuovo: per una suite che vuole
+    // rispondere sono entrambe schermate da superare, non l'oggetto della prova.
+    while (L && L.run && (L.run.state === 'insegna' || L.run.state === 'briefing') && giri++ < 8) L.onCheck();
   };
   const giusto = ex => {
     superaPresentazione();
@@ -147,4 +166,31 @@ export function suite(nome) {
     return ko.length;
   };
   return t;
+}
+
+/* La versione della cache del service worker sale a ogni rilascio. Fissarla
+   a un numero preciso in una suite di una funzionalità vecchia la fa fallire
+   per sempre dal rilascio successivo: quello che conta è che non sia
+   RETROCEDUTA sotto la versione con cui quella funzionalità è uscita. */
+export function versioneCache() {
+  const sw = fs.readFileSync(DIR + '/sw.js', 'utf8');
+  const m = sw.match(/const VERSION = 'v(d+)'/);
+  return m ? Number(m[1]) : 0;
+}
+export const cacheAlmeno = n => versioneCache() >= n;
+
+/* Le intestazioni di cache si dichiarano per estensione, non file per file:
+   un elenco a mano dimentica sempre il prossimo file che si aggiunge. Questa
+   funzione risponde alla domanda vera — "questo file può restare fermo nella
+   cache del CDN?" — accettando sia il nome esatto sia lo schema che lo copre. */
+export function senzaCacheLunga(vercel, file) {
+  const p = file.startsWith('/') ? file : '/' + file;
+  return (vercel.headers || [])
+    .filter(h => (h.headers || []).some(k => /max-age=0/.test(k.value)))
+    .some(h => {
+      if (h.source === p) return true;
+      const rx = new RegExp('^' + String(h.source).split('(.*)')
+        .map(x => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('.*') + '$');
+      return rx.test(p);
+    });
 }

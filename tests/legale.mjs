@@ -4,6 +4,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { senzaCacheLunga } from './harness.mjs';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const leggi = f => fs.readFileSync(path.join(root, f), 'utf8');
 let ok = 0, ko = 0;
@@ -57,8 +58,7 @@ for (const [nome, re] of [
   const sw = leggi('sw.js');
   t('privacy.html è nella shell offline', /'privacy\.html'/.test(sw));
   const vc = JSON.parse(leggi('vercel.json'));
-  const noCache = vc.headers.filter(h => h.headers.some(k => /max-age=0/.test(k.value))).map(h => h.source);
-  t('e non viene cachata a lungo', noCache.includes('/privacy.html'));
+  t('e non viene cachata a lungo', senzaCacheLunga(vc, '/privacy.html'));
 }
 
 console.log(`\nPrivacy e disclaimer: ${ok} passati, ${ko} falliti`);

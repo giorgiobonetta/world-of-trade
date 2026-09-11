@@ -95,7 +95,9 @@ t('il riquadro grigio del tocco è disattivato dove disturba',
   const APP = fs.readFileSync(DIR + '/app.js', 'utf8');
   const UI = fs.readFileSync(DIR + '/ui-polish.js', 'utf8');
   const scrolls = [...(APP + UI).matchAll(/addEventListener\(\s*['"]scroll['"][^)]*\)/g)].map(m => m[0]);
-  t('ci sono listener di scorrimento da controllare', scrolls.length >= 2, `${scrolls.length}`);
+  // la guardia serve solo a provare che la ricerca ha trovato qualcosa:
+  // averne di meno e' un miglioramento, non una regressione
+  t('ci sono listener di scorrimento da controllare', scrolls.length >= 1, `${scrolls.length}`);
   t('e sono tutti passivi, così non trattengono il dito',
     scrolls.every(s => /passive:\s*true/.test(s)),
     scrolls.filter(s => !/passive/.test(s)).join(' | ') || 'tutti passivi');
