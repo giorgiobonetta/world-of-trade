@@ -48,17 +48,7 @@
       const editor=body.querySelector('.profile-editor');
       if(editor)editor.insertAdjacentElement('afterend',card); else body.prepend(card);
     }
-    /* Chi gioca da ospite non ha impostazioni di account da aprire: mostrargli
-       "Account & Settings" con una email vuota promette una cosa che non c'è.
-       Al suo posto l'unica azione che gli serve davvero — mettere la carriera
-       al sicuro — e solo se c'è un backend che possa riceverla. */
-    if(!me()){
-      if(!api().enabled){card.hidden=true;card.innerHTML='';return;}
-      card.hidden=false;
-      card.innerHTML=`<button type="button" id="openAccount060" class="account-card-button060"><span class="account-icon060">☁</span><span><small>PLAYING AS A GUEST</small><b>Save your career</b><em>Create an account and it follows you to another device</em></span><i>›</i></button>`;
-      $('#openAccount060')?.addEventListener('click',()=>api().apri?.('up'));
-      return;
-    }
+    if(!me()){card.hidden=true;card.innerHTML='';return;}
     card.hidden=false;
     const p=ownProfile();
     const email=accountUser?.email||api().session?.user?.email||'Account';
@@ -88,7 +78,7 @@
       <section class="account-section060 account-identity060"><div class="account-section-title060"><span>IDENTITY</span><small>Public inside World of Trade</small></div><div class="account-identity-main060"><div class="account-mini-avatar060">${esc((profileName(p)[0]||'T').toUpperCase())}</div><div><b>${esc(profileName(p))}</b><small>${esc(profileTag(p))}</small></div></div><label>Trader ID<div class="trader-id-input060"><span>@</span><input id="traderTag060" maxlength="20" value="${esc(p.trader_tag||'')}" autocomplete="off" autocapitalize="none"><button id="saveTraderTag060" type="button">Save</button></div><small>3–20 characters: letters, numbers and underscores. Other traders can find you with this ID.</small></label><p id="traderTagStatus060" class="account-status060" hidden></p></section>
       <section class="account-section060"><div class="account-section-title060"><span>ACCOUNT</span><small>Private</small></div><div class="account-row060"><span><b>Email</b><small>${esc(email)}</small></span><em class="${verified?'verified':''}">${verified?'✓ Verified':'Not verified'}</em></div><div class="account-row060 action"><span><b>Password</b><small>Change the password used to sign in.</small></span><button id="changePassword060" type="button">Change</button></div><div id="passwordBox060" class="password-box060" hidden><input id="newPassword060" type="password" minlength="8" autocomplete="new-password" placeholder="New password · 8+ characters"><button id="savePassword060" type="button">Update password</button><small id="passwordStatus060"></small></div></section>
       <section class="account-section060"><div class="account-section-title060"><span>APP</span><small>On this device</small></div><a class="account-link060" id="openDeviceSettings060" href="#">Sound and haptics — in Profile <i>›</i></a></section>
-      <section class="account-section060"><div class="account-section-title060"><span>PRIVACY & DATA</span><small>Your account</small></div><a class="account-link060" href="privacy.html">Privacy Policy <i>›</i></a><button id="signOut060" class="account-danger-light060" type="button">Sign out</button><button id="deleteAccount060" class="account-danger060" type="button">Delete account</button><div id="deleteBox060" class="delete-box060" hidden><b>Delete World of Trade account?</b><p>This permanently deletes your account, career progress, social profile, friendships and challenge history. This cannot be undone.</p><label>Type <strong>DELETE</strong> to confirm<input id="deleteConfirm060" autocomplete="off"></label><button id="deleteForever060" type="button" disabled>Delete forever</button><small id="deleteStatus060"></small></div></section>`;
+      <section class="account-section060"><div class="account-section-title060"><span>PRIVACY & DATA</span><small>Your account</small></div><a class="account-link060" href="privacy.html">Privacy Policy <i>›</i></a><button id="signOut060" class="account-danger-light060" type="button">Sign out</button><button id="deleteAccount060" class="account-danger060" type="button">Delete account</button><div id="deleteBox060" class="delete-box060" hidden><b>Delete World of Trade account?</b><p>This permanently deletes your account, career progress, social profile, friendships and challenge history. This cannot be undone.</p><label>Type <strong>DELETE</strong> to confirm<input id="deleteConfirm060" autocomplete="off"></label><label>Current password<input id="deletePassword060" type="password" minlength="8" autocomplete="current-password" placeholder="Required to verify it is you"></label><button id="deleteForever060" type="button" disabled>Delete forever</button><small id="deleteStatus060"></small></div></section>`;
     bindAccount();
   }
   function status(id,text,bad=false){const el=$(id);if(!el)return;el.hidden=!text;el.textContent=text||'';el.classList.toggle('bad',!!bad);}
@@ -104,8 +94,10 @@
     $('#openDeviceSettings060')?.addEventListener('click',e=>{e.preventDefault();closeAccount();});
     $('#signOut060')?.addEventListener('click',async()=>{closeAccount();await api().esci?.();});
     $('#deleteAccount060')?.addEventListener('click',()=>{const box=$('#deleteBox060');if(box){box.hidden=!box.hidden;if(!box.hidden)$('#deleteConfirm060')?.focus();}});
-    $('#deleteConfirm060')?.addEventListener('input',e=>{const b=$('#deleteForever060');if(b)b.disabled=String(e.target.value||'').trim()!=='DELETE';});
-    $('#deleteForever060')?.addEventListener('click',async()=>{const btn=$('#deleteForever060');btn.disabled=true;$('#deleteStatus060').textContent='Deleting account…';try{await api().deleteMyAccount?.();try{localStorage.removeItem('wot-learn-v1');localStorage.removeItem('wot-profile-v1');}catch(e){}location.href='index.html';}catch(e){$('#deleteStatus060').textContent=(e?.status===404?'Run the v0.6 Account & Social SQL in Supabase first.':(e?.message||'Could not delete the account.'));btn.disabled=false;}});
+    const syncDeleteButton=()=>{const b=$('#deleteForever060'),word=String($('#deleteConfirm060')?.value||'').trim(),pw=String($('#deletePassword060')?.value||'');if(b)b.disabled=word!=='DELETE'||pw.length<8;};
+    $('#deleteConfirm060')?.addEventListener('input',syncDeleteButton);
+    $('#deletePassword060')?.addEventListener('input',syncDeleteButton);
+    $('#deleteForever060')?.addEventListener('click',async()=>{const btn=$('#deleteForever060'),pw=String($('#deletePassword060')?.value||'');btn.disabled=true;$('#deleteStatus060').textContent='Verifying your password…';try{await api().reauthenticate?.(pw);$('#deleteStatus060').textContent='Deleting account…';await api().deleteMyAccount?.();try{localStorage.removeItem('wot-learn-v1');localStorage.removeItem('wot-profile-v1');}catch(e){}location.href='index.html';}catch(e){$('#deleteStatus060').textContent=(e?.status===404?'Run SUPABASE-V080-HARDENING.sql in Supabase first.':(e?.message||'Could not verify or delete the account.'));btn.disabled=false;}});
   }
 
   function installLeagueTabs(){
@@ -134,10 +126,24 @@
   }
   function requestProfileIds(){return [...new Set(requests.flatMap(r=>[r.requester_id,r.addressee_id]).filter(id=>id&&id!==me()))];}
   async function profileMapFor(ids){const map=new Map();const cached=social().friendProfiles;if(cached?.forEach)cached.forEach((v,k)=>map.set(k,v));const missing=ids.filter(id=>!map.has(id));if(missing.length){try{for(const p of await api().socialProfiles?.(missing)||[])map.set(p.user_id,p);}catch(e){}}return map;}
-  function relationButton(p,map){
-    const id=p.user_id;if(friendSet().has(id))return `<button class="friend-action060 challenge" data-challenge-user="${id}">Challenge</button>`;
-    const req=requestFor(id);if(req){if(req.addressee_id===me())return `<div class="friend-request-actions060"><button data-request-accept="${req.id}">Accept</button><button class="ghost" data-request-decline="${req.id}">Decline</button></div>`;return `<button class="friend-action060" disabled>Request sent</button>`;}
-    return `<button class="friend-action060" data-add-friend="${id}">Add friend</button>`;
+  function profileKey(p){
+    const id=String(p?.user_id||'');
+    if(id)return `u:${id}`;
+    const tag=String(p?.trader_tag||'').trim().toLowerCase();
+    return tag?`t:${tag}`:'';
+  }
+  function relationButton(p){
+    const id=p?.user_id||'';
+    const tag=String(p?.trader_tag||'').trim().toLowerCase();
+    if(id&&friendSet().has(id))return `<button class="friend-action060 challenge" data-challenge-user="${esc(id)}">Challenge</button>`;
+    const req=id?requestFor(id):null;
+    if(req){if(req.addressee_id===me())return `<div class="friend-request-actions060"><button data-request-accept="${esc(req.id)}">Accept</button><button class="ghost" data-request-decline="${esc(req.id)}">Decline</button></div>`;return `<button class="friend-action060" disabled>Request sent</button>`;}
+    if(p?.relation_status==='friends')return `<button class="friend-action060" disabled>Friends</button>`;
+    if(p?.relation_status==='pending-out')return `<button class="friend-action060" disabled>Request sent</button>`;
+    if(p?.relation_status==='pending-in')return `<button class="friend-action060" disabled>Request pending</button>`;
+    if(tag)return `<button class="friend-action060" data-add-friend-tag="${esc(tag)}">Add friend</button>`;
+    if(id)return `<button class="friend-action060" data-add-friend="${esc(id)}">Add friend</button>`;
+    return `<button class="friend-action060" disabled>Unavailable</button>`;
   }
   async function renderFriends(){
     const host=$('#leaguePageFriends060');if(!host)return;const token=++renderToken;
@@ -151,22 +157,26 @@
       <section class="social-panel060 invite060"><div><span>INVITE</span><h3>Bring a trader to the floor</h3><p>The referral link connects you automatically after they create an account.</p></div><button id="copyInvite060" type="button">Copy invite link</button></section>`;
     bindFriends(profiles,scoreMap);updateSocialTabBadges();
   }
-  function traderRow(p,scoreMap){const id=p.user_id||'';const house=houseName(p.house);return `<article class="trader-row060"><div class="trader-avatar060">${esc((profileName(p)[0]||'T').toUpperCase())}</div><div class="trader-copy060"><b>${esc(profileName(p))}</b><small>${esc(profileTag(p))} · ${esc(house)}</small></div><strong>${Number(scoreMap.get(id)||0)} XP</strong><button class="view-trader060" type="button" data-view-trader="${id}" aria-label="View ${esc(profileName(p))}">›</button><div class="trader-actions060">${relationButton(p)}</div></article>`;}
+  function traderRow(p,scoreMap){const id=p.user_id||'';const key=profileKey(p);const house=houseName(p.house);return `<article class="trader-row060"><div class="trader-avatar060">${esc((profileName(p)[0]||'T').toUpperCase())}</div><div class="trader-copy060"><b>${esc(profileName(p))}</b><small>${esc(profileTag(p))} · ${esc(house)}</small></div><strong>${id?Number(scoreMap.get(id)||0):'—'}${id?' XP':''}</strong><button class="view-trader060" type="button" data-view-trader="${esc(key)}" aria-label="View ${esc(profileName(p))}">›</button><div class="trader-actions060">${relationButton(p)}</div></article>`;}
   function bindFriends(profiles,scoreMap){
     $('#copyTraderId060')?.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(profileTag(ownProfile()));$('#copyTraderId060').textContent='Copied';}catch(e){}});
     $('#copyInvite060')?.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(social().referralUrl?.()||location.href);$('#copyInvite060').textContent='Copied';}catch(e){}});
-    $('#traderSearchForm060')?.addEventListener('submit',async e=>{e.preventDefault();const q=$('#traderSearch060')?.value||'',out=$('#traderSearchResults060');if(String(q).trim().length<2){out.innerHTML='<p class="search-hint060">Type at least 2 characters.</p>';return;}out.innerHTML='<p class="search-hint060">Searching…</p>';try{const rows=await api().searchSocialProfiles?.(q)||[];const ids=rows.map(r=>r.user_id);const extra=await profileMapFor(ids);rows.forEach(r=>extra.set(r.user_id,r));out.innerHTML=rows.length?`<div class="social-list060 search-results060">${rows.map(r=>traderRow(r,scoreMap)).join('')}</div>`:'<p class="search-hint060">No traders found.</p>';bindDynamicSocial(extra,scoreMap);}catch(err){out.innerHTML='<p class="search-hint060 bad">Search needs the v0.6 social SQL in Supabase.</p>';}});
+    $('#traderSearchForm060')?.addEventListener('submit',async e=>{e.preventDefault();const q=$('#traderSearch060')?.value||'',out=$('#traderSearchResults060');if(String(q).trim().length<2){out.innerHTML='<p class="search-hint060">Type at least 2 characters.</p>';return;}out.innerHTML='<p class="search-hint060">Searching…</p>';try{const rows=await api().searchSocialProfiles?.(q)||[];const extra=new Map(rows.map(r=>[profileKey(r),r]));out.innerHTML=rows.length?`<div class="social-list060 search-results060">${rows.map(r=>traderRow(r,scoreMap)).join('')}</div>`:'<p class="search-hint060">No traders found.</p>';bindDynamicSocial(extra,scoreMap);}catch(err){out.innerHTML='<p class="search-hint060 bad">Trader search is temporarily unavailable.</p>';}});
     bindDynamicSocial(profiles,scoreMap);
   }
   function bindDynamicSocial(profiles,scoreMap){
+    const getProfile=key=>{if(!key)return null;if(profiles?.has?.(key))return profiles.get(key);if(key.startsWith('u:'))return profiles?.get?.(key.slice(2))||null;if(key.startsWith('t:')){const tag=key.slice(2);for(const p of profiles?.values?.()||[])if(String(p?.trader_tag||'').toLowerCase()===tag)return p;}return null;};
     $$('[data-add-friend]').forEach(b=>{if(b.dataset.bound)return;b.dataset.bound='1';b.addEventListener('click',async()=>{b.disabled=true;b.textContent='Sending…';try{await api().sendFriendRequest?.(b.dataset.addFriend);await loadRequests();b.textContent='Request sent';updateSocialTabBadges();}catch(e){b.textContent=e?.message||'Try again';b.disabled=false;}});});
+    $$('[data-add-friend-tag]').forEach(b=>{if(b.dataset.bound)return;b.dataset.bound='1';b.addEventListener('click',async()=>{b.disabled=true;b.textContent='Sending…';try{await api().sendFriendRequestByTag?.(b.dataset.addFriendTag);await loadRequests();b.textContent='Request sent';updateSocialTabBadges();}catch(e){b.textContent=e?.message||'Try again';b.disabled=false;}});});
     $$('[data-request-accept]').forEach(b=>{if(b.dataset.bound)return;b.dataset.bound='1';b.addEventListener('click',async()=>{b.disabled=true;await api().respondFriendRequest?.(b.dataset.requestAccept,true);await social().loadSocial?.();await loadRequests();renderFriends();});});
     $$('[data-request-decline]').forEach(b=>{if(b.dataset.bound)return;b.dataset.bound='1';b.addEventListener('click',async()=>{b.disabled=true;await api().respondFriendRequest?.(b.dataset.requestDecline,false);await loadRequests();renderFriends();});});
     $$('[data-challenge-user]').forEach(b=>{if(b.dataset.bound)return;b.dataset.bound='1';b.addEventListener('click',()=>social().openChallengeCreator?.(b.dataset.challengeUser));});
-    $$('[data-view-trader]').forEach(b=>{if(b.dataset.bound)return;b.dataset.bound='1';b.addEventListener('click',()=>openTraderProfile(profiles.get(b.dataset.viewTrader)||{user_id:b.dataset.viewTrader,alias:'Trader'},scoreMap.get(b.dataset.viewTrader)||0));});
+    $$('[data-view-trader]').forEach(b=>{if(b.dataset.bound)return;b.dataset.bound='1';b.addEventListener('click',()=>{const p=getProfile(b.dataset.viewTrader)||{alias:'Trader'};openTraderProfile(p,p.user_id?scoreMap.get(p.user_id)||0:0);});});
+    $$('[data-block-trader]').forEach(b=>{if(b.dataset.bound)return;b.dataset.bound='1';b.addEventListener('click',async()=>{if(!confirm('Block this trader? They will no longer be able to send you friend requests.'))return;b.disabled=true;try{await api().blockUser?.(b.dataset.blockTrader);await social().loadSocial?.();await loadRequests();$('#traderDialog060').hidden=true;renderFriends();}catch(e){b.textContent=e?.message||'Could not block';b.disabled=false;}});});
+    $$('[data-block-trader-tag]').forEach(b=>{if(b.dataset.bound)return;b.dataset.bound='1';b.addEventListener('click',async()=>{if(!confirm('Block this trader? They will no longer be able to send you friend requests.'))return;b.disabled=true;try{await api().blockTraderByTag?.(b.dataset.blockTraderTag);await social().loadSocial?.();await loadRequests();$('#traderDialog060').hidden=true;renderFriends();}catch(e){b.textContent=e?.message||'Could not block';b.disabled=false;}});});
   }
   function ensureTraderDialog(){if($('#traderDialog060'))return;document.body.insertAdjacentHTML('beforeend','<div id="traderDialog060" class="account-dialog060" role="dialog" aria-modal="true" hidden><section class="trader-sheet060"><button id="traderClose060" type="button">×</button><div id="traderBody060"></div></section></div>');$('#traderClose060')?.addEventListener('click',()=>$('#traderDialog060').hidden=true);$('#traderDialog060')?.addEventListener('click',e=>{if(e.target.id==='traderDialog060')e.currentTarget.hidden=true;});}
-  function openTraderProfile(p,weeklyXp){ensureTraderDialog();const d=$('#traderDialog060');const h=$('#traderBody060');d.hidden=false;h.innerHTML=`<div class="trader-profile-head060"><div class="trader-avatar060 big">${esc((profileName(p)[0]||'T').toUpperCase())}</div><span>TRADER PROFILE</span><h2>${esc(profileName(p))}</h2><p>${esc(profileTag(p))}</p></div><div class="trader-profile-stats060"><div><b>${Number(weeklyXp)||0}</b><small>Weekly XP</small></div><div><b>${esc(houseName(p.house))}</b><small>Trading House</small></div></div><div class="trader-profile-actions060">${relationButton(p)}</div>`;bindDynamicSocial(new Map([[p.user_id,p]]),new Map([[p.user_id,weeklyXp]]));}
+  function openTraderProfile(p,weeklyXp){ensureTraderDialog();const d=$('#traderDialog060');const h=$('#traderBody060');const key=profileKey(p);const block=p.user_id&&p.user_id!==me()?`<button type="button" class="block-trader060" data-block-trader="${esc(p.user_id)}">Block</button>`:p.trader_tag?`<button type="button" class="block-trader060" data-block-trader-tag="${esc(p.trader_tag)}">Block</button>`:'';d.hidden=false;h.innerHTML=`<div class="trader-profile-head060"><div class="trader-avatar060 big">${esc((profileName(p)[0]||'T').toUpperCase())}</div><span>TRADER PROFILE</span><h2>${esc(profileName(p))}</h2><p>${esc(profileTag(p))}</p></div><div class="trader-profile-stats060"><div><b>${p.user_id?Number(weeklyXp)||0:'—'}</b><small>Weekly XP</small></div><div><b>${esc(houseName(p.house))}</b><small>Trading House</small></div></div><div class="trader-profile-actions060">${relationButton(p)}${block}</div>`;bindDynamicSocial(new Map([[key,p]]),new Map(p.user_id?[[p.user_id,weeklyXp]]:[]));}
 
   async function renderChallenges(){
     const host=$('#leaguePageChallenges060');if(!host)return;const token=++renderToken;host.innerHTML='<div class="social-page-loading060">Loading challenges…</div>';await Promise.all([social().loadSocial?.(),loadRequests()]);if(token!==renderToken)return;

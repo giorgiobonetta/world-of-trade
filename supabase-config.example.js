@@ -27,3 +27,6 @@ window.WOT_CLOUD = {
   siteUrl: '',    // opzionale: l'indirizzo pubblico del sito, per il link di condivisione
                   // se resta vuoto si usa il dominio da cui la pagina è aperta
 };
+
+// Optional: paste the official hosted PayPal Payment Link when you create it.
+window.WOT_PAYPAL_PAYMENT_LINK = '';

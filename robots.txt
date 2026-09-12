@@ -5,9 +5,7 @@ Disallow: /learn.html
 Disallow: /access
 Disallow: /access.html
 Disallow: /login
-Disallow: /login.html
 Disallow: /register
-Disallow: /register.html
 Disallow: /selftest
 Disallow: /selftest.html
 

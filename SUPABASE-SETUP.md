@@ -4,6 +4,11 @@ Serve un progetto Supabase. L'accesso è ora obbligatorio: finché URL e chiave 
 
 ---
 
+> **v0.8.2:** dopo aver eseguito il setup base di questa pagina, esegui anche
+> `SUPABASE-V080-HARDENING.sql` una volta in **Supabase → SQL Editor**. La migrazione
+> rende server-side le scritture competitive, riduce i campi social esposti, aggiunge
+> blocco/cooldown amici, Storage avatar e richieste Contributors.
+
 ## 1 · Crea il progetto
 
 1. Vai su **supabase.com** e registrati.
@@ -107,10 +112,9 @@ file su GitHub e aspetta il redeploy.
 > *"Authentication is not configured"*, la prima cosa da controllare è se quel file
 > è ancora al suo posto e pieno.
 
-Come capire se ha funzionato: apri `/learn`, e sotto il percorso deve comparire
-**"Save your progress to an account"**. Se non compare, apri la console del browser
-(F12) e guarda se c'è un errore — di solito è un URL con uno spazio o una barra di
-troppo in fondo.
+Come capire se ha funzionato: apri `access.html`, crea un account e conferma l’email.
+Dopo il login devi entrare in `/learn` senza vedere il gate di autenticazione. Se compare
+“Account access is temporarily unavailable”, controlla `supabase-config.js`.
 
 ## 5 · Conferma via email
 
@@ -128,37 +132,7 @@ Sul piano gratuito Supabase manda poche email al giorno da un mittente condiviso
 finiscono facilmente nello spam. Se il progetto cresce, si collega un servizio SMTP
 proprio in **Authentication → Emails**.
 
-## 6 · Accesso con LinkedIn (opzionale)
-
-Questa parte richiede un passaggio in più perché LinkedIn è più esigente di altri.
-
-1. Vai su **linkedin.com/developers** → **Create app**.
-2. **Serve una Pagina LinkedIn** (una company page) da associare all'app. Se non ne
-   hai una, creane una: è gratis e ci vogliono due minuti. Senza Pagina LinkedIn non
-   ti lascia creare l'app — è il punto dove si bloccano tutti.
-3. Nella scheda **Products** aggiungi **Sign In with LinkedIn using OpenID Connect**.
-   È self-service, si attiva subito.
-4. Nella scheda **Auth**, sotto **Authorized redirect URLs**, incolla:
-
-   ```
-   https://TUO-PROGETTO.supabase.co/auth/v1/callback
-   ```
-
-   Quello è l'indirizzo di **Supabase**, non del tuo sito. Sbagliarlo è l'errore più
-   comune e produce un `redirect_uri_mismatch`.
-5. Copia **Client ID** e **Client Secret**.
-6. In Supabase: **Authentication** → **Providers** → **LinkedIn (OIDC)**. Attivalo e
-   incolla le due chiavi. Attenzione: nella lista ci sono due voci simili, `LinkedIn`
-   e `LinkedIn (OIDC)`. Serve **OIDC** — l'altra usa un'API che LinkedIn ha dismesso.
-7. Salva. Il pulsante **Continue with LinkedIn** funziona già: nel codice il provider
-   è `linkedin_oidc`.
-
-Da LinkedIn arriva nome ed email. Se un utente entra prima con l'email e poi con
-LinkedIn, per Supabase sono due account distinti a meno che tu non attivi
-**Authentication → Settings → Link identities with the same email**. Consiglio di
-attivarlo, altrimenti la stessa persona si ritrova due carriere separate.
-
-## 7 · Prova
+## 6 · Prova
 
 1. Apri `/learn` e registrati con la tua email.
 2. Fai una lezione.
@@ -178,8 +152,8 @@ l'errore è quasi sempre nel blocco SQL del punto 2.
   lezioni fatte, XP, accuratezza, badge, errori da ripassare.
 - Niente tracciamento, niente analytics, nessuna terza parte oltre a Supabase.
 - La carriera resta **anche** sul dispositivo: uscendo dall'account non si perde nulla.
-- Per cancellare un account: **Authentication → Users → Delete user**. La riga in
-  `progress` sparisce da sola grazie a `on delete cascade`.
+- Per cancellare un account: **Profile → Account & Settings → Delete account**. L’app
+  richiede `DELETE` e la password corrente; le righe collegate spariscono con `on delete cascade`.
 
 Se pubblichi il sito in Europa e raccogli email, ti serve una riga di privacy policy
 che dica queste tre cose. Non è un adempimento pesante, ma va scritto.
@@ -259,8 +233,8 @@ La tabella pubblica contiene solamente:
 
 **Non contiene l'email.** L'app non mostra mai `user_id` nell'interfaccia.
 
-Se non crei questa tabella, il tab League continua a funzionare come **Local preview**
-e il normale salvataggio cloud della carriera resta operativo.
+Con v0.8.2 la League reale richiede anche `SUPABASE-V080-HARDENING.sql`. Se la migrazione
+non è installata, il gioco non pubblica punteggi arbitrari e mostra “Live standings unavailable”.
 
 ---
 
@@ -458,7 +432,7 @@ unico.
 
 ### Privacy social
 
-Il social layer pubblica nel profilo minimale soltanto alias, house e codice referral.
+Il social layer v0.8.2 espone alla view autenticata solo alias, house e Trader ID; il referral code resta interno.
 Le amicizie e le sfide sono protette da RLS e sono leggibili solo dai partecipanti.
 La Friends League riusa gli XP settimanali già pubblicati in `league_scores`.
 

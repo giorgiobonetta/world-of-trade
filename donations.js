@@ -9,12 +9,22 @@
   'use strict';
 
   var CONTACT_EMAIL = 'giorgio.bonnybonetta@gmail.com';
-  var WOT_PAYPAL_PAYMENT_LINK = ''; // Optional: paste your official hosted PayPal Payment Link here.
+  var WOT_PAYPAL_PAYMENT_LINK = window.WOT_PAYPAL_PAYMENT_LINK || ''; // Set only to your official hosted PayPal Payment Link.
   var FALLBACK_PAYMENT_URL = 'https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=' +
     encodeURIComponent(CONTACT_EMAIL) +
     '&item_name=' + encodeURIComponent('Support World of Trade development') +
     '&amount=4.99&currency_code=USD&no_shipping=1&no_note=1';
   var PAYPAL_URL = WOT_PAYPAL_PAYMENT_LINK || FALLBACK_PAYMENT_URL;
+
+  async function submitSupporterRequest(name) {
+    var cfg=window.WOT_CLOUD||{}, key=cfg.publishableKey||cfg.anonKey||'';
+    if(!cfg.url||!key) throw new Error('cloud-off');
+    var sess=null;try{sess=JSON.parse(localStorage.getItem('wot-cloud-session')||'null')}catch(e){}
+    if(!sess||!sess.access_token) throw new Error('signed-out');
+    var res=await fetch(cfg.url.replace(/\/$/,'')+'/rest/v1/supporter_requests',{method:'POST',headers:{apikey:key,Authorization:'Bearer '+sess.access_token,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify([{display_name:String(name||'').trim().slice(0,36)}])});
+    if(!res.ok) throw new Error('request-failed');
+    var st=document.querySelector('#supporterStatus');if(st)st.textContent='Request received. It will appear after the contribution is checked.';
+  }
 
   var donate = document.getElementById('paypalDonateBtn');
   if (donate) donate.href = PAYPAL_URL;
@@ -22,25 +32,23 @@
   var names = Array.isArray(window.WOT_SUPPORTERS) ? window.WOT_SUPPORTERS : [];
   names = names.map(function (x) { return String(x || '').trim(); }).filter(Boolean);
 
-  var list = document.getElementById('supportersList');
-  var count = document.getElementById('supporterCount');
-  if (count) count.textContent = names.length + (names.length === 1 ? ' name' : ' names');
-  if (list) {
+  function renderNames() {
+    var list = document.getElementById('supportersList');
+    var count = document.getElementById('supporterCount');
+    var unique = Array.from(new Set(names));
+    if (count) count.textContent = unique.length + (unique.length === 1 ? ' name' : ' names');
+    if (!list) return;
     list.textContent = '';
-    if (!names.length) {
-      var empty = document.createElement('div');
-      empty.className = 'supporters-empty';
-      empty.textContent = 'Be the first contributor listed here.';
-      list.appendChild(empty);
-    } else {
-      names.forEach(function (name) {
-        var chip = document.createElement('span');
-        chip.className = 'supporter-chip';
-        chip.textContent = name;
-        list.appendChild(chip);
-      });
+    if (!unique.length) {
+      var empty = document.createElement('div'); empty.className = 'supporters-empty'; empty.textContent = 'Be the first contributor listed here.'; list.appendChild(empty); return;
     }
+    unique.forEach(function (name) { var chip=document.createElement('span');chip.className='supporter-chip';chip.textContent=name;list.appendChild(chip); });
   }
+  renderNames();
+  (async function loadApprovedSupporters(){
+    var cfg=window.WOT_CLOUD||{},key=cfg.publishableKey||cfg.anonKey||'';if(!cfg.url||!key)return;
+    try{var res=await fetch(cfg.url.replace(/\/$/,'')+'/rest/v1/public_supporters?select=display_name&order=approved_at.asc',{headers:{apikey:key}});if(!res.ok)return;var rows=await res.json();(rows||[]).forEach(function(r){if(r&&r.display_name)names.push(String(r.display_name).trim());});renderNames();}catch(e){}
+  })();
 
   var input = document.getElementById('supporterName');
   var request = document.getElementById('supporterRequestBtn');
@@ -65,8 +73,11 @@
         '',
         'Thanks.'
       ].join('\n');
-      if (status) status.textContent = 'Opening your email app. Send the message and the name can be added after verification.';
-      location.href = 'mailto:' + CONTACT_EMAIL + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+      if (status) status.textContent = 'Sending your listing request…';
+      submitSupporterRequest(name).then(function(){ input.value=''; }).catch(function(){
+        if (status) status.textContent = 'Sign in to submit automatically, or send the prepared email request.';
+        location.href = 'mailto:' + CONTACT_EMAIL + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+      });
     });
   }
 })();

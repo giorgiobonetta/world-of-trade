@@ -1,4 +1,4 @@
-# World of Trade — Mobile App v0.3
+# World of Trade — Mobile wrapper notes
 
 This beta build contains a first UI/graphics cleanup for iOS and Android.
 
@@ -14,7 +14,7 @@ This beta build contains a first UI/graphics cleanup for iOS and Android.
 - native crest returns to Path instead of reloading the app;
 - Supabase League/Friends reads now match authenticated RLS and support the current `division` / `weekly_xp` schema.
 
-Questa cartella trasforma la v7.1 in una app nativa iOS + Android tramite Capacitor.
+Queste note descrivono il wrapper Capacitor per riutilizzare la web app World of Trade su iOS e Android.
 
 ## Prima di compilare
 
@@ -22,7 +22,7 @@ Questa cartella trasforma la v7.1 in una app nativa iOS + Android tramite Capaci
 2. Inserisci SOLO:
    - Project URL Supabase
    - publishable/anon public key
-   - `siteUrl`: URL pubblico della landing page World of Trade (serve per referral/LinkedIn).
+   - `siteUrl`: URL pubblico di World of Trade (serve per redirect auth, referral e condivisione).
 3. Non inserire mai `service_role`, `sb_secret_...` o altre secret key nel frontend.
 
 ## Android (Windows/macOS/Linux)
@@ -64,9 +64,8 @@ Poi seleziona un simulatore/iPhone in Xcode e premi Run.
 
 ## Struttura
 
-- `www/` = gioco completo v7.1
-- `www/index.html` = launcher nativo, apre direttamente login/gioco (usa `native-index.html` come sorgente quando prepari `www/`)
-- `www/landing.html` = copia della landing web (non è la schermata iniziale dell'app)
+- `www/` = copia dei file runtime della release web corrente
+- `www/index.html` = launcher nativo; usa `native-index.html` come sorgente quando prepari `www/`
 - `mobile-native.css` = adattamenti solo nativi
 - `native-runtime.js` = marker runtime app
 - `resources/` = icona e splash
@@ -93,7 +92,7 @@ Per la release pubblica conviene aggiungere Universal Links / App Links così co
 - acquisti in-app;
 - store signing/release metadata.
 
-Il core del gioco, Supabase, League, Friends, referral, duelli e progressi sono già riusati dalla web app.
+Il wrapper riusa il core web: Supabase, League, Friends, referral, sfide e progressi.
 
 ## v0.3 UI polish
 This beta includes the second mobile UI pass: native-feeling bottom sheets, consistent card hierarchy, stronger Career/Play states, improved focus/tap feedback, overlay scroll locking, reduced-motion support, and a fix for Hélène's “Show my next level” action.

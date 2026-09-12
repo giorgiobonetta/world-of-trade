@@ -5,8 +5,12 @@
 <script>
 (function(){
   try{
+    var sandbox=new URLSearchParams(location.search).has('sandbox');
     var s=JSON.parse(localStorage.getItem('wot-cloud-session')||'null');
-    if(!s || !s.access_token){ location.replace('access.html'); }
+    if(!sandbox && (!s || (!s.access_token && !s.refresh_token))){
+      var next=location.pathname.replace(/^\//,'')+location.search+location.hash;
+      location.replace('access.html?next='+encodeURIComponent(next));
+    }
   }catch(e){ location.replace('access.html'); }
 })();
 </script>
@@ -28,6 +32,7 @@
 <link rel="stylesheet" href="styles.css" />
 <link rel="stylesheet" href="mobile-native.css" />
 <script defer src="native-runtime.js"></script>
+  <script defer src="version.js"></script>
 </head>
 <body class="auth-locked">
 
@@ -240,22 +245,12 @@
 <!-- ACCESSO OBBLIGATORIO -->
 <section id="authGate" class="auth-gate" aria-labelledby="authGateTitle">
   <div class="auth-gate-card">
-    <img class="auth-gate-logo" src="logo-crest-220.webp" alt="World of Trade" width="239" height="220"
-         onerror="this.onerror=null;this.src='logo-crest-220.png'" />
-    <span class="eyebrow">Your trading career starts here</span>
-    <h1 id="authGateTitle">Enter World of Trade</h1>
-    <p>Learn physical commodity trading the way a desk actually works it: short levels, real decisions, an explanation behind every call.</p>
-    <div class="auth-gate-actions">
-      <button id="authGuest" class="btn primary" type="button">Start trading</button>
-      <button id="authSignIn" class="btn auth-secondary" type="button" disabled>I already have an account</button>
-      <button id="authSignUp" class="link-btn auth-tertiary" type="button" disabled>Create an account to sync across devices</button>
-    </div>
-    <p id="authGateStatus" class="auth-gate-status" role="status">Your first level is one tap away.</p>
-    <p class="auth-gate-legal">Play straight away — progress stays on this device.
-       <a href="privacy.html">Privacy and terms</a><br />
-       An account (email and password) is only needed to sync across devices.<br />
-       Educational material only. Not trading, investment, legal or tax advice.
-       Figures and cases are illustrative and simplified for teaching.</p>
+    <img class="auth-gate-logo" src="logo-crest-220.webp" alt="World of Trade" width="239" height="220" onerror="this.onerror=null;this.src='logo-crest-220.png'" />
+    <span class="eyebrow">Secure account access</span>
+    <h1 id="authGateTitle">Checking your session…</h1>
+    <p>Your Career Path opens as soon as your World of Trade account is verified.</p>
+    <p id="authGateStatus" class="auth-gate-status" role="status">Verifying session…</p>
+    <p class="auth-gate-legal"><a href="access.html">Return to account access</a> · <a href="privacy.html">Privacy and terms</a></p>
   </div>
 </section>
 
@@ -375,7 +370,7 @@
   <div class="wrap tab-wrap">
     <section id="leagueHero" class="league-hero"></section>
     <section class="league-panel">
-      <div class="card-title"><div><span class="eyebrow">Weekly standings</span><h2>Your League</h2></div><small id="leagueStatus">Local preview</small></div>
+      <div class="card-title"><div><span class="eyebrow">Weekly standings</span><h2>Your League</h2></div><small id="leagueStatus">Connecting…</small></div>
       <div id="leagueBoard" class="league-board"></div>
     </section>
     <section class="league-panel">
@@ -470,6 +465,7 @@
     <p id="doneKicker" class="done-kicker">LEVEL CLEARED</p>
     <h2 id="doneTitle">Level complete</h2>
     <p id="doneGoal" class="done-goal"></p>
+    <section id="doneLearningSummary" class="done-learning-summary" aria-label="Learning summary" hidden></section>
     <div class="done-stats">
       <div><span>XP earned</span><strong id="doneXp">0</strong></div>
       <div><span>First try</span><strong id="doneAcc">0%</strong></div>
@@ -525,15 +521,6 @@
   </div>
 </div>
 
-<div id="cloudDialog" class="cloud-dialog" role="dialog" aria-modal="true"
-     aria-labelledby="cloudTitle" hidden>
-  <div class="cloud-panel">
-    <button id="cloudClose" class="cloud-close" aria-label="Close">✕</button>
-    <div id="cloudDialogBody"></div>
-    <p class="cloud-fine">Your email is used only to identify your account. An account is required to enter World of Trade; your private career progress stays protected.</p>
-  </div>
-</div>
-
 <script defer src="supabase-config.js"></script>
 <script defer src="mascot.js"></script>
 <script defer src="scenes.js"></script>
@@ -573,5 +560,6 @@
     <b class="sr-only">Profile</b></button>
 </nav>
 
+  <script src="dialog-a11y.js"></script>
 </body>
 </html>

@@ -521,7 +521,7 @@
     const c = ensureCompetitive(), uid = window.WOT_CLOUD_API?.idUtente?.();
     const own = { user_id:uid || 'local-me', alias:c.alias, house:c.house, tier:c.tier, score:leagueScore(), me:true };
     let list = Array.isArray(rows) ? rows.map(x => ({...x})) : [];
-    if (!online) list = [...(COMP.localOpponents?.(c.week,c.tier,own.score) || []), own];
+    if (!online) list = [own];
     else if (!list.some(x => uid && x.user_id === uid)) list.push(own);
     list = list.filter(x => (x.tier || c.tier) === c.tier).sort((a,b) => Number(b.score||0)-Number(a.score||0));
     const ownIndex = list.findIndex(x => x.me || (uid && x.user_id === uid));
@@ -536,7 +536,7 @@
       const house = (COMP.houses || []).find(h => h.id === r.house);
       return `<div class="league-row${me?' me':''}"><b>${actual}</b><span>${esc(r.alias || 'Trader')}${r.preview?' <small>preview</small>':''}</span><i>${esc(house?.icon || '—')}</i><strong>${Number(r.score)||0}</strong></div>`;
     }).join('');
-    $('#leagueStatus').textContent = online ? `${list.length} live traders${pos ? ` · rank #${pos}` : ''}` : `Local preview${pos ? ` · rank #${pos}` : ''}`;
+    $('#leagueStatus').textContent = online ? `${list.length} live traders${pos ? ` · rank #${pos}` : ''}` : 'Live standings unavailable';
     renderHouseBoard(Array.isArray(houseRows) ? houseRows : list, online);
   }
 
@@ -546,7 +546,7 @@
     (COMP.houses || []).forEach(h => sums[h.id] = { score:0, members:0 });
     (rows || []).forEach(r => { if (r.house && sums[r.house]) { sums[r.house].score += Number(r.score)||0; sums[r.house].members++; } });
     const ranked = (COMP.houses || []).map(h => ({...h,...sums[h.id]})).sort((a,b)=>b.score-a.score);
-    host.innerHTML = `<div class="house-rank-head"><span>House</span><span>${online?'Weekly XP':'Preview XP'}</span></div>` + ranked.map((h,i) => `<div class="house-rank-row${state.competitive.house===h.id?' mine':''}"><b>${i+1}</b><i>${esc(h.icon)}</i><span><strong>${esc(h.name)}</strong><small>${h.members} trader${h.members===1?'':'s'}</small></span><em>${h.score}</em></div>`).join('');
+    host.innerHTML = `<div class="house-rank-head"><span>House</span><span>${online?'Weekly XP':'Current XP'}</span></div>` + ranked.map((h,i) => `<div class="house-rank-row${state.competitive.house===h.id?' mine':''}"><b>${i+1}</b><i>${esc(h.icon)}</i><span><strong>${esc(h.name)}</strong><small>${h.members} trader${h.members===1?'':'s'}</small></span><em>${h.score}</em></div>`).join('');
   }
 
   async function syncLeagueOnline(token) {
@@ -561,7 +561,7 @@
       if (token !== leagueFetchToken || !$('#leagueScreen')?.classList.contains('active')) return;
       renderLeagueRows(rows, true, houses);
     } catch (e) {
-      if (token === leagueFetchToken) $('#leagueStatus').textContent = 'Local preview · online league not configured';
+      if (token === leagueFetchToken) { $('#leagueStatus').textContent = 'Live standings unavailable · check connection or Supabase migration'; renderLeagueRows([], false); }
     }
   }
 
@@ -832,7 +832,7 @@
         <span class="n">Desk ${visibleUnits.length + 1} · ${esc(pm.division || 'Foundations')}</span>
         <h2>${esc(prossimo.title)}</h2>
         <p>${restanti
-          ? `${restanti} level${restanti === 1 ? '' : 's'} left on this desk and it opens.`
+          ? (() => { const current=visibleUnits[visibleUnits.length-1]; const first=current?.lessons.find(l=>!isDone(l.id)); return first ? `Complete ${current.title} — ${first.title} to continue (${restanti} level${restanti===1?'':'s'} left).` : `Finish this desk and it opens.`; })()
           : 'Finish this desk and it opens.'}</p>
       </section>`);
     } else if (visibleUnits.length) {
@@ -1714,6 +1714,24 @@
 
     $('#doneTitle').textContent = title;
     $('#doneGoal').textContent = goal;
+    const learningSummary = $('#doneLearningSummary');
+    if (learningSummary) {
+      const firstTryMistakes = Math.max(0, (Number(run.total)||0) - (Number(run.firstTry)||0));
+      if (mode === 'lesson' && finishedLesson) {
+        const sid = skillIdForLesson(finishedLesson.id);
+        const skillName = GAME.skills?.[sid]?.short || finishedUnit?.title || 'this skill';
+        const lessonDebt = finishedLesson.exercises.reduce((n,_,i) => n + ((Number(state.misses[exKey(finishedLesson.id,i)])||0) > 0 ? 1 : 0), 0);
+        learningSummary.hidden = false;
+        learningSummary.innerHTML = `<div><small>${acc >= 80 ? 'STRONG' : 'BUILDING'}</small><b>${esc(skillName)}</b><span>${acc}% first try</span></div>`
+          + `<div><small>NEEDS PRACTICE</small><b>${firstTryMistakes ? `${firstTryMistakes} first-try mistake${firstTryMistakes===1?'':'s'}` : 'Nothing urgent'}</b><span>${lessonDebt ? `${lessonDebt} item${lessonDebt===1?'':'s'} weighted in Practice` : 'No weak item added'}</span></div>`;
+      } else if (mode === 'review') {
+        learningSummary.hidden = false;
+        learningSummary.innerHTML = `<div><small>MEMORY REFRESH</small><b>${acc}% first try</b><span>${firstTryMistakes ? `${firstTryMistakes} item${firstTryMistakes===1?'':'s'} will return again` : 'Clean review — keep the spacing going'}</span></div>`;
+      } else {
+        learningSummary.hidden = true;
+        learningSummary.innerHTML = '';
+      }
+    }
     const doneKicker = $('#doneKicker');
     if (doneKicker) doneKicker.textContent = mode === 'lesson' ? 'LEVEL CLEARED'
       : mode === 'review' ? 'PRACTICE COMPLETE'
@@ -1963,6 +1981,12 @@
     const host = $('#practiceHub'); if (!host) return;
     const due = dueCount();
     const available = state.done.length > 0;
+    const missed = Object.values(state.misses || {}).reduce((n,v)=>n+(Number(v)>0?1:0),0);
+    const oldestDone = Math.min(...Object.values(state.doneAt || {}).filter(Number.isFinite), Date.now());
+    const daysSince = oldestDone < Date.now() ? Math.floor((Date.now()-oldestDone)/86400000) : 0;
+    const practiceReason = missed
+      ? `<span class="practice-reason weak"><b>Weak skill</b> ${missed} missed concept${missed===1?'':'s'} are weighted first.</span>`
+      : (available && daysSince>0 ? `<span class="practice-reason memory"><b>Memory refresh</b> Earlier material is being brought back after ${daysSince} day${daysSince===1?'':'s'}.</span>` : '');
     /* Un pulsante disattivato su una scheda vuota lascia il giocatore fermo
        dov'è. Se non c'è ancora niente da ripassare, la scheda lo riporta
        dove il ripasso si guadagna: il primo livello. */
@@ -1971,7 +1995,7 @@
       <h2>${available ? (due ? `${due} item${due === 1 ? '' : 's'} need attention` : 'Keep your earlier skills warm') : 'Practice opens with your first cleared level'}</h2>
       <p>${available
         ? 'Mistakes and older material weigh more, so weak concepts come back before strong ones. Practice never costs a lifebuoy.'
-        : 'Practice is built from questions you have already answered on the Career Path — clear a level and it fills up.'}</p>
+        : 'Practice is built from questions you have already answered on the Career Path — clear a level and it fills up.'}</p>${practiceReason}
       <button id="practiceStart" class="btn primary wide">${available ? (due ? 'Train weak skills' : 'Start practice') : 'Go to your first level'}</button>
     </section>`;
 
@@ -2005,7 +2029,7 @@
 
   function avatarMarkup(name, avatar) {
     const safeName = esc(name || 'Trader');
-    if (avatar && /^data:image\/(?:jpeg|png|webp);base64,/i.test(avatar)) {
+    if (avatar && (/^data:image\/(?:jpeg|png|webp);base64,/i.test(avatar) || /^https:\/\//i.test(avatar))) {
       return `<img src="${avatar}" alt="${safeName} profile photo">`;
     }
     return `<span aria-hidden="true">${esc(profileInitial(name))}</span>`;
@@ -2015,27 +2039,16 @@
     return new Promise((resolve, reject) => {
       if (!file || !String(file.type || '').startsWith('image/')) return reject(new Error('Choose an image file.'));
       if (file.size > 12 * 1024 * 1024) return reject(new Error('Choose an image smaller than 12 MB.'));
-      const reader = new FileReader();
-      reader.onerror = () => reject(new Error('Could not read that image.'));
-      reader.onload = () => {
-        const img = new Image();
-        img.onerror = () => reject(new Error('That image could not be opened.'));
-        img.onload = () => {
-          try {
-            const side = Math.min(img.naturalWidth || img.width, img.naturalHeight || img.height);
-            const sx = Math.max(0, ((img.naturalWidth || img.width) - side) / 2);
-            const sy = Math.max(0, ((img.naturalHeight || img.height) - side) / 2);
-            const canvas = document.createElement('canvas');
-            canvas.width = 256; canvas.height = 256;
-            const ctx = canvas.getContext('2d');
-            ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
-            ctx.drawImage(img, sx, sy, side, side, 0, 0, 256, 256);
-            resolve(canvas.toDataURL('image/jpeg', .82));
-          } catch (e) { reject(new Error('Could not prepare that image.')); }
-        };
-        img.src = String(reader.result || '');
+      const url = URL.createObjectURL(file), img = new Image();
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('That image could not be opened.')); };
+      img.onload = () => {
+        try {
+          const side=Math.min(img.naturalWidth||img.width,img.naturalHeight||img.height),sx=Math.max(0,((img.naturalWidth||img.width)-side)/2),sy=Math.max(0,((img.naturalHeight||img.height)-side)/2);
+          const canvas=document.createElement('canvas');canvas.width=128;canvas.height=128;const ctx=canvas.getContext('2d');ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(img,sx,sy,side,side,0,0,128,128);
+          canvas.toBlob(blob=>{URL.revokeObjectURL(url);blob?resolve(blob):reject(new Error('Could not prepare that image.'));},'image/webp',.82);
+        } catch(e){URL.revokeObjectURL(url);reject(new Error('Could not prepare that image.'));}
       };
-      reader.readAsDataURL(file);
+      img.src=url;
     });
   }
 
@@ -2058,25 +2071,35 @@
       state.profile ||= { name:'', avatar:'', updatedAt:0 };
       state.profile.name = name;
       state.profile.updatedAt = Date.now();
-      // The display name is the trader identity everywhere in the app,
-      // including League/social surfaces that read the competitive alias.
-      state.competitive ||= {};
-      state.competitive.alias = name;
       save();
       renderProfile();
     });
     nameInput?.addEventListener('keydown', e => {
       if (e.key === 'Enter') { e.preventDefault(); saveName?.click(); }
     });
+    const aliasInput = $('#profileAliasInput'), saveAlias = $('#profileAliasSave');
+    saveAlias?.addEventListener('click', () => {
+      const alias=String(aliasInput?.value||'').trim().replace(/\s+/g,' ').slice(0,24);
+      if(!alias){setStatus('Enter a public alias first.','bad');aliasInput?.focus();return;}
+      state.competitive ||= {}; state.competitive.alias=alias; save();
+      window.WOT_SOCIAL?.refresh?.(); renderProfile();
+    });
+    aliasInput?.addEventListener('keydown', e => { if(e.key==='Enter'){e.preventDefault();saveAlias?.click();} });
     changePhoto?.addEventListener('click', () => photoInput?.click());
     photoInput?.addEventListener('change', async () => {
       const file = photoInput.files?.[0];
       if (!file) return;
       setStatus('Preparing photo…');
       try {
-        const avatar = await compressProfilePhoto(file);
+        const blob = await compressProfilePhoto(file);
         state.profile ||= { name:'', avatar:'', updatedAt:0 };
-        state.profile.avatar = avatar;
+        if (window.WOT_CLOUD_API?.uploadAvatar && window.WOT_CLOUD_API?.session) {
+          state.profile.avatar = await window.WOT_CLOUD_API.uploadAvatar(blob);
+        } else {
+          // Offline/sandbox fallback remains compact (128x128 WebP), rather
+          // than storing a full-resolution photo in the progress JSON.
+          state.profile.avatar = await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(String(r.result||''));r.onerror=()=>reject(new Error('Could not save the photo.'));r.readAsDataURL(blob);});
+        }
         state.profile.updatedAt = Date.now();
         save();
         renderProfile();
@@ -2086,6 +2109,7 @@
       state.profile ||= { name:'', avatar:'', updatedAt:0 };
       if (!state.profile.avatar) return;
       state.profile.avatar = '';
+      window.WOT_CLOUD_API?.deleteAvatar?.();
       state.profile.updatedAt = Date.now();
       save();
       renderProfile();
@@ -2130,13 +2154,14 @@
     const accuracy = state.flash.total ? Math.round(state.flash.correct / state.flash.total * 100) : 0;
     host.innerHTML = `<section class="profile-editor">
       <div class="profile-avatar" id="profileAvatar">${avatarMarkup(displayName, state.profile.avatar)}</div>
-      <div class="profile-editor-copy"><span class="eyebrow">YOUR TRADER PROFILE</span><h2>${esc(displayName)}</h2><p>Edit your public name and profile picture.</p></div>
+      <div class="profile-editor-copy"><span class="eyebrow">YOUR PROFILE</span><h2>${esc(displayName)}</h2><p>Your display name and photo are personal. Your public alias below is what other traders see in League and Friends.</p></div>
       <div class="profile-photo-actions">
         <input id="profilePhotoInput" class="sr-only" type="file" accept="image/*" aria-label="Choose profile photo">
         <button id="profilePhotoChange" class="profile-edit-btn" type="button">${state.profile.avatar ? 'Change profile photo' : 'Add profile photo'}</button>
         <button id="profilePhotoRemove" class="profile-edit-btn ghost" type="button" ${state.profile.avatar ? '' : 'disabled'}>Remove</button>
       </div>
-      <div class="profile-name-edit"><label for="profileNameInput">Name</label><div><input id="profileNameInput" maxlength="24" autocomplete="name" value="${esc(displayName)}"><button id="profileNameSave" type="button">Save</button></div></div>
+      <div class="profile-name-edit"><label for="profileNameInput">Display name <small>Personal</small></label><div><input id="profileNameInput" maxlength="24" autocomplete="name" value="${esc(displayName)}"><button id="profileNameSave" type="button">Save</button></div></div>
+      <div class="profile-name-edit"><label for="profileAliasInput">Public alias <small>Visible in League &amp; Friends</small></label><div><input id="profileAliasInput" maxlength="24" autocomplete="nickname" value="${esc(state.competitive?.alias || 'Trader')}"><button id="profileAliasSave" type="button">Save</button></div></div>
       <small id="profileEditStatus" class="profile-edit-status" hidden></small>
     </section>
     <section class="profile-rank"><span class="eyebrow">Current role</span><h2>${esc(current.name)}</h2>

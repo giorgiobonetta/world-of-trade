@@ -2862,3 +2862,16 @@ body[data-active-screen="practiceScreen"]{
 .device-toggle input:checked+i::after{transform:translateX(21px);
   background:linear-gradient(180deg,#fff8e6,var(--gold-hi))}
 .device-toggle input:focus-visible+i{outline:3px solid var(--gold);outline-offset:3px}
+
+/* v0.8 stabilisation: explicit practice rationale and profile privacy labels */
+.practice-reason{display:block;margin:12px 0;padding:9px 11px;border-radius:12px;background:rgba(255,255,255,.06);color:#b9cbe6;font-size:11px}.practice-reason b{display:block;color:#fff0b8;margin-bottom:2px}.practice-reason.weak{border:1px solid rgba(255,174,91,.18)}.practice-reason.memory{border:1px solid rgba(127,176,255,.18)}.profile-name-edit label{display:flex;justify-content:space-between;gap:10px}.profile-name-edit label small{color:#7893b8;font-size:9px;font-weight:700}
+
+.block-trader060{margin-left:8px;padding:8px 11px;border-radius:10px;background:rgba(160,36,58,.18);border:1px solid rgba(255,123,143,.24);color:#ffc2cc;font-weight:800;cursor:pointer}
+
+/* v0.8.2 — completion learning summary */
+.done-learning-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 0 2px}
+.done-learning-summary[hidden]{display:none!important}
+.done-learning-summary>div{padding:12px 14px;border:1px solid var(--line,#dfe5ec);border-radius:14px;background:var(--card,#fff);display:grid;gap:3px}
+.done-learning-summary small{font-size:10px;font-weight:800;letter-spacing:.11em;opacity:.62}
+.done-learning-summary b{font-size:14px}.done-learning-summary span{font-size:12px;opacity:.72}
+@media(max-width:420px){.done-learning-summary{grid-template-columns:1fr}}

@@ -1,8 +1,8 @@
 {
   "name": "world-of-trade-mobile",
   "private": true,
-  "version": "0.7.5-access-founder",
-  "description": "World of Trade — landing-first public site with unified account access, voluntary support and founder section",
+  "version": "0.8.2",
+  "description": "World of Trade \u2014 account-first physical commodity trading learning game",
   "scripts": {
     "cap:sync": "npx cap sync",
     "android:add": "npx cap add android",
@@ -11,7 +11,8 @@
     "ios:add": "npx cap add ios",
     "ios:open": "npx cap open ios",
     "ios:run": "npx cap run ios",
-    "assets": "npx capacitor-assets generate"
+    "assets": "npx capacitor-assets generate",
+    "test": "node tests/release-v082.mjs"
   },
   "dependencies": {
     "@capacitor/core": "*",

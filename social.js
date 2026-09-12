@@ -89,7 +89,7 @@
     if (!A.enabled || !me || !L) return null;
     let existing = null;
     try { existing = await A.socialProfileByUser?.(me); } catch(e) { return null; }
-    const alias = cleanAlias(L.state?.profile?.name || L.state?.competitive?.alias || existing?.alias || 'Trader');
+    const alias = cleanAlias(L.state?.competitive?.alias || existing?.alias || 'Trader');
     const house = L.state?.competitive?.house || existing?.house || null;
     const code = existing?.referral_code || randomCode();
     const trader_tag = existing?.trader_tag || defaultTraderTag(alias, me);

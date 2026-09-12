@@ -7,9 +7,9 @@
 <meta name="description" content="Learn physical commodity trading through a 219-level career path, daily deals, simulations and competitive leagues. Create a free account or log in, then build your trading career across devices." />
 <meta property="og:title" content="World of Trade — learn physical commodity trading" />
 <meta property="og:description" content="Five minutes at a time, from what a cargo is to why a perfect hedge can still bankrupt a desk." />
-<meta property="og:image" content="https://www.worldoftrade.app/world-of-trade-premium-icon-512.png" />
-<meta property="og:image:width" content="512" />
-<meta property="og:image:height" content="512" />
+<meta property="og:image" content="https://www.worldoftrade.app/social-preview-1200x630.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
 <meta property="og:url" content="https://www.worldoftrade.app/" />
 <!-- L'immagine di anteprima è il crest, che è quadrato. Una scheda
      "large_image" la ritaglia a due a uno e le taglia la testa e la base:
@@ -27,9 +27,13 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" />
 <link rel="stylesheet" href="site.css" />
 <link rel="canonical" href="https://www.worldoftrade.app/" />
+<script defer src="supabase-config.js"></script>
 <script defer src="supporters.js"></script>
 <script defer src="donations.js"></script>
 <script defer src="site.js"></script>
+<script defer src="curriculum.js"></script>
+<script defer src="content-engine.js"></script>
+<script defer src="landing-curriculum.js"></script>
 <style>
 :root{
   --navy:#0a1b3d;--navy-deep:#050d20;--royal:#1d4fa8;--royal-mid:#2660c9;--royal-deep:#12356f;--royal-lite:#3f7ae0;
@@ -143,6 +147,22 @@ h2{font-size:clamp(24px,3.6vw,34px);margin-bottom:14px}
 .gloss-terms span{padding:7px 13px;border-radius:999px;background:rgba(3,12,34,.55);
   border:1px solid rgba(173,205,255,.16);color:#d6e5ff;font-size:13.5px}
 </style>
+
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":["SoftwareApplication","EducationalApplication"],
+  "name":"World of Trade",
+  "url":"https://www.worldoftrade.app/",
+  "applicationCategory":"EducationalApplication",
+  "operatingSystem":"Web",
+  "isAccessibleForFree":true,
+  "description":"Learn physical commodity trading through a career path of short interactive levels, practice, trading cases and weekly competition.",
+  "educationalUse":"Training",
+  "learningResourceType":"Interactive learning game"
+}
+</script>
+  <script defer src="version.js"></script>
 </head>
 <body>
 
@@ -483,7 +503,7 @@ footer{padding:46px 0 64px;text-align:center;color:var(--muted-2);font-size:15px
       <div class="card"><h3>The floor never ends</h3><p>Flash Trading, Boss Deals and regenerated 10-question Trading Floor Runs keep producing new decisions after the Career Path is finished.</p></div>
       <div class="card"><h3>Compete every week</h3><p>Climb Bronze through Elite League, contribute XP to a Trading House and collect career achievements. Online standings use a public trader alias — never your email.</p></div>
       <div class="card"><h3>Streaks worth showing</h3><p>Correct answers taken first try build a streak across lessons. Hit a run you are proud of and the app builds a card you can post on LinkedIn.</p></div>
-      <div class="card"><h3>Yours to keep</h3><p>You play immediately and the career is saved on the device. Add an account whenever you want it to follow you to another one — the League publishes only your chosen trader alias, house, division and weekly score, never your email.</p></div>
+      <div class="card"><h3>Your career, everywhere</h3><p>Create a free account once and your progress, XP, streaks and Career Path stay synced across your devices. The League publishes only your chosen public trader alias, house, division and weekly score — never your email.</p></div>
     </div>
   </div>
 </section>
@@ -493,35 +513,9 @@ footer{padding:46px 0 64px;text-align:center;color:var(--muted-2);font-size:15px
     <span class="eyebrow">Trading Path</span>
     <h2>From intern fundamentals to specialist commodity desks.</h2>
     <p class="sub">111 foundation levels cover the core mechanics of physical commodity trading. Then 108 specialist levels expand into the functions and commodity desks of a trading house.</p>
-    <div class="units">
-      <div class="unit"><div class="n">1</div><div><strong>International Economics and Trade</strong><small>Why the flow exists, and what politics does to it · 6 lessons</small></div></div>
-      <div class="unit"><div class="n">2</div><div><strong>Quantitative Methods</strong><small>Measuring the exposure before defending it · 6 lessons</small></div></div>
-      <div class="unit"><div class="n">3</div><div><strong>Financial Statements Analysis</strong><small>Reading the accounts, and where the margin is booked · 9 lessons</small></div></div>
-      <div class="unit"><div class="n">4</div><div><strong>Legal Aspects &amp; Regulations</strong><small>The terms that decide who pays when a trade fails · 10 lessons</small></div></div>
-      <div class="unit"><div class="n">5</div><div><strong>Shipping</strong><small>Chartering, laytime, documents and the protection of the goods · 15 lessons</small></div></div>
-      <div class="unit"><div class="n">6</div><div><strong>Sustainability, Business Ethics &amp; Human Rights</strong><small>The licence to operate, priced into the cargo · 11 lessons</small></div></div>
-      <div class="unit"><div class="n">7</div><div><strong>Information Technologies and Innovations</strong><small>The systems the trade actually runs on · 5 lessons</small></div></div>
-      <div class="unit"><div class="n">8</div><div><strong>Commodity Price Mechanisms</strong><small>How a cargo actually gets a price · 6 lessons</small></div></div>
-      <div class="unit"><div class="n">9</div><div><strong>Hedging Tools &amp; Techniques</strong><small>Protecting the margin without sinking the desk · 6 lessons</small></div></div>
-      <div class="unit"><div class="n">10</div><div><strong>Options</strong><small>Paying for the right to change your mind · 5 lessons</small></div></div>
-      <div class="unit"><div class="n">11</div><div><strong>Energy I (Oil &amp; Gas)</strong><small>The barrel, the crack and the molecule · 5 lessons</small></div></div>
-      <div class="unit"><div class="n">12</div><div><strong>Energy II (Renewable)</strong><small>Trading electrons and the certificates behind them · 4 lessons</small></div></div>
-      <div class="unit"><div class="n">13</div><div><strong>Metals, Ores &amp; Minerals</strong><small>From concentrate to warrant · 5 lessons</small></div></div>
-      <div class="unit"><div class="n">14</div><div><strong>Soft Commodities</strong><small>Crops, crush and the weather that prices them · 5 lessons</small></div></div>
-      <div class="unit"><div class="n">15</div><div><strong>Trade Finance Banking Instruments</strong><small>Funding the gap, and getting paid · 6 lessons</small></div></div>
-      <div class="unit"><div class="n">16</div><div><strong>Types of Financing for Commodity Companies</strong><small>Lending against the flow, not the balance sheet · 7 lessons</small></div></div>
-      <div class="unit"><div class="n">17</div><div><strong>Market Analysis & Fundamentals</strong><small>Balances, inventories, term structure, arbitrage, processing economics · 6 levels</small></div></div>
-      <div class="unit"><div class="n">18</div><div><strong>Commercial Trading</strong><small>All-in margin, optionality, QP timing, location arbitrage, portfolio judgement · 6 levels</small></div></div>
-      <div class="unit"><div class="n">19</div><div><strong>Freight & Chartering Advanced</strong><small>Voyage economics, laycan, demurrage, time charter, route optimisation · 6 levels</small></div></div>
-      <div class="unit"><div class="n">20</div><div><strong>Trade Finance & Credit</strong><small>Working capital, LCs, counterparty limits, borrowing base, credit-adjusted return · 6 levels</small></div></div>
-      <div class="unit"><div class="n">21</div><div><strong>Risk Management</strong><small>Exposure, VaR, stress, basis, liquidity, limits and escalation · 6 levels</small></div></div>
-      <div class="unit"><div class="n">22</div><div><strong>Derivatives & Options</strong><small>Futures, swaps, options, Greeks intuition and hedge design · 6 levels</small></div></div>
-      <div class="unit"><div class="n">23</div><div><strong>Metals Desk</strong><small>LME pricing, physical premiums, warehouses, TC/RC and QP risk · 6 levels</small></div></div>
-      <div class="unit"><div class="n">24</div><div><strong>Oil & Products Desk</strong><small>Crude differentials, cracks, prompt structure, pricing windows and blending · 6 levels</small></div></div>
-      <div class="unit"><div class="n">25</div><div><strong>Gas & LNG Desk</strong><small>Hub pricing, LNG netbacks, shipping, destination optionality and storage · 6 levels</small></div></div>
-      <div class="unit"><div class="n">26</div><div><strong>Power Desk</strong><small>Baseload, shape, spark spreads, congestion and balancing exposure · 6 levels</small></div></div>
-      <div class="unit"><div class="n">27</div><div><strong>Agriculture Desk</strong><small>Crop balances, basis, carry, quality, seasonal logistics and freight · 6 levels</small></div></div>
-</div>
+    <div class="units" id="curriculumUnits" aria-live="polite">
+      <noscript><p class="sub">Enable JavaScript to view all 34 curriculum units.</p></noscript>
+    </div>
     </div>
   </div>
 </section>
@@ -675,7 +669,7 @@ footer{padding:46px 0 64px;text-align:center;color:var(--muted-2);font-size:15px
         <div class="board-row you"><span class="p">3</span><span class="t">You</span><span class="h">N</span><span class="x">108</span></div>
         <div class="board-row"><span class="p">4</span><span class="t">Orion Desk<em>preview</em></span><span class="h">M</span><span class="x">101</span></div>
         <div class="board-row"><span class="p">5</span><span class="t">Delta Cargo<em>preview</em></span><span class="h">R</span><span class="x">94</span></div>
-        <p class="board-note">Until you add an account the board is a local preview, marked exactly like this inside the game. Sign in and the rows become the people actually playing this week.</p>
+        <p class="board-note">This is a preview of the League. Sign in to see the live weekly standings.</p>
       </div>
     </div>
     <div class="houses">
@@ -755,7 +749,7 @@ footer{padding:46px 0 64px;text-align:center;color:var(--muted-2);font-size:15px
   <div class="wrap">
     <span class="eyebrow">Founder</span>
     <div class="founder-card">
-      <img class="founder-photo" src="founder-giorgio-bonetta.png" alt="Giorgio Bonetta, founder of World of Trade" width="705" height="621" loading="lazy" />
+      <img class="founder-photo" src="founder-giorgio-bonetta-220.webp" alt="Giorgio Bonetta, founder of World of Trade" width="220" height="194" loading="lazy" />
       <div>
         <h2>Built by Giorgio Bonetta.</h2>
         <p>World of Trade started from a simple idea: physical commodity trading is learned faster when you have to make decisions, not just read definitions. Giorgio graduated in Economics at Bocconi University and is currently pursuing an MSc in Statistics at the University of Geneva, with experience across commodity research, European power markets and quantitative finance.</p>
@@ -802,7 +796,6 @@ footer{padding:46px 0 64px;text-align:center;color:var(--muted-2);font-size:15px
         <ul>
           <li><a href="#support">Support the project</a></li>
           <li><a href="privacy.html">Privacy and terms</a></li>
-          <li><a href="selftest.html">Self-check</a></li>
         </ul>
       </div>
     </div>

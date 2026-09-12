@@ -1,9 +1,8 @@
 # Mettere online World of Trade
 
-Il sito è statico: nessuna compilazione, nessun server applicativo, nessun
-database obbligatorio. Il gioco funziona per intero in modalità ospite, con la
-carriera salvata nel browser. Un backend serve solo il giorno in cui vuoi
-account veri e classifiche condivise.
+Il frontend è statico e non richiede una fase di build, ma dalla v0.8.2
+**Supabase è parte necessaria del prodotto**: l'accesso è obbligatorio e progressi,
+League, Friends, Challenges, avatar e Contributors usano il backend configurato.
 
 **Costo dell'hosting: zero.** L'unica spesa possibile è un dominio tuo,
 10–12 € l'anno. Il sottodominio gratuito `.vercel.app` include HTTPS, che
@@ -13,8 +12,8 @@ serve al service worker per farsi installare come app.
 
 ## 1 · Deploy su Vercel
 
-`vercel.json` è già scritto per questa piattaforma: riscritture (`/` → landing,
-`/play` → gioco), URL puliti (`/glossary` invece di `/glossary.html`),
+`vercel.json` è già scritto per questa piattaforma: redirect legacy (`/landing` → `/`,
+`/login` e `/register` → accesso unificato), URL puliti (`/glossary` invece di `/glossary.html`),
 intestazioni di cache e di sicurezza. Su un altro host quel file viene
 ignorato e va tradotto: Vercel è insieme la scelta gratuita e quella a
 lavoro zero.
@@ -38,9 +37,8 @@ di jsdom contro i 3 MB di tutto il resto.
 
 ## 2 · Allineare il dominio
 
-Vercel restituisce l'indirizzo vero. Sette indirizzi assoluti nel progetto
-— `og:url` e `og:image` in `landing.html`, i quattro `<loc>` di `sitemap.xml`
-e la riga `Sitemap:` di `robots.txt` — vanno portati su quell'indirizzo,
+Vercel restituisce l'indirizzo vero. Gli indirizzi assoluti di homepage/social preview, sitemap e robots devono puntare
+al dominio pubblico definitivo. Lo script di dominio aggiorna i riferimenti previsti,
 altrimenti l'anteprima sui social e la sitemap puntano a pagine che non
 esistono.
 
@@ -54,14 +52,20 @@ migrazione, quando passerai al dominio definitivo.
 
 ## 3 · Prima di considerarlo finito
 
+Esegui il gate di release:
+
 ```bash
-cd tests && npm install && node run.mjs
+npm test
+node tests/aritmetica.mjs
+node tests/coerenza.mjs
+node tests/content-engine.mjs
+node tests/competitive.mjs
+node tests/unicita.mjs
 ```
 
-828 asserzioni su 45 suite. Con il sito online, apri anche `/selftest`: apre
-il gioco in un iframe e ci gioca davvero, misurando contrasto, dimensioni
-toccabili e sovrapposizioni nel browser vero. Sono 43 controlli, tutti verdi.
-`robots.txt` la tiene fuori dagli indici.
+La GitHub Action `.github/workflows/quality.yml` esegue gli stessi controlli e, solo dopo,
+avvia Playwright/Chromium alle larghezze 320, 360, 390 e 430 px con smoke test e axe-core.
+Il self-check resta disponibile a `/selftest.html`, ma è intenzionalmente nascosto dal footer pubblico.
 
 ---
 
@@ -73,17 +77,11 @@ mese: a quel punto conviene **Cloudflare Pages**, gratuito anche per uso
 commerciale e con banda illimitata. Costa una conversione — `vercel.json`
 diventa due file, `_headers` e `_redirects`.
 
-## Quando vorrai gli account
+## Supabase obbligatorio
 
-Le istruzioni SQL sono in `SUPABASE-SETUP.md`. Copia
-`supabase-config.example.js` in `supabase-config.js` e inserisci URL e chiave
-**publishable** (mai la `service_role`: l'app se ne accorge, spegne la
-sincronizzazione e lo scrive a schermo).
+Le istruzioni complete sono in `SUPABASE-SETUP.md`. Prima del deploy conserva il tuo
+`supabase-config.js` reale: il file non è incluso nel pacchetto per evitare di sovrascrivere
+le chiavi pubbliche già configurate. Dopo il setup base, esegui una volta
+`SUPABASE-V080-HARDENING.sql` nel SQL Editor di Supabase.
 
-Un avvertimento onesto: sul piano gratuito di Supabase il progetto **va in
-pausa dopo circa una settimana senza traffico** e va risvegliato a mano dalla
-dashboard. Per un lancio è accettabile; con utenti veri servono 25 $ al mese.
-
-Senza configurazione non succede niente di male: il gioco resta in modalità
-ospite e nessuna funzione sparisce, tranne la sincronizzazione fra dispositivi
-e le funzioni sociali.
+Non inserire mai `service_role` o secret key nel frontend.

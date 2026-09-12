@@ -1,109 +1,26 @@
-/* World of Trade — Learn · service worker
-   Regola: l'HTML si prende dalla rete quando c'è (così un aggiornamento
-   arriva subito), tutto il resto dalla cache (così l'app parte offline).
-   La versione nel nome della cache è ciò che manda via una shell vecchia. */
-const VERSION = 'v63-public-auth';
-const CACHE = `wot-learn-${VERSION}`;
-
-const SHELL = [
-  './',
-  'index.html',
-  'intro.js',
-  'learn.html',
-  'login.html',
-  'register.html',
-  'auth.css',
-  'auth-page.js',
-  'glossary.html',
-  'privacy.html',
-  '404.html',
-  'glossary.js',
-  'glossary-page.js',
-  'styles.css',
-  'site.css',
-  'site.js',
-  'mobile-native.css',
-  'native-runtime.js',
-  'app.js',
-  'pwa.js',
-  'cloud.js',
-  'share.js',
-  'experience.js', 'ui-polish.js', 'game-feel.js',
-  'social.js', 'account-social.js',
-  'sound.js',
-  // supabase-config.js non è nel precache: è l'unico file che vive solo
-  // sul repository e non deve essere servito da una copia in cache
-  'curriculum.js',
-  'content-engine.js',
-  'career.js',
-  'competitive.js',
-  'mascot.js',
-  'scenes.js',
-  'manifest.webmanifest',
-  'logo-crest-500.webp',
-  'logo-crest-500.png',
-  'logo-crest-220.webp',
-  'logo-crest-220.png',
-  'world-of-trade-premium-icon-192.png',
-  'world-of-trade-premium-icon-512.png',
-  'icon-maskable-512.png',
+importScripts('./version.js');
+/* World of Trade — service worker v0.8.2
+   HTML/JS/CSS are network-first so a production deploy cannot be hidden by an
+   old app shell. Images/fonts remain cache-first. supabase-config.js is never cached. */
+const VERSION='wot-' + (globalThis.WOT_VERSION || '0.8.2');
+const STATIC=VERSION+'-static';
+const SHELL=[
+  './','index.html','access.html','privacy.html','glossary.html','404.html',
+  'site.css','auth.css','styles.css','mobile-native.css','site.js','access-page.js',
+  'version.js',
+  'glossary-page.js','glossary.js','curriculum.js','landing-curriculum.js',
+  'learn.html','app.js','cloud.js','career.js','competitive.js','social.js','account-social.js',
+  'content-engine.js','dialog-a11y.js','experience.js','game-feel.js','ui-polish.js','intro.js','mascot.js','scenes.js','sound.js','share.js','pwa.js','native-runtime.js',
+  'manifest.webmanifest','logo-crest-220.webp','world-of-trade-premium-icon-192.png','world-of-trade-premium-icon-512.png'
 ];
-
-self.addEventListener('install', e => {
-  e.waitUntil((async () => {
-    const c = await caches.open(CACHE);
-    // un file mancante non deve annullare l'intero precache: uno alla volta
-    await Promise.all(SHELL.map(u => c.add(u).catch(() => {})));
-    await self.skipWaiting();
-  })());
-});
-
-self.addEventListener('activate', e => {
-  e.waitUntil((async () => {
-    const keys = await caches.keys();
-    await Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)));
-    await self.clients.claim();
-  })());
-});
-
-const isHTML = req =>
-  req.mode === 'navigate' ||
-  (req.headers.get('accept') || '').includes('text/html');
-
-self.addEventListener('fetch', e => {
-  const req = e.request;
-  if (req.method !== 'GET') return;
-  const url = new URL(req.url);
-  if (url.origin !== self.location.origin) return;   // font e CDN: lascio fare al browser
-
-  if (isHTML(req)) {
-    // rete per prima: una nuova versione non resta mai nascosta dietro la cache
-    e.respondWith((async () => {
-      try {
-        const fresh = await fetch(req);
-        const c = await caches.open(CACHE);
-        c.put(req, fresh.clone());
-        return fresh;
-      } catch (err) {
-        const cached = await caches.match(req) || await caches.match('index.html') || await caches.match('learn.html');
-        return cached || new Response('Offline', { status: 503, statusText: 'Offline' });
-      }
-    })());
-    return;
-  }
-
-  // asset: cache per prima, poi aggiorno in background
-  e.respondWith((async () => {
-    const cached = await caches.match(req);
-    const network = fetch(req).then(res => {
-      if (res && res.ok) caches.open(CACHE).then(c => c.put(req, res.clone()));
-      return res;
-    }).catch(() => null);
-    return cached || (await network) || new Response('', { status: 504 });
-  })());
-});
-
-// permette alla pagina di forzare l'attivazione di una versione nuova
-self.addEventListener('message', e => {
-  if (e.data === 'skip-waiting') self.skipWaiting();
+self.addEventListener('install',event=>event.waitUntil(caches.open(STATIC).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting())));
+self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('wot-')&&k!==STATIC).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
+async function networkFirst(req){try{const fresh=await fetch(req);if(fresh&&fresh.ok){const c=await caches.open(STATIC);c.put(req,fresh.clone());}return fresh;}catch(e){const cached=await caches.match(req);if(cached)return cached;throw e;}}
+async function cacheFirst(req){const hit=await caches.match(req);if(hit)return hit;const fresh=await fetch(req);if(fresh&&fresh.ok){const c=await caches.open(STATIC);c.put(req,fresh.clone());}return fresh;}
+self.addEventListener('fetch',event=>{
+  const req=event.request;if(req.method!=='GET')return;const url=new URL(req.url);if(url.origin!==location.origin)return;
+  if(url.pathname.endsWith('/supabase-config.js')){event.respondWith(fetch(req,{cache:'no-store'}));return;}
+  const ext=url.pathname.split('.').pop().toLowerCase();
+  if(req.mode==='navigate'||['html','js','css','webmanifest','json','xml'].includes(ext)){event.respondWith(networkFirst(req));return;}
+  event.respondWith(cacheFirst(req));
 });

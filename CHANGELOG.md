@@ -1,3 +1,21 @@
+# v0.8.2 — Stabilization & integrity
+
+- Unified account-first access with forgot password, resend confirmation, password reset, robust session refresh and deep-link return.
+- Removed legacy guest and LinkedIn-login flows; display name and public League alias are now separate.
+- Added Supabase hardening migration for League, Challenges, social exposure, friend cooldown/blocking, avatars and Contributors.
+- Trader discovery is UUID-free: public search returns only alias, house, Trader ID and relationship state; friend/block actions resolve Trader IDs server-side.
+- PWA now uses centralized release versioning and network-first app code; access flow is part of the offline shell and Supabase config is never cached.
+- Landing/Glossary/Privacy/SEO made consistent with the 34-unit product; social preview upgraded to 1200×630.
+- Founder image reduced to a 220px WebP, public self-check link removed, legacy duplicate auth/landing files removed.
+- Practice rationale, locked-desk explanation, completion learning summary, modal focus handling and account deletion reauthentication added.
+- New deterministic release gate and GitHub Actions Chromium/mobile quality job.
+
+# v0.7.6 — Founder photo
+
+- Added Giorgio Bonetta's profile photo to the Founder section.
+- Added Bocconi University Economics graduation to the Founder biography.
+- Kept the Start trading → access → game flow unchanged.
+
 
 ## 0.7.4
 - Restored and highlighted the voluntary $4.99 PayPal support section on the public landing.

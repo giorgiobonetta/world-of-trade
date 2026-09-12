@@ -236,7 +236,7 @@
     window.addEventListener('wot:screen',e=>onScreen(e.detail?.id));
     window.addEventListener('wot:saved',()=>{});
     window.addEventListener('wot:auth',e=>{if(e.detail?.signedIn)setTimeout(readyAfterAuth,250);else{closeCoach();closeBriefing();}});
-    // The gate may open long after boot — a guest can sit on it for a minute —
+    // The gate may open long after boot — an account session can sit on it for a minute —
     // so the event is the signal; the poll only covers a session restored at boot.
     window.addEventListener('wot:unlocked',()=>setTimeout(readyAfterAuth,120));
     let tries=0;const t=setInterval(()=>{tries++;if(!document.body.classList.contains('auth-locked')){clearInterval(t);readyAfterAuth();}else if(tries>40)clearInterval(t);},150);

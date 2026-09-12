@@ -89,6 +89,31 @@
       "source": "/landing",
       "destination": "/",
       "permanent": true
+    },
+    {
+      "source": "/landing.html",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/login",
+      "destination": "/access.html?mode=login",
+      "permanent": false
+    },
+    {
+      "source": "/login.html",
+      "destination": "/access.html?mode=login",
+      "permanent": false
+    },
+    {
+      "source": "/register",
+      "destination": "/access.html?mode=register",
+      "permanent": false
+    },
+    {
+      "source": "/register.html",
+      "destination": "/access.html?mode=register",
+      "permanent": false
     }
   ]
 }

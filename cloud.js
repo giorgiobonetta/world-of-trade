@@ -57,23 +57,13 @@
     session = s;
     // chi entra con un account non è più un ospite: la carriera locale viene
     // fusa con quella in cloud dalla sincronizzazione che segue
-    if (s) { try { localStorage.removeItem('wot-guest'); } catch (e) {} guest = false; }
+    if (s) { try { localStorage.removeItem('wot-guest'); } catch (e) {} }
     try { s ? localStorage.setItem(SESS, JSON.stringify(s)) : localStorage.removeItem(SESS); } catch (e) {}
     try { window.dispatchEvent(new CustomEvent('wot:auth', { detail: { signedIn: !!s, session: s || null } })); } catch (e) {}
   };
   session = loadSession();
 
-  /* ── ospite ───────────────────────────────────────────────────────
-     Un muro di registrazione davanti al primo livello è il modo più
-     veloce per perdere un giocatore che non sa ancora se il gioco gli
-     piace. Si entra subito: la carriera vive in locale finché non si
-     crea un account, e allora viene fusa con quella in cloud. */
-  const GUEST = 'wot-guest';
-  let guest = (() => { try { return localStorage.getItem(GUEST) === '1'; } catch (e) { return false; } })();
-  function setGuest(v) {
-    guest = !!v;
-    try { v ? localStorage.setItem(GUEST, '1') : localStorage.removeItem(GUEST); } catch (e) {}
-  }
+  /* Guest mode was removed in v0.8: a verified account is required. */
 
   /* ── chiamate ─────────────────────────────────────────────────────── */
   async function call(path, { method = 'POST', body, auth = false, headers = {} } = {}) {
@@ -100,7 +90,7 @@
     if (t.includes('invalid login credentials')) return 'Wrong email or password.';
     if (t.includes('already registered') || t.includes('already been registered')) return 'That email already has an account. Try signing in.';
     if (t.includes('email not confirmed')) return 'Check your inbox and confirm your email first.';
-    if (t.includes('password should be') || t.includes('at least')) return 'Password too short — use at least 6 characters.';
+    if (t.includes('password should be') || t.includes('at least')) return 'Password too short — use at least 8 characters.';
     if (t.includes('unable to validate email') || t.includes('invalid format')) return 'That does not look like an email address.';
     if (t.includes('rate limit') || status === 429) return 'Too many attempts. Wait a minute and try again.';
     if (t.includes('jwt') || t.includes('token')) return 'Your session expired. Sign in again — nothing was lost.';
@@ -117,15 +107,6 @@
       putSession(s);
       return await fn();
     }
-  }
-
-  // LinkedIn passa da Supabase: qui basta mandare il browser all'endpoint giusto
-  // e poi raccogliere i token dal frammento dell'indirizzo al ritorno.
-  function vaiA(provider) {
-    const ritorno = location.origin + location.pathname;
-    location.href = CFG.url.replace(/\/$/, '')
-      + '/auth/v1/authorize?provider=' + encodeURIComponent(provider)
-      + '&redirect_to=' + encodeURIComponent(ritorno);
   }
 
   // Supabase torna con #access_token=...&refresh_token=... oppure #error=...
@@ -225,22 +206,18 @@
     const division = String(entry.tier || entry.division || 'bronze').toLowerCase();
     const weeklyXp = Math.max(0,Math.round(Number(entry.score ?? entry.weekly_xp)||0));
     try {
-      await withFreshToken(() => call(`/rest/v1/${LEAGUE_TABLE}`, {
+      await withFreshToken(() => call('/rest/v1/rpc/sync_wot_league_score', {
         method:'POST', auth:true,
-        headers:{ Prefer:'resolution=merge-duplicates,return=minimal' },
-        body:[{ user_id:uid, week:String(entry.week), alias, house:entry.house || null,
-          division, weekly_xp:weeklyXp, updated_at:new Date().toISOString() }],
+        body:{ p_week:String(entry.week), p_alias:alias, p_house:entry.house || null, p_division:division, p_claimed_xp:weeklyXp }
       }));
+      return true;
     } catch (e) {
-      // Compatibility with early beta schema.
-      await withFreshToken(() => call(`/rest/v1/${LEAGUE_TABLE}`, {
-        method:'POST', auth:true,
-        headers:{ Prefer:'resolution=merge-duplicates,return=minimal' },
-        body:[{ user_id:uid, week:String(entry.week), alias, house:entry.house || null,
-          tier:division, score:weeklyXp, updated_at:new Date().toISOString() }],
-      }));
+      // A database without the v0.8 migration may still be used during the
+      // rollout, but a 403/401 is never bypassed with a direct score write.
+      if (![404,400].includes(e.status)) throw e;
+      console.warn('World of Trade: install SUPABASE-V080-HARDENING.sql to enable secure League sync.');
+      return false;
     }
-    return true;
   }
 
 
@@ -249,16 +226,18 @@
 
   async function socialProfileByUser(userId) {
     const uid = cleanUuid(userId); if (!uid) return null;
-    const rows = await call(`/rest/v1/${SOCIAL_PROFILE_TABLE}?select=user_id,alias,house,referral_code,trader_tag,created_at,updated_at&user_id=eq.${uid}&limit=1`, { method:'GET', auth:true });
+    if (uid === idUtente()) {
+      const rows = await withFreshToken(() => call('/rest/v1/rpc/get_my_social_profile', { method:'POST', auth:true, body:{} }));
+      return Array.isArray(rows) && rows[0] ? rows[0] : null;
+    }
+    // UUID-based lookup is intentionally limited to users who already have a
+    // private relationship with the caller (friend/request/challenge).
+    const rows = await withFreshToken(() => call('/rest/v1/rpc/get_wot_social_profiles', {
+      method:'POST', auth:true, body:{ p_user_ids:[uid] }
+    }));
     return Array.isArray(rows) && rows[0] ? rows[0] : null;
   }
 
-  async function socialProfileByCode(code) {
-    const c = String(code||'').trim().replace(/[^A-Za-z0-9_-]/g,'').slice(0,24);
-    if (!c) return null;
-    const rows = await call(`/rest/v1/${SOCIAL_PROFILE_TABLE}?select=user_id,alias,house,referral_code,trader_tag&referral_code=eq.${encodeURIComponent(c)}&limit=1`, { method:'GET', auth:true });
-    return Array.isArray(rows) && rows[0] ? rows[0] : null;
-  }
 
   async function upsertSocialProfile(profile = {}) {
     const uid = idUtente(); if (!uid) return null;
@@ -269,11 +248,10 @@
     if (!code) throw new Error('Referral code is missing.');
     const body = { user_id:uid, alias, house:profile.house || null, referral_code:code, updated_at:new Date().toISOString() };
     if (traderTag) body.trader_tag = traderTag;
-    const rows = await withFreshToken(() => call(`/rest/v1/${SOCIAL_PROFILE_TABLE}`, {
-      method:'POST', auth:true, headers:{ Prefer:'resolution=merge-duplicates,return=representation' },
-      body:[body],
+    await withFreshToken(() => call(`/rest/v1/${SOCIAL_PROFILE_TABLE}`, {
+      method:'POST', auth:true, headers:{ Prefer:'resolution=merge-duplicates,return=minimal' }, body:[body],
     }));
-    return Array.isArray(rows) && rows[0] ? rows[0] : { ...body };
+    return socialProfileByUser(uid);
   }
 
   async function friendRows() {
@@ -286,7 +264,9 @@
   async function socialProfiles(userIds = []) {
     const ids = [...new Set((userIds||[]).map(cleanUuid).filter(Boolean))].slice(0,500);
     if (!ids.length) return [];
-    const rows = await call(`/rest/v1/${SOCIAL_PROFILE_TABLE}?select=user_id,alias,house,referral_code,trader_tag&user_id=in.(${ids.join(',')})`, { method:'GET', auth:true });
+    const rows = await withFreshToken(() => call('/rest/v1/rpc/get_wot_social_profiles', {
+      method:'POST', auth:true, body:{ p_user_ids:ids }
+    }));
     return Array.isArray(rows) ? rows : [];
   }
 
@@ -346,21 +326,29 @@
 
   async function submitFriendChallengeScore(challengeId, result = {}) {
     const uid = idUtente(), cid = cleanUuid(challengeId); if (!uid || !cid) return false;
-    try {
-      await withFreshToken(() => call(`/rest/v1/${CHALLENGE_SCORE_TABLE}`, {
-        method:'POST', auth:true, headers:{ Prefer:'return=minimal' },
-        body:[{ challenge_id:cid, user_id:uid, score:Math.max(0,Math.round(Number(result.score)||0)), correct:Math.max(0,Math.round(Number(result.correct)||0)), total:Math.max(1,Math.round(Number(result.total)||10)), completed_at:new Date().toISOString() }],
-      }));
-      return true;
-    } catch (e) {
-      // Primary-key conflict means this player already locked a result.
-      // We deliberately do not allow replaying until a better score appears.
-      if (e.status === 409) return true;
-      throw e;
-    }
+    const rows = await withFreshToken(() => call('/rest/v1/rpc/submit_wot_challenge_score', {
+      method:'POST', auth:true,
+      body:{ p_challenge_id:cid, p_correct:Math.max(0,Math.round(Number(result.correct)||0)), p_total:Math.max(1,Math.round(Number(result.total)||10)) }
+    }));
+    return Array.isArray(rows) ? !!rows[0] : rows !== false;
   }
 
   /* ── Account & social discovery v0.6 ─────────────────────────────── */
+  async function uploadAvatar(blob) {
+    const uid = idUtente(); if (!uid || !(blob instanceof Blob)) throw new Error('Sign in before uploading a profile photo.');
+    const path = `${uid}/avatar.webp`;
+    const headers = { apikey:CHIAVE, Authorization:`Bearer ${session.access_token}`, 'Content-Type':'image/webp', 'x-upsert':'true' };
+    const res = await fetch(CFG.url.replace(/\/$/,'') + '/storage/v1/object/avatars/' + path, { method:'POST', headers, body:blob });
+    if (!res.ok) { let data=null; try{data=await res.json()}catch(e){} const err=new Error(messaggio(res.status,data));err.status=res.status;throw err; }
+    return CFG.url.replace(/\/$/,'') + '/storage/v1/object/public/avatars/' + path + '?v=' + Date.now();
+  }
+
+  async function deleteAvatar() {
+    const uid=idUtente(); if(!uid) return false;
+    try { await withFreshToken(() => call('/storage/v1/object/avatars', { method:'DELETE', auth:true, body:{ prefixes:[`${uid}/avatar.webp`] } })); return true; }
+    catch(e){ return false; }
+  }
+
   async function updatePassword(password) {
     const value = String(password || '');
     if (value.length < 8) throw new Error('Use at least 8 characters.');
@@ -368,6 +356,19 @@
       method:'PUT', auth:true, body:{ password:value }
     }));
     return user || true;
+  }
+
+  async function reauthenticate(password) {
+    const value = String(password || '');
+    if (value.length < 8) throw new Error('Enter your current password.');
+    const current = await chiUtente();
+    if (!current?.email) throw new Error('Could not verify the current account.');
+    const fresh = await signIn(current.email, value);
+    if (!fresh?.access_token || (fresh.user?.id && fresh.user.id !== current.id)) {
+      throw new Error('Could not verify the current account.');
+    }
+    putSession({ ...fresh, user: fresh.user || current });
+    return true;
   }
 
   async function deleteMyAccount() {
@@ -382,13 +383,14 @@
   }
 
   async function searchSocialProfiles(query) {
-    const me = idUtente();
     const q = String(query || '').trim().replace(/^@/,'').replace(/[^A-Za-z0-9_ .-]/g,'').slice(0,40);
     if (q.length < 2) return [];
-    const safe = encodeURIComponent(`*${q}*`);
-    const path = `/rest/v1/${SOCIAL_PROFILE_TABLE}?select=user_id,alias,house,referral_code,trader_tag&or=(trader_tag.ilike.${safe},alias.ilike.${safe})&limit=20`;
-    const rows = await withFreshToken(() => call(path, { method:'GET', auth:true }));
-    return (Array.isArray(rows) ? rows : []).filter(r => r.user_id !== me);
+    // Discovery returns only public presentation fields + relationship state.
+    // It never exposes auth.users UUIDs to the search client.
+    const rows = await withFreshToken(() => call('/rest/v1/rpc/search_wot_traders', {
+      method:'POST', auth:true, body:{ p_query:q }
+    }));
+    return Array.isArray(rows) ? rows : [];
   }
 
   async function friendRequestRows() {
@@ -407,12 +409,48 @@
     return Array.isArray(rows) && rows[0] ? rows[0] : null;
   }
 
+  async function sendFriendRequestByTag(traderTag) {
+    const tag = String(traderTag || '').trim().replace(/^@/,'').toLowerCase().replace(/[^a-z0-9_]/g,'').slice(0,20);
+    if (tag.length < 3) throw new Error('Invalid Trader ID.');
+    const rows = await withFreshToken(() => call('/rest/v1/rpc/send_wot_friend_request_by_tag', {
+      method:'POST', auth:true, body:{ p_trader_tag:tag }
+    }));
+    const row = Array.isArray(rows) && rows[0] ? rows[0] : null;
+    if (!row || row.request_status === 'not-found') throw new Error('Trader not found.');
+    if (row.request_status === 'blocked') throw new Error('This trader cannot receive your request.');
+    if (row.request_status === 'cooldown') throw new Error('Wait 24 hours before sending another request.');
+    return row;
+  }
+
   async function respondFriendRequest(requestId, accept) {
     const rid = cleanUuid(requestId); if (!rid) throw new Error('Invalid friend request.');
     const rows = await withFreshToken(() => call('/rest/v1/rpc/respond_wot_friend_request', {
       method:'POST', auth:true, body:{ p_request:rid, p_accept:!!accept }
     }));
     return Array.isArray(rows) && rows[0] ? rows[0] : null;
+  }
+
+
+  async function blockedUserRows() {
+    const rows = await withFreshToken(() => call('/rest/v1/blocked_users?select=blocked_id,created_at&order=created_at.desc', { method:'GET', auth:true }));
+    return Array.isArray(rows) ? rows : [];
+  }
+
+  async function blockUser(userId) {
+    const other=cleanUuid(userId); if(!other||other===idUtente()) throw new Error('Invalid trader.');
+    await withFreshToken(() => call('/rest/v1/rpc/block_wot_user', { method:'POST', auth:true, body:{ p_blocked:other } }));
+    return true;
+  }
+
+
+  async function blockTraderByTag(traderTag) {
+    const tag = String(traderTag || '').trim().replace(/^@/,'').toLowerCase().replace(/[^a-z0-9_]/g,'').slice(0,20);
+    if (tag.length < 3) throw new Error('Invalid Trader ID.');
+    const ok = await withFreshToken(() => call('/rest/v1/rpc/block_wot_trader_by_tag', {
+      method:'POST', auth:true, body:{ p_trader_tag:tag }
+    }));
+    if (ok === false) throw new Error('Trader not found.');
+    return true;
   }
 
   /* ── fusione ──────────────────────────────────────────────────────── */
@@ -557,13 +595,13 @@
     const gate = $('#authGate');
     const status = $('#authGateStatus');
     const eraBloccato = document.body.classList.contains('auth-locked');
-    const locked = !session && !guest;
+    const locked = !session && !SANDBOX;
     document.body.classList.toggle('auth-locked', locked);
     if (gate) gate.hidden = !locked;
     // gli altri moduli (coach, social) aspettano che la porta si apra:
     // senza un evento dovrebbero sondare il DOM all'infinito
     if (eraBloccato && !locked) {
-      try { window.dispatchEvent(new CustomEvent('wot:unlocked', { detail: { guest: !session } })); } catch (e) {}
+      try { window.dispatchEvent(new CustomEvent('wot:unlocked', { detail: { signedIn:true } })); } catch (e) {}
     }
     if (status) {
       status.textContent = messaggioGate || (locked ? 'Sign in or create an account to continue.' : 'Access granted.');
@@ -572,45 +610,13 @@
   }
 
   function gateNonConfigurato() {
-    // Il dettaglio tecnico serve a chi installa, non a chi gioca: in console
-    // per esteso, sullo schermo solo la conseguenza pratica.
-    if (!SANDBOX) {
-      try {
-        console.warn(PERICOLO
-          ? 'World of Trade: supabase-config.js contains a SECRET key. Replace it with the publishable/anon key.'
-          : 'World of Trade: cloud sync is off. Copy supabase-config.example.js to supabase-config.js — see SUPABASE-SETUP.md.');
-      } catch (e) {}
-    }
-    // Un pulsante disabilitato è un invito a premerlo che finisce male:
-    // se non c'è un account da usare, l'opzione non va mostrata affatto.
-    aggiornaGate('Your career is saved on this device.');
-    ['#authSignIn', '#authSignUp'].forEach(sel => {
-      const b = $(sel);
-      if (!b) return;
-      b.setAttribute('disabled', '');
-      b.hidden = true;
-    });
-    agganciaOspite();
-  }
-
-  /* Il pulsante d'ingresso deve funzionare anche quando il cloud è spento:
-     è l'unica strada verso il gioco, e in quel caso avvia() non viene mai
-     eseguita. Va quindi agganciato da entrambi i rami. */
-  let ospiteAgganciato = false;
-  function agganciaOspite() {
-    if (ospiteAgganciato) return;
-    const b = $('#authGuest');
-    if (!b) return;
-    ospiteAgganciato = true;
-    b.addEventListener('click', () => {
-      setGuest(true);
-      aggiornaGate('');
-      try { window.dispatchEvent(new CustomEvent('wot:auth', { detail: { signedIn: false, guest: true, session: null } })); } catch (e) {}
-    });
+    try { console.warn(PERICOLO
+      ? 'World of Trade: supabase-config.js contains a SECRET key. Replace it with the publishable/anon key.'
+      : 'World of Trade: Supabase is not configured. Account access is required.'); } catch (e) {}
+    aggiornaGate('Account access is temporarily unavailable. Return to the access page.', 'warn');
   }
 
   window.WOT_CLOUD_API = { merge, messaggio, get session() { return session; },
-    get guest() { return guest && !session; }, setGuest,
     enabled: ON, chiaveSegreta: PERICOLO, segreta };
 
   // I pannelli si devono poter chiudere in ogni caso, anche se il cloud è spento:
@@ -701,7 +707,7 @@
       host.innerHTML = `<div class="cloud-box in">
         <span class="cloud-who">${session.user?.email
           ? `Signed in as <strong>${esc(session.user.email)}</strong>`
-          : 'Signed in <strong>with LinkedIn</strong>'}</span>
+          : 'Signed in'}</span>
         <span class="cloud-acts">
           <button id="cloudSync" class="link-btn">Sync now</button>
           <button id="cloudOut" class="link-btn">Sign out</button>
@@ -714,91 +720,10 @@
       host.innerHTML = `<button id="cloudOpen" class="cloud-cta">
           <span aria-hidden="true">☁</span> Account required — sign in</button>
         <p id="cloudStatus" class="cloud-status" hidden></p>`;
-      $('#cloudOpen').addEventListener('click', () => apri('in'));
-    }
-  }
-
-  let ultimoFocus = null;
-  function apri(modo) {
-    ultimoFocus = document.activeElement;
-    const d = $('#cloudDialog');
-    d.hidden = false;
-    modo === 'up' ? mostraRegistrazione() : mostraAccesso();
-    setTimeout(() => $('#cloudEmail')?.focus(), 40);
-    document.addEventListener('keydown', chiudiConEsc);
-  }
-  function chiudi() {
-    $('#cloudDialog').hidden = true;
-    document.removeEventListener('keydown', chiudiConEsc);
-    ultimoFocus?.focus?.();
-  }
-  const chiudiConEsc = e => { if (e.key === 'Escape') chiudi(); };
-
-  function form(titolo, sottotitolo, azione, altroTesto, altroModo) {
-    $('#cloudDialogBody').innerHTML = `
-      <h2 id="cloudTitle">${esc(titolo)}</h2>
-      <p class="cloud-sub">${esc(sottotitolo)}</p>
-      <button type="button" id="cloudLinkedin" class="li-btn">
-        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor"
-          d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.13 1.45-2.13 2.94v5.67H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.22.79 24 1.77 24h20.45c.98 0 1.78-.78 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg>
-        Continue with LinkedIn</button>
-      <p class="cloud-or"><span>or use your email</span></p>
-      <form id="cloudForm" novalidate>
-        <label class="cloud-label" for="cloudEmail">Email</label>
-        <input id="cloudEmail" type="email" autocomplete="email" required />
-        <label class="cloud-label" for="cloudPass">Password</label>
-        <input id="cloudPass" type="password" autocomplete="${azione === 'up' ? 'new-password' : 'current-password'}"
-               minlength="6" required />
-        <p id="cloudErr" class="cloud-err" role="alert" hidden></p>
-        <button id="cloudGo" class="btn primary wide" type="submit">${azione === 'up' ? 'Create account' : 'Sign in'}</button>
-      </form>
-      <p class="cloud-alt">${esc(altroTesto)}
-        <button class="link-btn" id="cloudSwap">${altroModo === 'up' ? 'Create one' : 'Sign in'}</button></p>`;
-    $('#cloudLinkedin').addEventListener('click', () => {
-      stato('Taking you to LinkedIn…');
-      vaiA('linkedin_oidc');
-    });
-    $('#cloudSwap').addEventListener('click', () => altroModo === 'up' ? mostraRegistrazione() : mostraAccesso());
-    $('#cloudForm').addEventListener('submit', e => { e.preventDefault(); invia(azione); });
-  }
-  const mostraAccesso = () => form('Welcome back', 'Your progress will be merged with whatever is on this device.',
-    'in', 'No account yet?', 'up');
-  const mostraRegistrazione = () => form('Create an account', 'So your career follows you to another device. Six characters minimum.',
-    'up', 'Already have one?', 'in');
-
-  function errore(msg) {
-    const el = $('#cloudErr');
-    if (!el) return;
-    el.textContent = msg; el.hidden = !msg;
-  }
-
-  async function invia(azione) {
-    const email = $('#cloudEmail').value.trim();
-    const pass = $('#cloudPass').value;
-    errore('');
-    if (!email || !email.includes('@')) return errore('Enter your email address.');
-    if (pass.length < 6) return errore('Password too short — use at least 6 characters.');
-    const btn = $('#cloudGo');
-    btn.disabled = true; btn.textContent = 'Working…';
-    try {
-      if (azione === 'up') {
-        const r = await signUp(email, pass);
-        if (r && r.access_token) putSession(r);
-        else {
-          // il progetto richiede la conferma via email: non c'è ancora una sessione
-          chiudi(); disegna();
-          stato('Account created. Confirm it from your inbox, then sign in to enter World of Trade.', 'ok');
-          return;
-        }
-      } else {
-        putSession(await signIn(email, pass));
-      }
-      chiudi(); disegna();
-      await sincronizza();
-    } catch (e) {
-      errore(e.message);
-    } finally {
-      btn.disabled = false; btn.textContent = azione === 'up' ? 'Create account' : 'Sign in';
+      $('#cloudOpen').addEventListener('click', () => {
+        const next = location.pathname.replace(/^\//,'') + location.search + location.hash;
+        location.href = 'access.html?mode=login&next=' + encodeURIComponent(next);
+      });
     }
   }
 
@@ -807,8 +732,7 @@
     try { await call('/auth/v1/logout', { auth: true }); } catch (e) {}
     putSession(null);
     disegna();
-    stato('Signed out. Sign in again to enter World of Trade.', 'ok');
-    setTimeout(() => stato(''), 3200);
+    location.replace('access.html?mode=login');
   }
 
   /* ── avvio ────────────────────────────────────────────────────────── */
@@ -821,12 +745,27 @@
   else avvia();
   async function avvia() {
     if (avviato) return; avviato = true;
-    const signInGate = $('#authSignIn'), signUpGate = $('#authSignUp');
-    if (signInGate) { signInGate.disabled = false; signInGate.addEventListener('click', () => apri('in')); }
-    if (signUpGate) { signUpGate.disabled = false; signUpGate.addEventListener('click', () => apri('up')); }
-    agganciaOspite();
-    $('#cloudClose')?.addEventListener('click', chiudi);
-    $('#cloudDialog')?.addEventListener('click', e => { if (e.target.id === 'cloudDialog') chiudi(); });
+
+    // The hidden self-test uses ?sandbox=1: it never touches a real account,
+    // but still needs to exercise the complete game engine.
+    if (SANDBOX) { disegna(); return; }
+
+    // learn.html is account-only. Validate or refresh the stored token before
+    // the application is unlocked, preventing a stale-token UI flash.
+    if (!session) {
+      const next = location.pathname.replace(/^\//,'') + location.search + location.hash;
+      location.replace('access.html?next=' + encodeURIComponent(next));
+      return;
+    }
+    try {
+      const user = await chiUtente();
+      putSession({ ...session, user });
+    } catch (e) {
+      putSession(null);
+      const next = location.pathname.replace(/^\//,'') + location.search + location.hash;
+      location.replace('access.html?reason=session-expired&mode=login&next=' + encodeURIComponent(next));
+      return;
+    }
 
     const ritorno = leggiRitorno();
     if (ritorno?.errore) { disegna(); stato(ritorno.errore, 'warn'); return; }
@@ -847,12 +786,13 @@
 
   Object.assign(window.WOT_CLOUD_API, {
     signUp, signIn, pull, push, leagueRows, houseRows, pushLeague,
-    socialProfileByUser, socialProfileByCode, upsertSocialProfile, friendRows, socialProfiles, acceptReferral, friendLeagueRows,
+    socialProfileByUser, upsertSocialProfile, friendRows, socialProfiles, acceptReferral, friendLeagueRows,
     createFriendChallenge, friendChallenges, friendChallengeScores, submitFriendChallengeScore,
-    searchSocialProfiles, friendRequestRows, sendFriendRequest, respondFriendRequest,
-    updatePassword, deleteMyAccount,
-    sincronizza, merge, apri, chiudi, disegna, esci,
-    vaiA, leggiRitorno, idUtente, chiUtente, aggiornaGate,
+    searchSocialProfiles, friendRequestRows, sendFriendRequest, sendFriendRequestByTag, respondFriendRequest,
+    blockedUserRows, blockUser, blockTraderByTag,
+    updatePassword, reauthenticate, deleteMyAccount, uploadAvatar, deleteAvatar,
+    sincronizza, merge, disegna, esci,
+    leggiRitorno, idUtente, chiUtente, aggiornaGate,
   });
   // Object.assign copierebbe il VALORE del getter, non il getter:
   // dirty resterebbe congelato a false per sempre.

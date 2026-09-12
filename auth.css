@@ -37,3 +37,6 @@ body.auth-page{margin:0;min-height:100vh;color:#fff;font-family:var(--font);back
 .auth-tab.active{background:linear-gradient(180deg,#2d66cc,#173f86);color:#fff0b8;box-shadow:0 3px 10px rgba(0,0,0,.2)}
 .auth-panel[hidden]{display:none}
 .auth-check{display:flex;align-items:flex-start;gap:10px;color:#c4d6f7;font-size:13px;line-height:1.45;cursor:pointer}.auth-check input{margin-top:3px}.auth-check a{color:#fff0b8}
+
+/* v0.8 account recovery / support actions */
+.auth-support-row{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:-2px 0 4px}.auth-text-button{padding:0;border:0;background:none;color:#b9cff0;font:inherit;font-size:12px;font-weight:700;text-decoration:underline;text-underline-offset:3px;cursor:pointer}.auth-text-button:hover,.auth-text-button:focus-visible{color:#fff0b8}.auth-reset-copy{margin:0 0 14px;color:#b9cbe6}.auth-panel h2{margin:4px 0 8px}.auth-tab:focus-visible,.auth-text-button:focus-visible{outline:3px solid rgba(255,212,92,.55);outline-offset:3px}

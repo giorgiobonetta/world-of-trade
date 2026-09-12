@@ -53,7 +53,7 @@
       <dd>
         <p class="gl-def">${esc(v.def)}</p>
         <p class="gl-why">${esc(v.why)}</p>
-        <a class="gl-link" href="learn.html?lesson=${esc(v.lesson)}">
+        <a class="gl-link" href="access.html?next=${encodeURIComponent(`learn.html?lesson=${v.lesson}`)}">
           Lesson ${m.lessonNum} · ${esc(m.lessonTitle || '')}</a>
       </dd>
     </div>`;

@@ -37,7 +37,7 @@ if (attuale === nuovo) {
 
 const cerca = new RegExp(attuale.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
 let totale = 0;
-for (const f of ['index.html', 'landing.html', SITEMAP, 'robots.txt']) {
+for (const f of ['index.html', SITEMAP, 'robots.txt']) {
   if (!fs.existsSync(f)) { console.warn('saltato (non esiste): ' + f); continue; }
   const prima = fs.readFileSync(f, 'utf8');
   const n = (prima.match(cerca) || []).length;
