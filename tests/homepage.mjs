@@ -21,7 +21,7 @@ t('la radice non dipende più da una rewrite', !rootRewrite,
 
 const index = leggi('index.html');
 t('index.html è una vera landing', /class="site-nav"/.test(index) && /id="main"/.test(index));
-t('index.html porta al gioco', /href="learn\.html"/.test(index));
+t('Start trading porta alla pagina di accesso', /href="access\.html"[^>]*>Start trading</.test(index));
 t('index.html non reindirizza automaticamente al gioco', !/location\.replace\(['"]learn\.html/.test(index));
 t('index.html usa il dominio pubblico', /https:\/\/www\.worldoftrade\.app\//.test(index));
 

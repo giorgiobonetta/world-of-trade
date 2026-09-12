@@ -1,62 +1,48 @@
-# Test
+# Quality checks — v0.8.2
 
-Non fanno parte del sito: `.vercelignore` esclude questa cartella dal deploy.
+The production gate for this release is deliberately small, deterministic and green.
+It is the gate used by `.github/workflows/quality.yml` before browser testing starts.
 
-```
-cd tests
-npm install
+```bash
 npm test
+node tests/aritmetica.mjs
+node tests/coerenza.mjs
+node tests/content-engine.mjs
+node tests/competitive.mjs
+node tests/unicita.mjs
 ```
 
-`harness.mjs` carica `learn.html` in jsdom **eseguendo gli script che la pagina
-dichiara**, nel suo ordine, invece di un elenco scritto a mano. Quella scelta non è
-stilistica: una volta `mascot.js` era stato dimenticato nell'HTML e i test passavano
-comunque, perché li caricavano da una lista propria. Hélène non appariva da nessuna
-parte nell'app e nessuna suite se ne accorgeva.
+`npm test` runs `tests/release-v082.mjs`, which checks the current account-first architecture,
+public/legal copy, unified auth and recovery, session refresh, profile/avatar behavior, League and
+social hardening, PWA/cache rules, redirects, release assets and JavaScript syntax.
 
-| Suite | Cosa protegge |
-|---|---|
-| `regressioni.mjs` | cablaggio degli script, totali del curriculum, Hélène nei tre punti, ripasso e checkpoint, compatibilità dei salvataggi, i due bug storici dell'engine, accessibilità, PWA e cache, ritaglio dei loghi |
-| `streak.mjs` | la serie di risposte: cresce solo al primo colpo, si azzera sull'errore, attraversa le lezioni, si fonde col cloud |
-| `linkedin.mjs` | reindirizzamento OIDC, ritorno con i token nel frammento, pulizia dell'indirizzo, rifiuto dell'utente, id ricavato dal token |
-| `condivisione.mjs` | soglia del pulsante, testo del post, link a LinkedIn, pannello accessibile, degradazione senza canvas |
-| `visibilita.mjs` | che l'attributo `hidden` non venga annullato da una regola CSS con `display` |
-| `glossario.mjs` | coerenza col curriculum, ricerca, filtri, ordinamento per pertinenza |
-| `linkdiretto.mjs` | `?lesson=` apre solo ciò che è sbloccato, e non si rompe con parametri assurdi |
-| `contrasto.mjs` | ogni coppia testo/fondo contro il fondo peggiore su cui può capitare |
-| `sandbox.mjs` | che `?sandbox=1` non tocchi la carriera vera né il cloud, e che la pagina di autodiagnosi controlli davvero ciò che serve |
-| `card.mjs` | il disegno della card, verificato con un contesto 2D che registra le chiamate invece di rasterizzare |
+The five deterministic content suites independently protect the educational engine: numeric
+arithmetic, answer/explanation consistency, generated lesson validity, competitive helpers and
+content uniqueness. The release currently contains 34 units, 219 Career levels and 1,086 exercises.
 
-## Cose che i test hanno trovato, non confermato
+## Real-browser/mobile gate
 
-- `mascot.js` non era caricato: Hélène non compariva mai nell'app.
-- Un esercizio `build` non poteva ripetere una parola (il banco filtrava per testo).
-- Un `pairs` con due etichette destre identiche **segnava come sbagliate risposte
-  giuste** nell'Unità 2.
-- `Object.assign` copia il *valore* di un getter, non il getter: il flag `dirty` della
-  sincronizzazione era congelato a `false` e nessun tentativo sarebbe mai stato ripetuto.
-- Un checkpoint da 8 domande con 3 vite moriva prima di dare un punteggio.
-- `--muted-2` non raggiungeva 4.5:1 sul punto più luminoso dello sfondo.
-- `.node small` usava `--muted` su `royal-mid`: **3.81:1**, sulla schermata più vista
-  dell'app, da sempre.
-- `canvas.getContext` **lancia** quando il canvas non c'è, non restituisce `null`.
-- Una regola d'autore `display:grid` annullava l'attributo `hidden`: il pannello di
-  accesso restava aperto sopra l'app e, col cloud non configurato, nemmeno la X era
-  agganciata. **Questo l'ha trovato l'utente, non i test** — guardavano `el.hidden`,
-  che era `true`: la proprietà era giusta, il rendering no.
+GitHub Actions then installs Chromium and runs:
 
-## Il limite di questa suite
+```bash
+npx playwright test
+```
 
-Gira in Node: vede la logica e il DOM, non il rendering. Il bug del pannello che
-copriva l'app è passato di qui indisturbato. Per quello c'è `selftest.html`, che si
-apre nel browser vero e verifica visibilità calcolata, contrasto sui colori reali,
-dimensione dei tocchi, font, canvas e service worker. Le due cose sono complementari:
-questa suite gira a ogni modifica, quella si apre dopo ogni rilascio.
+`browser-smoke.spec.mjs` checks 320, 360, 390 and 430 px viewports, the public curriculum, unified
+access screen, the hidden `?sandbox=1` developer shell, all five primary app tabs, horizontal
+overflow and serious/critical axe-core accessibility violations. Screenshots/traces are uploaded as
+CI artifacts on the run.
 
-## Una trappola da ricordare
+## Hidden self-check
 
-`getComputedStyle` in jsdom non è una prova. Senza iniettare il CSS non c'è cascata
-da valutare, e anche iniettandolo jsdom non implementa `!important`. Un'asserzione su
-`getComputedStyle` può passare qualunque cosa faccia il codice: è peggio di nessuna
-asserzione, perché dà fiducia. `visibilita.mjs` verifica il testo del CSS, e sa
-fallire — l'ho provato togliendo la correzione.
+`/selftest.html` remains available for development, but is intentionally not linked from the public
+footer and is blocked in `robots.txt`. It opens the game with `?sandbox=1`, so it does not read or
+write a real user's account.
+
+## Legacy suites
+
+The other `.mjs` files are retained as historical regression tests from earlier releases. Some of
+them intentionally describe retired behavior such as guest mode, the old login/register pages or
+the former LinkedIn authentication experiment. They are useful references when touching those
+subsystems, but **they are not the v0.8.2 release gate** and should not be used as a production
+"all green" signal without first updating their old expectations.

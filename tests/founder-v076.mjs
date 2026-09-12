@@ -1,0 +1,12 @@
+import fs from 'fs';
+const read = f => fs.readFileSync(new URL('../'+f, import.meta.url), 'utf8');
+let pass=0, fail=0;
+const t=(n,v)=>{if(v){pass++;console.log('  ✓ '+n)}else{fail++;console.log('  ✗ '+n)}};
+const home=read('index.html'), landing=read('landing.html'), css=read('site.css');
+t('founder section uses Giorgio profile photo', /founder-giorgio-bonetta\.png/.test(home));
+t('landing alias uses the same founder photo', /founder-giorgio-bonetta\.png/.test(landing));
+t('founder image has descriptive alt text', /alt="Giorgio Bonetta, founder of World of Trade"/.test(home));
+t('founder bio mentions Bocconi Economics graduation', /graduated in Economics at Bocconi University/.test(home));
+t('founder photo has dedicated responsive styling', /\.founder-photo\{/.test(css) && /object-fit:cover/.test(css));
+t('founder photo asset exists', fs.existsSync(new URL('../founder-giorgio-bonetta.png', import.meta.url)));
+console.log(`\nFounder v0.7.6: ${pass} passed, ${fail} failed`); process.exitCode=fail?1:0;
