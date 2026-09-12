@@ -11,3 +11,9 @@ setup-mobile.sh
 capacitor.config.ts
 SUPABASE-V060-ACCOUNT-SOCIAL.sql
 .claude/
+
+# Source photo kept in repository/archive, not deployed
+founder-giorgio-bonetta.png
+
+# Database migration is repository-only, never a public web asset
+SUPABASE-V080-HARDENING.sql
