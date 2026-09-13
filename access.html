@@ -37,8 +37,6 @@
     <h1 id="authTitle">Start your trading career</h1>
     <p class="auth-intro">Create a free account or log in to continue. Your progress stays synced to your account.</p>
 
-    <div id="existingSession" class="auth-session" hidden></div>
-
     <div class="auth-tabs" role="tablist" aria-label="Account access">
       <button id="tabRegister" class="auth-tab active" type="button" role="tab" aria-selected="true" aria-controls="registerPanel" tabindex="0">Create account</button>
       <button id="tabLogin" class="auth-tab" type="button" role="tab" aria-selected="false" aria-controls="loginPanel" tabindex="-1">Log in</button>
@@ -46,9 +44,9 @@
 
     <section id="registerPanel" class="auth-panel" role="tabpanel" aria-labelledby="tabRegister">
       <form id="registerForm" class="auth-form">
-        <div class="auth-field"><label for="registerEmail">Email</label><input class="auth-input" id="registerEmail" type="email" autocomplete="email" placeholder="you@example.com" required /></div>
-        <div class="auth-field"><label for="registerPassword">Password</label><div class="auth-input-wrap"><input class="auth-input has-eye" id="registerPassword" type="password" autocomplete="new-password" minlength="8" required /><button class="password-toggle" type="button" data-password-toggle="registerPassword" aria-label="Show password">Show</button></div></div>
-        <div class="auth-field"><label for="registerConfirm">Confirm password</label><div class="auth-input-wrap"><input class="auth-input has-eye" id="registerConfirm" type="password" autocomplete="new-password" minlength="8" required /><button class="password-toggle" type="button" data-password-toggle="registerConfirm" aria-label="Show password">Show</button></div></div>
+        <div class="auth-field"><label for="registerEmail">Email</label><div class="auth-input-wrap"><input class="auth-input" id="registerEmail" type="email" autocomplete="email" placeholder="you@example.com" required /></div></div>
+        <div class="auth-field"><label for="registerPassword">Password</label><div class="auth-input-wrap has-toggle"><input class="auth-input has-eye" id="registerPassword" type="password" autocomplete="new-password" minlength="8" required /><button class="password-toggle" type="button" data-password-toggle="registerPassword" aria-label="Show password">Show</button></div></div>
+        <div class="auth-field"><label for="registerConfirm">Confirm password</label><div class="auth-input-wrap has-toggle"><input class="auth-input has-eye" id="registerConfirm" type="password" autocomplete="new-password" minlength="8" required /><button class="password-toggle" type="button" data-password-toggle="registerConfirm" aria-label="Show password">Show</button></div></div>
         <label class="auth-check"><input id="registerTerms" type="checkbox" /> <span>I agree to the <a href="privacy.html" target="_blank" rel="noopener">Privacy &amp; Terms</a>.</span></label>
         <p id="registerStatus" class="auth-status" role="status" hidden></p>
         <button id="registerSubmit" class="auth-submit" type="submit">Create account &amp; start trading</button>
@@ -56,9 +54,10 @@
     </section>
 
     <section id="loginPanel" class="auth-panel" role="tabpanel" aria-labelledby="tabLogin" hidden>
+      <div id="existingSession" class="auth-session" hidden></div>
       <form id="loginForm" class="auth-form">
-        <div class="auth-field"><label for="loginEmail">Email</label><input class="auth-input" id="loginEmail" type="email" autocomplete="email" placeholder="you@example.com" required /></div>
-        <div class="auth-field"><label for="loginPassword">Password</label><div class="auth-input-wrap"><input class="auth-input has-eye" id="loginPassword" type="password" autocomplete="current-password" minlength="8" required /><button class="password-toggle" type="button" data-password-toggle="loginPassword" aria-label="Show password">Show</button></div></div>
+        <div class="auth-field"><label for="loginEmail">Email</label><div class="auth-input-wrap"><input class="auth-input" id="loginEmail" type="email" autocomplete="email" placeholder="you@example.com" required /></div></div>
+        <div class="auth-field"><label for="loginPassword">Password</label><div class="auth-input-wrap has-toggle"><input class="auth-input has-eye" id="loginPassword" type="password" autocomplete="current-password" minlength="8" required /><button class="password-toggle" type="button" data-password-toggle="loginPassword" aria-label="Show password">Show</button></div></div>
         <div class="auth-support-row"><button id="forgotPassword" class="auth-text-button" type="button">Forgot password?</button><button id="resendConfirmation" class="auth-text-button" type="button">Resend confirmation email</button></div>
         <p id="loginStatus" class="auth-status" role="status" hidden></p>
         <button id="loginSubmit" class="auth-submit" type="submit">Log in &amp; continue</button>
@@ -69,8 +68,8 @@
       <h2 id="resetTitle">Choose a new password</h2>
       <p class="auth-reset-copy">Use at least 8 characters. This will replace the password for your World of Trade account.</p>
       <form id="resetForm" class="auth-form">
-        <div class="auth-field"><label for="resetPassword">New password</label><div class="auth-input-wrap"><input class="auth-input has-eye" id="resetPassword" type="password" autocomplete="new-password" minlength="8" required /><button class="password-toggle" type="button" data-password-toggle="resetPassword" aria-label="Show password">Show</button></div></div>
-        <div class="auth-field"><label for="resetConfirm">Confirm new password</label><div class="auth-input-wrap"><input class="auth-input has-eye" id="resetConfirm" type="password" autocomplete="new-password" minlength="8" required /><button class="password-toggle" type="button" data-password-toggle="resetConfirm" aria-label="Show password">Show</button></div></div>
+        <div class="auth-field"><label for="resetPassword">New password</label><div class="auth-input-wrap has-toggle"><input class="auth-input has-eye" id="resetPassword" type="password" autocomplete="new-password" minlength="8" required /><button class="password-toggle" type="button" data-password-toggle="resetPassword" aria-label="Show password">Show</button></div></div>
+        <div class="auth-field"><label for="resetConfirm">Confirm new password</label><div class="auth-input-wrap has-toggle"><input class="auth-input has-eye" id="resetConfirm" type="password" autocomplete="new-password" minlength="8" required /><button class="password-toggle" type="button" data-password-toggle="resetConfirm" aria-label="Show password">Show</button></div></div>
         <p id="resetStatus" class="auth-status" role="status" hidden></p>
         <button id="resetSubmit" class="auth-submit" type="submit">Update password</button>
       </form>

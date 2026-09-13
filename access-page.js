@@ -24,6 +24,13 @@
   function savedSession(){ try{return JSON.parse(localStorage.getItem(SESSION_KEY)||'null')}catch(e){return null} }
   function saveSession(s){ try{s?localStorage.setItem(SESSION_KEY,JSON.stringify(s)):localStorage.removeItem(SESSION_KEY)}catch(e){} }
   function setStatus(sel,text,type=''){const el=$(sel);if(!el)return;el.textContent=text||'';el.className='auth-status'+(type?` ${type}`:'');el.hidden=!text;}
+  function escapeHtml(value){return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
+  function setBusy(form,btn,busy,label){
+    if(!form)return;
+    form.classList.toggle('is-loading',!!busy);form.setAttribute('aria-busy',String(!!busy));
+    form.querySelectorAll('.auth-input').forEach(input=>{input.readOnly=!!busy;});
+    if(btn){if(!btn.dataset.idleLabel)btn.dataset.idleLabel=btn.textContent;btn.disabled=!!busy;btn.textContent=busy?(label||btn.dataset.idleLabel):btn.dataset.idleLabel;}
+  }
   function message(status,d){
     const raw=(d&&(d.msg||d.message||d.error_description||d.error||d.hint))||''; const t=String(raw).toLowerCase();
     if(t.includes('invalid login credentials')) return 'Wrong email or password.';
@@ -88,8 +95,8 @@
   $('#loginForm')?.addEventListener('submit',async e=>{
     e.preventDefault(); const form=e.currentTarget;if(!validForm(form))return;
     const email=$('#loginEmail').value.trim(),password=$('#loginPassword').value; if(password.length<8)return setStatus('#loginStatus','Use a password of at least 8 characters.','error');
-    const btn=$('#loginSubmit');btn.disabled=true;setStatus('#loginStatus','Logging in…');
-    try{const s=await call('/auth/v1/token?grant_type=password',{body:{email,password}});const ok=await verify(s);if(!ok)throw new Error('Could not verify your session.');goGame();}catch(err){setStatus('#loginStatus',err.message,'error');btn.disabled=false;}
+    const btn=$('#loginSubmit');setStatus('#loginStatus','');setBusy(form,btn,true,'Logging in…');
+    try{const s=await call('/auth/v1/token?grant_type=password',{body:{email,password}});const ok=await verify(s);if(!ok)throw new Error('Could not verify your session.');goGame();}catch(err){setBusy(form,btn,false);setStatus('#loginStatus',err.message,'error');}
   });
   $('#registerForm')?.addEventListener('submit',async e=>{
     e.preventDefault(); const form=e.currentTarget;if(!validForm(form))return;
@@ -97,8 +104,8 @@
     if(password.length<8)return setStatus('#registerStatus','Use a password of at least 8 characters.','error');
     if(password!==confirm)return setStatus('#registerStatus','The passwords do not match.','error');
     if(!$('#registerTerms').checked)return setStatus('#registerStatus','Accept the Privacy & Terms to create the account.','error');
-    const btn=$('#registerSubmit');btn.disabled=true;setStatus('#registerStatus','Creating your account…');
-    try{const redirect=new URL('access.html?mode=login&next='+encodeURIComponent(next),location.href).href;const r=await call('/auth/v1/signup?redirect_to='+encodeURIComponent(redirect),{body:{email,password}});if(r?.access_token){const ok=await verify(r);if(ok)return goGame();}setStatus('#registerStatus','Account created. Confirm the email in your inbox, then log in.','ok');selectTab('login');$('#loginEmail').value=email;}catch(err){setStatus('#registerStatus',err.message,'error');}finally{btn.disabled=false;}
+    const btn=$('#registerSubmit');setStatus('#registerStatus','');setBusy(form,btn,true,'Creating account…');
+    try{const redirect=new URL('access.html?mode=login&next='+encodeURIComponent(next),location.href).href;const r=await call('/auth/v1/signup?redirect_to='+encodeURIComponent(redirect),{body:{email,password}});if(r?.access_token){const ok=await verify(r);if(ok)return goGame();}setBusy(form,btn,false);setStatus('#registerStatus','Account created. Confirm the email in your inbox, then log in.','ok');selectTab('login');$('#loginEmail').value=email;}catch(err){setBusy(form,btn,false);setStatus('#registerStatus',err.message,'error');}
   });
   $('#forgotPassword')?.addEventListener('click',async()=>{
     const email=$('#loginEmail').value.trim(); if(!email||!$('#loginEmail').checkValidity()){setStatus('#loginStatus','Enter your email address first.','error');$('#loginEmail').focus();return;}
@@ -112,15 +119,15 @@
     e.preventDefault();const form=e.currentTarget;if(!validForm(form))return;const a=$('#resetPassword').value,b=$('#resetConfirm').value;
     if(a.length<8)return setStatus('#resetStatus','Use a password of at least 8 characters.','error');if(a!==b)return setStatus('#resetStatus','The passwords do not match.','error');
     const s=savedSession();if(!s?.access_token)return setStatus('#resetStatus','The recovery link has expired. Request a new password reset email.','error');
-    const btn=$('#resetSubmit');btn.disabled=true;setStatus('#resetStatus','Updating password…');
-    try{await call('/auth/v1/user',{method:'PUT',token:s.access_token,body:{password:a}});setStatus('#resetStatus','Password updated. Opening World of Trade…','ok');setTimeout(goGame,350);}catch(err){setStatus('#resetStatus',err.message,'error');btn.disabled=false;}
+    const btn=$('#resetSubmit');setStatus('#resetStatus','');setBusy(form,btn,true,'Updating password…');
+    try{await call('/auth/v1/user',{method:'PUT',token:s.access_token,body:{password:a}});setBusy(form,btn,false);setStatus('#resetStatus','Password updated. Opening World of Trade…','ok');setTimeout(goGame,350);}catch(err){setBusy(form,btn,false);setStatus('#resetStatus',err.message,'error');}
   });
 
   (async()=>{
     if(!configReady){selectTab(mode);setStatus(mode==='login'?'#loginStatus':'#registerStatus','Account access is temporarily unavailable because Supabase is not configured.','error');return;}
     const hash=await parseHash();if(hash?.error){selectTab('login');setStatus('#loginStatus',hash.error,'error');return;}if(hash?.recovery){showReset();return;}
     const existing=await verify(savedSession());
-    if(existing){const box=$('#existingSession');if(box){box.hidden=false;box.innerHTML=`<span>You are already signed in as <strong>${String(existing.user?.email||'your account').replace(/[&<>"']/g,'')}</strong>.</span><button id="continueSession" type="button">Continue</button><button id="useDifferent" type="button">Use a different account</button>`;$('#continueSession')?.addEventListener('click',goGame);$('#useDifferent')?.addEventListener('click',()=>{saveSession(null);box.hidden=true;selectTab('login');});}}
+    if(existing){const box=$('#existingSession'),form=$('#loginForm');if(box){const email=escapeHtml(existing.user?.email||'your account');box.hidden=false;box.innerHTML=`<div class="auth-session-head"><span class="auth-session-mark" aria-hidden="true">✓</span><div class="auth-session-copy"><span class="auth-session-kicker">You are already signed in as</span><strong class="auth-session-email">${email}</strong></div></div><div class="auth-session-actions"><button id="continueSession" class="auth-session-primary" type="button">Continue</button><button id="useDifferent" class="auth-session-secondary" type="button">Use a different account</button></div>`;if(form)form.hidden=true;$('#continueSession')?.addEventListener('click',goGame);$('#useDifferent')?.addEventListener('click',()=>{saveSession(null);box.hidden=true;if(form)form.hidden=false;selectTab('login');$('#loginEmail')?.focus();});}}
     if(params.get('reason')==='session-expired')setStatus('#loginStatus','Your session expired. Log in again to continue.','error');
     selectTab(params.get('mode')==='reset'?'login':mode);
   })();

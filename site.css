@@ -115,6 +115,7 @@
   color:#93abd0;font-size:13px;line-height:1.65;
 }
 .site-footer-bottom p{margin:0;max-width:640px}
+.site-footer-bottom .site-footer-disclaimer{flex:1 0 100%;max-width:none;width:100%}
 .site-footer-bottom a{color:#c2d6f7}
 
 

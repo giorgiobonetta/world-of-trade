@@ -1,3 +1,9 @@
+# v0.8.3 — Landing copy & account access polish
+
+- Key public-page explanatory paragraphs now use the full available content width, including the educational-use notice.
+- Existing-session UI moved inside the Log in tab and redesigned as a compact account card with Continue / Use a different account actions.
+- Login, registration and password-reset loading now renders directly in the credential cells with an inline activity state instead of creating a separate loading message box.
+
 # v0.8.2 — Stabilization & integrity
 
 - Unified account-first access with forgot password, resend confirmation, password reset, robust session refresh and deep-link return.

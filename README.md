@@ -1,4 +1,4 @@
-# World of Trade — v0.8.2 Stabilization
+# World of Trade — v0.8.3 Stabilization
 
 World of Trade is a game-based learning product for **physical commodity trading**. The current release is focused on product consistency, account reliability, PWA freshness, social integrity and regression prevention rather than adding new game modes.
 
@@ -52,7 +52,7 @@ cloud.js                       session refresh, sync and server-side RPC client
 social.js / account-social.js  Friends, Challenges, Profile and account settings
 SUPABASE-V080-HARDENING.sql    required v0.8.x database migration
 sw.js / version.js             PWA cache + centralized browser release version
-tests/release-v082.mjs         production release gate
+tests/release-v083.mjs         production release gate
 ```
 
 ## Quality gate
@@ -80,4 +80,4 @@ The browser may contain only a Supabase **publishable/anon** key. A `service_rol
 
 ## Release notes
 
-See `CHANGELOG.md` for older milestones. v0.8.2 is the stabilization release: account-first consistency, unified auth, reliable password recovery, safer session gating, server-mediated competitive writes, profile alias separation, Storage avatars, PWA cache freshness, legal/SEO consistency, accessibility focus handling and a new production test gate.
+See `CHANGELOG.md` for older milestones. v0.8.3 is the stabilization release: account-first consistency, unified auth, reliable password recovery, safer session gating, server-mediated competitive writes, profile alias separation, Storage avatars, PWA cache freshness, legal/SEO consistency, accessibility focus handling and a new production test gate.

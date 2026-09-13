@@ -1,7 +1,7 @@
 {
   "name": "world-of-trade-mobile",
   "private": true,
-  "version": "0.8.2",
+  "version": "0.8.3",
   "description": "World of Trade \u2014 account-first physical commodity trading learning game",
   "scripts": {
     "cap:sync": "npx cap sync",
@@ -12,7 +12,7 @@
     "ios:open": "npx cap open ios",
     "ios:run": "npx cap run ios",
     "assets": "npx capacitor-assets generate",
-    "test": "node tests/release-v082.mjs"
+    "test": "node tests/release-v083.mjs"
   },
   "dependencies": {
     "@capacitor/core": "*",

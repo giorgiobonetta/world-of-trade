@@ -1,8 +1,8 @@
 importScripts('./version.js');
-/* World of Trade — service worker v0.8.2
+/* World of Trade — service worker v0.8.3
    HTML/JS/CSS are network-first so a production deploy cannot be hidden by an
    old app shell. Images/fonts remain cache-first. supabase-config.js is never cached. */
-const VERSION='wot-' + (globalThis.WOT_VERSION || '0.8.2');
+const VERSION='wot-' + (globalThis.WOT_VERSION || '0.8.3');
 const STATIC=VERSION+'-static';
 const SHELL=[
   './','index.html','access.html','privacy.html','glossary.html','404.html',
